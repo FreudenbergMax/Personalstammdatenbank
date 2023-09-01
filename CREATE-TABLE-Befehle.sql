@@ -200,3 +200,104 @@ create table ist_Mitarbeitertyp (
     		references Mitarbeitertypen(Mitarbeitertyp_ID),
     primary key (Mitarbeiter_ID, Mitarbeitertyp_ID)
 );
+
+-- Tabellen, die den Bereich "Gesellschaft" behandeln, erstellen
+create table Gesellschaften (
+	Gesellschaft_ID serial primary key,
+	Bezeichnung varchar (50)
+);
+
+-- Assoziationstabelle zwischen Mitarbeiter und Gesellschaft
+create table in_Gesellschaft (
+	Mitarbeiter_ID integer not null,
+	Gesellschaft_ID integer not null,
+	Datum_Von date not null,
+    Datum_Bis date,
+    constraint fk_mitarbeiter
+    	foreign key (Mitarbeiter_ID) 
+    		references Mitarbeiter(Mitarbeiter_ID),
+    constraint fk_gesellschaften
+    	foreign key (Gesellschaft_ID) 
+    		references Gesellschaften(Gesellschaft_ID),
+    primary key (Mitarbeiter_ID, Gesellschaft_ID)
+);
+
+-- Tabellen, die den Bereich "Entgelt/Tarif" behandeln, erstellen
+--create table Tarifformen (
+--	Tarifform_ID serial primary key,
+--	Bezeichnung varchar(20)
+--);
+
+create table Entgelt (
+	Entgelt_ID serial primary key,
+	Mitarbeiter_ID integer not null,
+	--Tarifform_ID integer not null,
+	Tarifform varchar(20) check (Tarifform in ('tarifbeschaeftigt', 'aussertariflich')),
+	Datum_Von date not null,
+	Datum_Bis date,
+	--primary key (Mitarbeiter_ID, Tarifform_ID, Datum_Von),
+    constraint fk_mitarbeiter
+    	foreign key (Mitarbeiter_ID) 
+    		references Mitarbeiter(Mitarbeiter_ID)
+    --constraint fk_tarifformen
+    --	foreign key (Tarifform_ID) 
+    --		references Tarifformen(Tarifform_ID)
+);
+
+create table Aussertarif (
+	Aussertarif_ID serial primary key,
+	Datum_Von date not null,
+	Datum_Bis date,
+	Grundgehalt_monat decimal(10, 2) not null,
+	Weihnachtsgeld decimal(10,2),
+	Urlaubsgeld decimal (10, 2),
+	Sonderzahlung decimal (10,2),
+	Entgelt_ID integer not null,
+	constraint fk_Entgelt1
+		foreign key (Entgelt_ID)
+			references Entgelt(Entgelt_ID)
+);
+
+create table Gewerkschaften (
+	Gewerkschaft_ID serial primary key,
+	Bezeichnung varchar(255) not null
+);
+
+create table Tarifbezeichnungen (
+	Tarifbezeichnung_ID serial primary key,
+	Bezeichnung varchar (20) not null,
+	Gewerkschaft_ID integer not null,
+	constraint fk_Gewerkschaften
+		foreign key (Gewerkschaft_ID)
+			references Gewerkschaften(Gewerkschaft_ID)
+);
+
+create table Tarife (
+	Tarif_ID serial primary key,
+	Tarifbezeichnung_ID integer not null,
+	Datum_Von date not null,
+	Datum_Bis date not null,
+	Bedingungen varchar(255) not null,
+	Grundgehalt_monat decimal(10, 2) not null,
+	Weihnachtsgeld decimal(10,2),
+	Urlaubsgeld decimal (10, 2),
+	Sonderzahlung decimal (10,2),
+	constraint fk_tarifbezeichnungen
+		foreign key (Tarifbezeichnung_ID)
+			references Tarifbezeichnungen(Tarifbezeichnung_ID)
+);
+
+create table Tarifbeschaeftigung(
+	Entgelt_ID integer not null,
+	Tarif_ID integer not null,
+	primary key (Entgelt_ID, Tarif_ID),
+	constraint fk_Entgelt2
+		foreign key (Entgelt_ID)
+			references Entgelt(Entgelt_ID),
+	constraint fk_tarife
+		foreign key (Tarif_ID)
+			references Tarife(Tarif_ID)
+);
+
+
+
