@@ -59,23 +59,19 @@ create table in_Steuerklasse (
 -- Tabellen, die den Bereich "Jobtitel" behandeln, erstellen
 create table Erfahrungsstufen (
 	Erfahrungsstufe_ID serial primary key,
-	Bezeichnung varchar(50) not null,
-	Bedingungen varchar(255)
+	Bezeichnung varchar(50) not null
 );
 
 create table Jobtitel (
 	Jobtitel_ID serial primary key,
-	Bezeichnung varchar(50) not null,
-	Erfahrungsstufe_ID integer not null,
-	constraint fk_erfahrungsstufen
-		foreign key (Erfahrungsstufe_ID)
-			references Erfahrungsstufen(Erfahrungsstufe_ID)
+	Bezeichnung varchar(50) not null
 );
 
--- Assoziationstabelle zwischen Mitarbeiter und Jobtitel
+-- Assoziationstabelle zwischen Mitarbeiter und Jobtitel + Erfahrungsstufen
 create table hat_Jobtitel (
 	Mitarbeiter_ID integer not null,
 	Jobtitel_ID integer not null,
+	Erfahrungsstufe_ID integer not null,
 	Datum_Von date not null,
     Datum_Bis date,
     constraint fk_mitarbeiter
@@ -84,7 +80,10 @@ create table hat_Jobtitel (
     constraint fk_jobtitel
     	foreign key (Jobtitel_ID) 
     		references Jobtitel(Jobtitel_ID),
-    primary key (Mitarbeiter_ID, Jobtitel_ID, Datum_Von)
+    constraint fk_erfahrungsstufen
+		foreign key (Erfahrungsstufe_ID)
+			references Erfahrungsstufen(Erfahrungsstufe_ID),
+    primary key (Mitarbeiter_ID, Jobtitel_ID, Erfahrungsstufe_ID, Datum_Von)
 );
 
 -- Tabellen, die den Bereich "Adresse" behandeln, erstellen
@@ -255,7 +254,7 @@ create table Gewerkschaften (
 create table Verguetungen (
 	Verguetung_ID serial primary key,
 	Datum_Von date not null,
-	Datum_Bis date not null,
+	Datum_Bis date,
 	Grundgehalt_monat decimal(10, 2) not null,
 	Weihnachtsgeld decimal(10,2),
 	Urlaubsgeld decimal (10, 2),
@@ -289,5 +288,40 @@ create table Tarifbeschaeftigung(
 			references Tarife(Tarif_ID)
 );
 
+-- Tabellen, die den Bereich "Sozialversicherungen" behandeln, erstellen
+create table Versicherungsformen(
+	Versicherungsform_ID serial primary key,
+	Bezeichnung varchar(10) not null
+);
 
+create table Unfallversicherungen(
+	AG_Unfallversicherung_ID serial primary key,
+	AG_Unfallversicherungsbeitrag decimal(6,5) not null
+);
 
+create table versichert_bei(
+	Mitarbeiter_ID integer not null,
+	Versicherungsform_ID integer not null,
+	Datum_Von date not null,
+	Datum_Bis date,
+	AG_Unfallversicherung_ID integer not null,
+	primary key (Mitarbeiter_ID, Versicherungsform_ID, Datum_Von),
+    constraint fk_mitarbeiter
+    	foreign key (Mitarbeiter_ID) 
+    		references Mitarbeiter(Mitarbeiter_ID),
+    constraint fk_versicherungsformen
+    	foreign key (Versicherungsform_ID) 
+    		references Versicherungsformen(Versicherungsform_ID),
+    constraint fk_unfallversicherungen
+    	foreign key (AG_Unfallversicherung_ID) 
+    		references Unfallversicherungen(AG_Unfallversicherung_ID)
+);
+
+create table privat_versichert(
+	Mitarbeiter_ID integer not null,
+	Versicherungsform_ID integer not null,
+	Datum_Von date not null,
+	AG_Zuschuss_Krankenversicherung decimal(7,2) not null,
+	AG_Zuschuss_Zusatzbeitrag decimal(7,2) not null,
+	AG_Zuschuss_Pflegeversicherung decimal(7,2) not null
+);
