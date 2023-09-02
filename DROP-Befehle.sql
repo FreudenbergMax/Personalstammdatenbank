@@ -31,14 +31,14 @@ drop table Gesellschaften;
 drop table Aussertarif;
 drop table Tarifbeschaeftigung;
 drop table Tarife;
-drop table Tarifbezeichnungen;
 drop table Gewerkschaften;
+drop table Verguetungen;
 drop table Entgelt;
+drop table tarifformen;
 
--- entferne restliche Klassen
+-- entferne Mitarbeiter
 drop table Mitarbeiter;
+
+-- entferne Tabellen, die den Bereich "Austritt" behandeln
 drop table Austrittsgruende;
 drop table Kategorien_Austrittsgruende;
-drop table Geschlechter;
-
-

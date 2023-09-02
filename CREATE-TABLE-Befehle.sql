@@ -13,12 +13,6 @@ create table Austrittsgruende (
 			references Kategorien_Austrittsgruende(Kategorie_Austrittsgruende_ID)
 );
 
--- Tabellen, die den Bereich "Geschlecht" behandeln, erstellen
-create table Geschlechter (
-    Geschlecht_ID serial primary key,
-    Bezeichnung varchar(10) check (Bezeichnung in ('weiblich', 'maennlich', 'divers'))
-);
-
 -- Zentrale Tabelle "Mitarbeiter"
 create table Mitarbeiter (
     Mitarbeiter_ID serial primary key,
@@ -34,13 +28,10 @@ create table Mitarbeiter (
     Telefonnummer varchar(25) not null,
     Private_Emailadresse varchar(100) not null,
     Austrittsgrund_ID integer,
-    Geschlecht_ID integer not null,
+    Geschlecht varchar(10) check (Geschlecht in ('weiblich', 'maennlich', 'divers')),
     constraint fk_austrittsgruende 
     	foreign key (Austrittsgrund_ID) 
-    		references Austrittsgruende(Austrittsgrund_ID),
-    constraint fk_geschlechter 
-    	foreign key (Geschlecht_ID) 
-    		references Geschlechter(Geschlecht_ID)
+    		references Austrittsgruende(Austrittsgrund_ID)
 );
 
 -- Tabellen, die den Bereich "Steuerklasse" behandeln, erstellen
@@ -223,39 +214,37 @@ create table in_Gesellschaft (
 );
 
 -- Tabellen, die den Bereich "Entgelt/Tarif" behandeln, erstellen
---create table Tarifformen (
---	Tarifform_ID serial primary key,
---	Bezeichnung varchar(20)
---);
+create table Tarifformen (
+	Tarifform_ID serial primary key,
+	Bezeichnung varchar(20)
+);
 
 create table Entgelt (
-	Entgelt_ID serial primary key,
 	Mitarbeiter_ID integer not null,
-	--Tarifform_ID integer not null,
-	Tarifform varchar(20) check (Tarifform in ('tarifbeschaeftigt', 'aussertariflich')),
+	Tarifform_ID integer not null,
 	Datum_Von date not null,
 	Datum_Bis date,
-	--primary key (Mitarbeiter_ID, Tarifform_ID, Datum_Von),
+	primary key (Mitarbeiter_ID, Tarifform_ID, Datum_Von),
     constraint fk_mitarbeiter
     	foreign key (Mitarbeiter_ID) 
-    		references Mitarbeiter(Mitarbeiter_ID)
-    --constraint fk_tarifformen
-    --	foreign key (Tarifform_ID) 
-    --		references Tarifformen(Tarifform_ID)
+    		references Mitarbeiter(Mitarbeiter_ID),
+    constraint fk_tarifformen
+    	foreign key (Tarifform_ID) 
+    		references Tarifformen(Tarifform_ID)
 );
 
 create table Aussertarif (
-	Aussertarif_ID serial primary key,
+	Mitarbeiter_ID integer not null,
+	Tarifform_ID integer not null,
 	Datum_Von date not null,
-	Datum_Bis date,
 	Grundgehalt_monat decimal(10, 2) not null,
 	Weihnachtsgeld decimal(10,2),
 	Urlaubsgeld decimal (10, 2),
 	Sonderzahlung decimal (10,2),
-	Entgelt_ID integer not null,
+	primary key (Mitarbeiter_ID, Tarifform_ID, Datum_Von),
 	constraint fk_Entgelt1
-		foreign key (Entgelt_ID)
-			references Entgelt(Entgelt_ID)
+		foreign key (Mitarbeiter_ID, Tarifform_ID, Datum_Von)
+			references Entgelt(Mitarbeiter_ID, Tarifform_ID, Datum_Von)
 );
 
 create table Gewerkschaften (
@@ -263,37 +252,38 @@ create table Gewerkschaften (
 	Bezeichnung varchar(255) not null
 );
 
-create table Tarifbezeichnungen (
-	Tarifbezeichnung_ID serial primary key,
-	Bezeichnung varchar (20) not null,
+create table Verguetungen (
+	Verguetung_ID serial primary key,
+	Datum_Von date not null,
+	Datum_Bis date not null,
+	Grundgehalt_monat decimal(10, 2) not null,
+	Weihnachtsgeld decimal(10,2),
+	Urlaubsgeld decimal (10, 2),
+	Sonderzahlung decimal (10,2)
+);
+
+create table Tarife (
+	Tarif_ID serial primary key,
+	Tarifbezeichnung varchar(20) not null,
+	Verguetung_ID integer not null,
 	Gewerkschaft_ID integer not null,
+	constraint fk_verguetungen
+		foreign key (Verguetung_ID)
+			references Verguetungen(Verguetung_ID),
 	constraint fk_Gewerkschaften
 		foreign key (Gewerkschaft_ID)
 			references Gewerkschaften(Gewerkschaft_ID)
 );
 
-create table Tarife (
-	Tarif_ID serial primary key,
-	Tarifbezeichnung_ID integer not null,
-	Datum_Von date not null,
-	Datum_Bis date not null,
-	Bedingungen varchar(255) not null,
-	Grundgehalt_monat decimal(10, 2) not null,
-	Weihnachtsgeld decimal(10,2),
-	Urlaubsgeld decimal (10, 2),
-	Sonderzahlung decimal (10,2),
-	constraint fk_tarifbezeichnungen
-		foreign key (Tarifbezeichnung_ID)
-			references Tarifbezeichnungen(Tarifbezeichnung_ID)
-);
-
 create table Tarifbeschaeftigung(
-	Entgelt_ID integer not null,
+	Mitarbeiter_ID integer not null,
+	Tarifform_ID integer not null,
+	Datum_Von date not null,
 	Tarif_ID integer not null,
-	primary key (Entgelt_ID, Tarif_ID),
+	primary key (Mitarbeiter_ID, Tarifform_ID, Datum_Von),
 	constraint fk_Entgelt2
-		foreign key (Entgelt_ID)
-			references Entgelt(Entgelt_ID),
+		foreign key (Mitarbeiter_ID, Tarifform_ID, Datum_Von)
+			references Entgelt(Mitarbeiter_ID, Tarifform_ID, Datum_Von),
 	constraint fk_tarife
 		foreign key (Tarif_ID)
 			references Tarife(Tarif_ID)
