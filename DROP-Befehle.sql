@@ -12,12 +12,11 @@ drop table wohnt_in;
 drop table Erstwohnsitze;
 drop table Postleitzahlen;
 drop table Staedte;
-drop table Regionen;
 drop table Laender;
 
 -- entferne Tabellen, die den Bereich "Geschaeftseinheit" behandeln
 drop table eingesetzt_in;
-drop table Geschaeftseinheiten;
+drop table Abteilungen;
 
 -- entferne Tabellen, die den Bereich "Mitarbeitertyp" behandeln
 drop table ist_mitarbeitertyp;
@@ -28,22 +27,14 @@ drop table in_Gesellschaft;
 drop table Gesellschaften;
 
 -- entferne Tabellen, die den Bereich "Entgelt/Tarif" behandeln
-drop table Aussertarif;
-drop table Tarifbeschaeftigungen;
+drop table Aussertarifliche;
+drop table Tarifbeschaeftigte;
 drop table tarife_verguetungen; 
 drop table Tarife;
 drop table Verguetungen;
 drop table Gewerkschaften;
 drop table Entgelt;
 drop table tarifformen;
-
-/*
--- entferne Tabellen, die den Bereich "Sozialversicherung" behandeln
-drop table privat_versichert; 
-drop table versichert_bei; 
-drop table versicherungsformen;
-drop table unfallversicherungen; 
-*/
 
 -- entferne Mitarbeiter
 drop table Mitarbeiter;

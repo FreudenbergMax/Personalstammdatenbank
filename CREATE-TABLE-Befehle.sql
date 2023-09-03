@@ -46,7 +46,7 @@ create table in_Steuerklasse (
     Steuerklasse_ID integer not null,
     Datum_Von date not null,
     Datum_Bis date not null,
-    primary key (Mitarbeiter_ID, Steuerklasse_ID, Datum_Bis),
+    primary key (Mitarbeiter_ID, Datum_Bis),
     constraint fk_mitarbeiter
     	foreign key (Mitarbeiter_ID) 
     		references Mitarbeiter(Mitarbeiter_ID),
@@ -91,22 +91,13 @@ create table Laender (
 	Landesname varchar(100) not null
 );
 
-create table Regionen (
-	Region_ID serial primary key,
-	Regionname varchar(100) not null,
+create table Staedte (
+	Stadt_ID serial primary key,
+	stadtname varchar(100) not null,
 	Land_ID integer not null,
 	constraint fk_laender
 		foreign key (Land_ID)
 			references Laender(Land_ID)
-);
-
-create table Staedte (
-	Stadt_ID serial primary key,
-	stadtname varchar(100) not null,
-	Region_ID integer not null,
-	constraint fk_regionen
-		foreign key (Region_ID)
-			references Regionen(Region_ID)
 );
 
 create table Postleitzahlen (
@@ -143,30 +134,30 @@ create table wohnt_in (
     		references Erstwohnsitze(Erstwohnsitz_ID)
 );
 
--- Tabellen, die den Bereich "Geschaeftseinheit" behandeln, erstellen
-create table Geschaeftseinheiten (
-	Geschaeftseinheit_ID serial primary key,
+-- Tabellen, die den Bereich "Abteilung" behandeln, erstellen
+create table Abteilungen (
+	Abteilung_ID serial primary key,
 	Bezeichnung varchar(50) not null,
-	untersteht_geschaeftseinheit integer,
-	constraint fk_geschaeftseinheiten
-		foreign key (untersteht_geschaeftseinheit)
-			references Geschaeftseinheiten(Geschaeftseinheit_ID)
+	untersteht_Abteilung integer,
+	constraint fk_Abteilung
+		foreign key (untersteht_Abteilung)
+			references Abteilungen(Abteilung_ID)
 );
 
--- Assoziationstabelle zwischen Mitarbeiter und Adressenbereich
+-- Assoziationstabelle zwischen Mitarbeiter und Geschäftsbereich
 create table eingesetzt_in (
 	Mitarbeiter_ID integer not null,
-	Geschaeftseinheit_ID integer not null,
+	Abteilung_ID integer not null,
 	Datum_Von date not null,
     Datum_Bis date not null,
     fuehrungskraft boolean not null,
-    primary key (Mitarbeiter_ID, Geschaeftseinheit_ID, Datum_Bis),
+    primary key (Mitarbeiter_ID, Abteilung_ID, Datum_Bis),
     constraint fk_mitarbeiter
     	foreign key (Mitarbeiter_ID) 
     		references Mitarbeiter(Mitarbeiter_ID),
-    constraint fk_geschaeftseinheiten
-    	foreign key (Geschaeftseinheit_ID) 
-    		references Geschaeftseinheiten(Geschaeftseinheit_ID)
+    constraint fk_abteilungen
+    	foreign key (Abteilung_ID) 
+    		references Abteilungen(Abteilung_ID)
 );
 
 -- Tabellen, die den Bereich "Mitarbeitertyp" (Angestellter, Arbeiter, Praktikant, Werkstudent etc.) behandeln, erstellen
@@ -181,7 +172,7 @@ create table ist_Mitarbeitertyp (
 	Mitarbeitertyp_ID integer not null,
 	Datum_Von date not null,
     Datum_Bis date not null,
-    primary key (Mitarbeiter_ID, Mitarbeitertyp_ID, Datum_Bis),
+    primary key (Mitarbeiter_ID, Datum_Bis),
     constraint fk_mitarbeiter
     	foreign key (Mitarbeiter_ID) 
     		references Mitarbeiter(Mitarbeiter_ID),
@@ -222,7 +213,7 @@ create table Entgelt (
 	Tarifform_ID integer not null,
 	Datum_Von date not null,
 	Datum_Bis date not null,
-	primary key (Mitarbeiter_ID, Tarifform_ID, Datum_Bis),
+	primary key (Mitarbeiter_ID, Datum_Bis),
     constraint fk_mitarbeiter
     	foreign key (Mitarbeiter_ID) 
     		references Mitarbeiter(Mitarbeiter_ID),
@@ -231,18 +222,17 @@ create table Entgelt (
     		references Tarifformen(Tarifform_ID)
 );
 
-create table Aussertarif (
+create table Aussertarifliche (
 	Mitarbeiter_ID integer not null,
-	Tarifform_ID integer not null,
 	Datum_Bis date not null,
 	Grundgehalt_monat decimal(10, 2) not null,
 	Weihnachtsgeld decimal(10,2),
 	Urlaubsgeld decimal (10, 2),
 	Sonderzahlung decimal (10,2),
-	primary key (Mitarbeiter_ID, Tarifform_ID, Datum_Bis),
-	constraint fk_Entgelt_Aussertarif
-		foreign key (Mitarbeiter_ID, Tarifform_ID, Datum_Bis)
-			references Entgelt(Mitarbeiter_ID, Tarifform_ID, Datum_Bis)
+	primary key (Mitarbeiter_ID, Datum_Bis),
+	constraint fk_Entgelt_Aussertarifliche
+		foreign key (Mitarbeiter_ID, Datum_Bis)
+			references Entgelt(Mitarbeiter_ID, Datum_Bis)
 );
 
 create table Gewerkschaften (
@@ -255,16 +245,16 @@ create table Verguetungen (
 	Grundgehalt_monat decimal(10, 2) not null,
 	Weihnachtsgeld decimal(10,2),
 	Urlaubsgeld decimal (10, 2),
-	Sonderzahlung decimal (10,2),
-	Gewerkschaft_ID integer not null,
-	constraint fk_gewerkschaft
-		foreign key (Gewerkschaft_ID)
-			references Gewerkschaften(Gewerkschaft_ID)
+	Sonderzahlung decimal (10,2)
 );
 
 create table Tarife (
 	Tarif_ID serial primary key,
-	Tarifbezeichnung varchar(20) not null
+	Tarifbezeichnung varchar(20) not null,
+	Gewerkschaft_ID integer not null,
+	constraint fk_gewerkschaft
+		foreign key (Gewerkschaft_ID)
+			references Gewerkschaften(Gewerkschaft_ID)
 );
 
 create table Tarife_Verguetungen(
@@ -272,61 +262,25 @@ create table Tarife_Verguetungen(
 	Verguetung_ID integer not null,
 	Datum_Von date not null,
 	Datum_Bis date not null,
-	primary key (Tarif_ID, Verguetung_ID, Datum_Bis),
+	primary key (Tarif_ID, Datum_Bis),
 	constraint fk_tarife
 		foreign key (Tarif_ID)
-			references Tarife(Tarif_ID)
+			references Tarife(Tarif_ID),
+	constraint fk_verguetungen
+		foreign key (Verguetung_ID)
+			references Verguetungen(Verguetung_ID)
 );
 
-create table Tarifbeschaeftigungen(
+create table Tarifbeschaeftigte(
 	Mitarbeiter_ID integer not null,
-	Tarifform_ID integer not null,
 	Datum_Bis date not null,
 	Tarif_ID integer not null,
-	primary key (Mitarbeiter_ID, Tarifform_ID, Datum_Bis),
+	primary key (Mitarbeiter_ID, Datum_Bis),
 	constraint fk_Entgelt2
-		foreign key (Mitarbeiter_ID, Tarifform_ID, Datum_Bis)
-			references Entgelt(Mitarbeiter_ID, Tarifform_ID, Datum_Bis),
+		foreign key (Mitarbeiter_ID, Datum_Bis)
+			references Entgelt(Mitarbeiter_ID, Datum_Bis),
 	constraint fk_tarife
 		foreign key (Tarif_ID)
 			references Tarife(Tarif_ID)
 );
-/*
--- Tabellen, die den Bereich "Sozialversicherungen" behandeln, erstellen
-create table Versicherungsformen(
-	Versicherungsform_ID serial primary key,
-	Bezeichnung varchar(10) not null
-);
 
-create table Unfallversicherungen(
-	AG_Unfallversicherung_ID serial primary key,
-	AG_Unfallversicherungsbeitrag decimal(6,5) not null
-);
-
-create table versichert_bei(
-	Mitarbeiter_ID integer not null,
-	Versicherungsform_ID integer not null,
-	Datum_Von date not null,
-	Datum_Bis date,
-	AG_Unfallversicherung_ID integer not null,
-	primary key (Mitarbeiter_ID, Versicherungsform_ID, Datum_Von),
-    constraint fk_mitarbeiter
-    	foreign key (Mitarbeiter_ID) 
-    		references Mitarbeiter(Mitarbeiter_ID),
-    constraint fk_versicherungsformen
-    	foreign key (Versicherungsform_ID) 
-    		references Versicherungsformen(Versicherungsform_ID),
-    constraint fk_unfallversicherungen
-    	foreign key (AG_Unfallversicherung_ID) 
-    		references Unfallversicherungen(AG_Unfallversicherung_ID)
-);
-
-create table privat_versichert(
-	Mitarbeiter_ID integer not null,
-	Versicherungsform_ID integer not null,
-	Datum_Von date not null,
-	AG_Zuschuss_Krankenversicherung decimal(7,2) not null,
-	AG_Zuschuss_Zusatzbeitrag decimal(7,2) not null,
-	AG_Zuschuss_Pflegeversicherung decimal(7,2) not null
-);
-*/
