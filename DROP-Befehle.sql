@@ -29,18 +29,21 @@ drop table Gesellschaften;
 
 -- entferne Tabellen, die den Bereich "Entgelt/Tarif" behandeln
 drop table Aussertarif;
-drop table Tarifbeschaeftigung;
+drop table Tarifbeschaeftigungen;
+drop table tarife_verguetungen; 
 drop table Tarife;
-drop table Gewerkschaften;
 drop table Verguetungen;
+drop table Gewerkschaften;
 drop table Entgelt;
 drop table tarifformen;
 
+/*
 -- entferne Tabellen, die den Bereich "Sozialversicherung" behandeln
 drop table privat_versichert; 
 drop table versichert_bei; 
 drop table versicherungsformen;
 drop table unfallversicherungen; 
+*/
 
 -- entferne Mitarbeiter
 drop table Mitarbeiter;
