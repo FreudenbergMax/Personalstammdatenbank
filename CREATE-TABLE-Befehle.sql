@@ -21,17 +21,36 @@ create table Mitarbeiter (
     Geschlecht varchar(10) check (Geschlecht in ('weiblich', 'maennlich', 'divers')),
     Geburtsdatum date not null,
     Eintrittsdatum date not null, 
-    Wochenarbeitszeit integer not null,
-    Steuernummer varchar(25) not null,
-    Sozialversicherungsnummer varchar(25) not null,
-    ISBN varchar(25) not null,
-    Telefonnummer varchar(25) not null,
+    Steuernummer varchar(50) not null,
+    Sozialversicherungsnummer varchar(50) not null,
+    IBAN varchar(50) not null,
+    Telefonnummer varchar(50) not null,
     Private_Emailadresse varchar(100) not null,
     Austrittsdatum date,
     Austrittsgrund_ID integer,
     constraint fk_austrittsgruende 
     	foreign key (Austrittsgrund_ID) 
     		references Austrittsgruende(Austrittsgrund_ID)
+);
+
+-- Tabellen, die den Bereich "Wochenarbeitsstunden" behandeln, erstellen
+create table Wochenarbeitsstunden(
+	Wochenarbeitsstunden_ID serial primary key,
+	in_Stunden decimal(4, 2) not null
+);
+
+create table arbeitet_x_Wochenstunden (
+    Mitarbeiter_ID integer not null,
+    Wochenarbeitsstunden_ID integer not null,
+    Datum_Von date not null,
+    Datum_Bis date not null,
+    primary key (Mitarbeiter_ID, Datum_Bis),
+    constraint fk_mitarbeiter
+    	foreign key (Mitarbeiter_ID) 
+    		references Mitarbeiter(Mitarbeiter_ID),
+    constraint fk_wochenarbeitsstunden
+    	foreign key (Wochenarbeitsstunden_ID) 
+    		references Wochenarbeitsstunden(Wochenarbeitsstunden_ID)
 );
 
 -- Tabellen, die den Bereich "Steuerklasse" behandeln, erstellen

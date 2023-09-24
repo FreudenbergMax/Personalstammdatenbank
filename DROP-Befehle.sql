@@ -3,6 +3,10 @@ drop table hat_Jobtitel;
 drop table Jobtitel;
 drop table Erfahrungsstufen;
 
+-- entferne Tabellen, die den Bereich "Wochenarbeitsstunden" behandeln
+drop table arbeitet_x_Wochenstunden;
+drop table Wochenarbeitsstunden;
+
 -- entferne Tabellen, die den Bereich "Steuerklasse" behandeln
 drop table in_Steuerklasse;
 drop table Steuerklassen;

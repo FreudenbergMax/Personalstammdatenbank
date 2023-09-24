@@ -1,7 +1,9 @@
 from sqlalchemy.engine import URL
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
+#from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
+import psycopg2
 
 # Verbindungsaufbau wird nach folgender Beschreibung aus der SQLalchemy-Dokumentation ausgeführt:
 # https://docs.sqlalchemy.org/en/14/core/engines.html#database-urls
@@ -10,7 +12,7 @@ url_object = URL.create(
     username="postgres",
     password="@Postgres123",
     host="localhost",
-    database="personalstammdaten",
+    database="postgres",
 )
 
 engine = create_engine(url_object)
