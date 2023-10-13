@@ -10,13 +10,13 @@ create table customers (
 
 -- User löschen, sofern vorhanden
 drop user if exists Frank;
-drop user if exists Chris;
-drop user if exists Denials;
+--drop user if exists Chris;
+--drop user if exists Denials;
 
 -- neuen User erstellen
 create user Frank;
-create user Chris;
-create user Denials;
+--create user Chris;
+--create user Denials;
 
 insert into customers values
 	('Company1', 'Manger@ABC.COM', 'frank'),
@@ -28,8 +28,8 @@ insert into customers values
 
 -- User das Recht zugestehen, Daten auf Tabelle customers auszulesen (mit SELECT)
 grant select on customers to Frank;
-grant select on customers to Chris;
-grant select on customers to Denials;
+--grant select on customers to Chris;
+--grant select on customers to Denials;
 
 -- Erstellen Sie zuerst die Funktion, die das Filterprädikat definiert
 CREATE OR REPLACE FUNCTION fn_RowLevelSecurity(SecurityUserName text)
@@ -47,11 +47,12 @@ CREATE POLICY FilterCustomer
 -- Aktivieren Sie die Zeilenebene-Sicherheit für die Tabelle
 ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
 
-set role Frank;
-set role Chris;
-set role Denials;
 set role postgres;
-select current_user;
+set role Frank;
+--set role Chris;
+--set role Denials;
+--set role postgres;
+--select current_user;
 
 select * from customers;
 
