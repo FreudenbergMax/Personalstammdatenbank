@@ -1,10 +1,25 @@
 -- Mandantentabelle erstellen
 create table Mandanten (
 	Mandant_ID serial primary key,
-	Firma varchar (128) not null,
-	Adresse varchar(256) not null,
-	Passwort varchar(256) not null
+	Mandant varchar(128) unique not null,
+	Adresse varchar(256) not null
 );
+
+-- Erstellen Sie zuerst die Funktion, die das Filterprädikat definiert
+CREATE OR REPLACE FUNCTION fn_RowLevelSecurity_Mandant(Firma text)
+RETURNS boolean AS $$
+BEGIN
+  RETURN Firma = current_user;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE POLICY insert_Mandant
+    ON Mandanten
+    FOR ALL
+    USING (fn_RowLevelSecurity_Mandant(Firma));
+
+-- Aktivieren Sie die Zeilenebene-Sicherheit für die Tabelle
+ALTER TABLE Mandanten ENABLE ROW LEVEL SECURITY;
 
 -- Tabellen, die den Bereich "Austrittsgruende" behandeln, erstellen
 create table Kategorien_Austrittsgruende (
@@ -15,6 +30,7 @@ create table Kategorien_Austrittsgruende (
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
+ALTER TABLE Kategorien_Austrittsgruende ENABLE ROW LEVEL SECURITY;
 
 create table Austrittsgruende (
 	Austrittsgrund_ID serial primary key,
@@ -28,11 +44,12 @@ create table Austrittsgruende (
 		foreign key (Kategorie_Austrittsgruende_ID) 
 			references Kategorien_Austrittsgruende(Kategorie_Austrittsgruende_ID)
 );
+ALTER TABLE Austrittsgruende ENABLE ROW LEVEL SECURITY;
 
 -- Zentrale Tabelle "Mitarbeiter"
 create table Mitarbeiter (
     Mitarbeiter_ID serial primary key,
-    Mandant_ID integer not null,
+    --Mandant varchar(128) not null,
     Vorname varchar(64) not null,
     Nachname varchar(64) not null,
     Geschlecht varchar(16) check (Geschlecht in ('weiblich', 'maennlich', 'divers')) not null,
@@ -43,15 +60,29 @@ create table Mitarbeiter (
     IBAN varchar(32) not null,
     Telefonnummer varchar(16) not null,
     Private_Emailadresse varchar(64) not null,
-    Austrittsdatum date,
-    Austrittsgrund_ID integer,
-    constraint fk_mitarbeiter_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID),
-    constraint fk_mitarbeiter_austrittsgruende 
-    	foreign key (Austrittsgrund_ID) 
-    		references Austrittsgruende(Austrittsgrund_ID)
+    Austrittsdatum date
+    --Austrittsgrund_ID integer,
+    --constraint fk_mitarbeiter_mandanten
+	--	foreign key (Mandant_ID) 
+	--		references Mandanten(Mandant_ID),
+    --constraint fk_mitarbeiter_austrittsgruende 
+    --	foreign key (Austrittsgrund_ID) 
+    --		references Austrittsgruende(Austrittsgrund_ID)
 );
+ALTER TABLE Mitarbeiter ENABLE ROW LEVEL SECURITY;
+
+-- Erstellen Sie zuerst die Funktion, die das Filterprädikat definiert
+CREATE OR REPLACE FUNCTION fn_RowLevelSecurity(Mandant text)
+RETURNS boolean AS $$
+BEGIN
+  RETURN Mandant = current_user;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE POLICY rls_Mitarbeiter
+    ON Mitarbeiter
+    FOR ALL
+    USING (fn_RowLevelSecurity(Mandant));
 
 -- Tabellen, die den Bereich "Wochenarbeitsstunden" behandeln, erstellen
 create table Wochenarbeitsstunden(

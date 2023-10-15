@@ -88,7 +88,7 @@ $$
 LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION insert_neuer_mitarbeiter(
-	p_mitarbeiter_id integer,
+	--p_mitarbeiter_id integer,
 	p_user varchar(100),
 	p_vorname varchar(100), 
 	p_nachname varchar(100), 
@@ -118,7 +118,8 @@ begin
 							iban, 
 							telefonnummer, 
 							private_emailadresse) 
-	values(p_mitarbeiter_id, 
+	values(1,
+		   --p_mitarbeiter_id, 
 		   p_user, 
 		   p_vorname, 
 		   p_nachname, 
@@ -134,8 +135,28 @@ END;
 $$
 LANGUAGE plpgsql;
 
+/*
+CREATE OR REPLACE FUNCTION SQLabfrage(
+    p_user varchar(100),
+    abfrage test
+) RETURNS void AS
+$$
+BEGIN
+    -- SET ROLE ausführen
+    EXECUTE 'SET ROLE ' || p_user;
+
+    -- Die vorbereitete SQL-Abfrage ausführen
+    EXECUTE abfrage;
+END;
+$$
+LANGUAGE plpgsql;
+
+select sqlabfrage('testfirma', 'select * from Mitarbeiter');
+*/
+
 -- Stored Procedures aufrufen
 SELECT erstelle_user('testfirma');
+
 
 -- gibt alle existierende Users aus
 SELECT * FROM pg_catalog.pg_user;
