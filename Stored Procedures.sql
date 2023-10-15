@@ -33,10 +33,6 @@ CREATE POLICY FilterMandant
 -- Aktivieren Sie die Zeilenebene-Sicherheit für die Tabelle
 ALTER TABLE Mitarbeiter ENABLE ROW LEVEL SECURITY;
 
-
---insert into mitarbeiter(mandant, vorname, nachname, geschlecht, geburtsdatum, eintrittsdatum, steuernummer, sozialversicherungsnummer, iban, telefonnummer, private_emailadresse) 
---	values('testfirma', 'Max', 'Freudenberg', 'maennlich', '12.12.1992', '01.11.2023', '11 111 111 111', '00 121292 F 00', 'DE00 0000 0000 0000 0000 00', '0175 2572025', 'maxfreudenberg@web.de');
-
 -- User und Gruppe löschen, falls existent
 drop user if exists testfirma;
 drop user if exists testfirma2;
@@ -53,18 +49,6 @@ alter group mandantengruppe add user testfirma;
 
 create user testfirma2;
 alter group mandantengruppe add user testfirma2;
-
--- Mitarbeiter für Mandant 'testfirma' erstellen
-set role testfirma;
-insert into mitarbeiter(Mitarbeiter_ID, mandant, vorname, nachname, geschlecht, geburtsdatum, eintrittsdatum, steuernummer, sozialversicherungsnummer, iban, telefonnummer, private_emailadresse) 
-	values(1, 'testfirma', 'Max', 'Freudenberg', 'maennlich', '12.12.1992', '01.11.2023', '11 111 111 111', '00 121292 F 00', 'DE00 0000 0000 0000 0000 00', '0175 2572025', 'maxfreudenberg@web.de');
-select * from Mitarbeiter;
-
--- Mitarbeiter für Mandant 'testfirma2' erstellen
-set role testfirma2;
-insert into mitarbeiter(Mitarbeiter_ID, mandant, vorname, nachname, geschlecht, geburtsdatum, eintrittsdatum, steuernummer, sozialversicherungsnummer, iban, telefonnummer, private_emailadresse) 
-	values(2, 'testfirma2', 'Erika', 'Musterfrau', 'weiblich', '01.01.1995', '01.11.2023', '99 999 999 999', '00 010195 F 00', 'DE99 9999 9999 9999 9999 99', '0175 1234567', 'erikamusterfrau@web.de');
-select * from Mitarbeiter;
 
 set role postgres;
 select * from Mitarbeiter;
@@ -87,6 +71,9 @@ END;
 $$
 LANGUAGE plpgsql;
 
+-- Stored Procedures aufrufen
+SELECT erstelle_user('testfirma');
+
 CREATE OR REPLACE FUNCTION insert_neuer_mitarbeiter(
 	--p_mitarbeiter_id integer,
 	p_user varchar(100),
@@ -102,9 +89,14 @@ CREATE OR REPLACE FUNCTION insert_neuer_mitarbeiter(
 	p_private_emailadresse varchar(100)
 ) RETURNS void AS
 $$
+declare 
+	v_mitarbeiter_id integer;
 begin
 	
 	EXECUTE 'SET ROLE ' || p_user;
+
+	-- Mitarbeiter-ID erstellen
+    v_mitarbeiter_id := erstelle_neue_id(p_user);
 	
 	insert into mitarbeiter(Mitarbeiter_ID, 
 							mandant, 
@@ -118,8 +110,7 @@ begin
 							iban, 
 							telefonnummer, 
 							private_emailadresse) 
-	values(1,
-		   --p_mitarbeiter_id, 
+	values(v_mitarbeiter_id,
 		   p_user, 
 		   p_vorname, 
 		   p_nachname, 
@@ -134,6 +125,37 @@ begin
 END;
 $$
 LANGUAGE plpgsql;
+
+select insert_neuer_mitarbeiter('testfirma', 'Max', 'Freudenberg', 'maennlich', '12.12.1992', '01.11.2023', '11 111 111 111', '00 121292 F 00', 'DE00 0000 0000 0000 0000 00', '0175 2572025', 'maxfreudenberg@web.de');
+select insert_neuer_mitarbeiter('testfirma2', 'Erika', 'Musterfrau', 'weiblich', '01.01.1995', '01.11.2023', '99 999 999 999', '00 010195 F 00', 'DE99 9999 9999 9999 9999 99', '0175 1234567', 'erikamusterfrau@web.de');
+
+CREATE OR REPLACE FUNCTION erstelle_neue_id(
+	p_user varchar(100)
+) RETURNS integer as
+$$
+declare 
+	v_neue_id integer;
+begin
+	
+	-- Rolle setzen
+    SET ROLE postgres;
+
+    -- Neue ID erstellen
+    SELECT MAX(mitarbeiter_ID) + 1 INTO v_neue_id FROM mitarbeiter;
+   
+    IF v_neue_id IS NULL THEN
+    	v_neue_id := 1;
+	END IF;
+   
+   	EXECUTE 'SET ROLE ' || p_user; 
+
+    RETURN v_neue_id;
+	
+END;
+$$
+LANGUAGE plpgsql;
+
+SELECT erstelle_neue_id('testfirma2');
 
 /*
 CREATE OR REPLACE FUNCTION SQLabfrage(
@@ -153,10 +175,6 @@ LANGUAGE plpgsql;
 
 select sqlabfrage('testfirma', 'select * from Mitarbeiter');
 */
-
--- Stored Procedures aufrufen
-SELECT erstelle_user('testfirma');
-
 
 -- gibt alle existierende Users aus
 SELECT * FROM pg_catalog.pg_user;

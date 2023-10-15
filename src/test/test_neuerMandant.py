@@ -1,8 +1,6 @@
 import unittest
 import psycopg2
-
 from src.main.Mandant import Mandant
-from src.main.neuerMandant import neuer_mandant
 
 
 class TestNeuerMandant(unittest.TestCase):
