@@ -6,6 +6,16 @@ import openpyxl
 class Mandant:
 
     def __init__(self, mandantenname, conn):
+
+        if mandantenname == "postgres":
+            raise(ValueError(f"Dieser Name ist nicht erlaubt: {mandantenname}"))
+
+        if mandantenname == "":
+            raise(ValueError(f"Bitte geben Sie einen Namen für den Mandanten ein."))
+
+        if len(mandantenname) > 128:
+            raise(ValueError(f"Der Name des Mandanten darf höchstens 128 Zeichen lang sein"))
+
         self.mandantenname = mandantenname
         self._mandant_anlegen(conn)
         print(f"Neuer Mandant {self.mandantenname} erstellt!")

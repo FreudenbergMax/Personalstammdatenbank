@@ -1,4 +1,6 @@
--- START DER SEQUENZ ---------------------------------------------------------------------------------------------------------------------------------
+-- Verbietet Zugang zu allen pg_catalog-Tabellen (außer für Admin = postgres). So kann ein Mandant nicht die anderen Mandanten in pg_catalog.pg_user ausspähen
+REVOKE SELECT ON ALL TABLES IN SCHEMA pg_catalog FROM PUBLIC;
+
 drop table if exists Mitarbeiter;
 
 create table Mitarbeiter (
@@ -17,7 +19,7 @@ create table Mitarbeiter (
     Austrittsdatum date
 );
 
--- Erstellen Sie zuerst die Funktion, die das Filterprädikat definiert
+-- Erstellung der RLS-Policy (vorerst nur) für Tabelle "Mitarbeiter"
 CREATE OR REPLACE FUNCTION fn_RowLevelSecurity(Mandant text)
 RETURNS boolean AS $$
 BEGIN
@@ -30,7 +32,7 @@ CREATE POLICY FilterMandant
     FOR ALL
     USING (fn_RowLevelSecurity(Mandant));
 
--- Aktivieren Sie die Zeilenebene-Sicherheit für die Tabelle
+-- Möglichkeit für RLS für (vorerst nur) Tabelle "Mitarbeiter"
 ALTER TABLE Mitarbeiter ENABLE ROW LEVEL SECURITY;
 
 -- User und Gruppe löschen, falls existent
@@ -50,23 +52,34 @@ alter group mandantengruppe add user testfirma;
 create user testfirma2;
 alter group mandantengruppe add user testfirma2;
 
+-- Admin-Rolle "postgres" wählen. Dieser hat stets Zugang zu allen Tabellen
 set role postgres;
 select * from Mitarbeiter;
 
+-- gibt alle existierende Users aus
+SELECT * FROM pg_catalog.pg_user;
+
 CREATE OR REPLACE FUNCTION erstelle_user(
-	p_user varchar(100)
+	p_user varchar(128)
 ) RETURNS void AS
 $$
-BEGIN
+begin
+	
+	set role postgres;
+	
     -- Überprüfen, ob der Benutzer bereits existiert
     IF NOT EXISTS (SELECT 1 FROM pg_user WHERE usename = p_user) THEN
         -- Benutzer erstellen, falls er nicht existiert
         EXECUTE 'CREATE USER ' || p_user;
+        -- Benutzer der Mandantengruppe zuordnen
         execute 'alter group mandantengruppe add user ' || p_user;
         RAISE NOTICE 'Benutzer % wurde erfolgreich erstellt.', p_user;
     ELSE
         RAISE NOTICE 'Benutzer % existiert bereits.', p_user;
     END IF;
+   
+    EXECUTE 'SET ROLE ' || p_user; 
+   
 END;
 $$
 LANGUAGE plpgsql;
@@ -76,7 +89,7 @@ SELECT erstelle_user('testfirma');
 
 CREATE OR REPLACE FUNCTION insert_neuer_mitarbeiter(
 	--p_mitarbeiter_id integer,
-	p_user varchar(100),
+	p_user varchar(128),
 	p_vorname varchar(100), 
 	p_nachname varchar(100), 
 	p_geschlecht varchar(10), 
@@ -130,14 +143,14 @@ select insert_neuer_mitarbeiter('testfirma', 'Max', 'Freudenberg', 'maennlich', 
 select insert_neuer_mitarbeiter('testfirma2', 'Erika', 'Musterfrau', 'weiblich', '01.01.1995', '01.11.2023', '99 999 999 999', '00 010195 F 00', 'DE99 9999 9999 9999 9999 99', '0175 1234567', 'erikamusterfrau@web.de');
 
 CREATE OR REPLACE FUNCTION erstelle_neue_id(
-	p_user varchar(100)
+	p_user varchar(128)
 ) RETURNS integer as
 $$
 declare 
 	v_neue_id integer;
 begin
 	
-	-- Rolle setzen
+	-- Rolle auf admin setzen, damit folgende Abfrage den höchsten ID-Wert berechnen kann
     SET ROLE postgres;
 
     -- Neue ID erstellen
@@ -146,7 +159,8 @@ begin
     IF v_neue_id IS NULL THEN
     	v_neue_id := 1;
 	END IF;
-   
+   	
+	-- Zurück auf Rolle des Anfragestellers setzen, damit er nciht die Zugriffsrechte das Admins hat
    	EXECUTE 'SET ROLE ' || p_user; 
 
     RETURN v_neue_id;
@@ -155,26 +169,4 @@ END;
 $$
 LANGUAGE plpgsql;
 
-SELECT erstelle_neue_id('testfirma2');
-
-/*
-CREATE OR REPLACE FUNCTION SQLabfrage(
-    p_user varchar(100),
-    abfrage test
-) RETURNS void AS
-$$
-BEGIN
-    -- SET ROLE ausführen
-    EXECUTE 'SET ROLE ' || p_user;
-
-    -- Die vorbereitete SQL-Abfrage ausführen
-    EXECUTE abfrage;
-END;
-$$
-LANGUAGE plpgsql;
-
-select sqlabfrage('testfirma', 'select * from Mitarbeiter');
-*/
-
--- gibt alle existierende Users aus
-SELECT * FROM pg_catalog.pg_user;
+SELECT erstelle_neue_id('testfirma');

@@ -31,3 +31,15 @@ class TestNeuerMandant(unittest.TestCase):
 
         # Verbindung zur Datenbank schließen
         conn.close()
+
+    def test_verbotenerName(self):
+        # Verbindung zur PostgreSQL-Datenbank herstellen
+        conn = psycopg2.connect(
+            host="localhost",
+            database="postgres",
+            user="postgres",
+            password="@Postgres123"
+        )
+
+        # neuen Mandanten erstellen und als User in Datenbank speichern
+        testfirma = Mandant('postgres', conn)
