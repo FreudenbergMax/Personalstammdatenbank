@@ -77,11 +77,11 @@ class Mandant:
         # Cursor schließen
         cur.close()
 
-
+'''
 # Verbindung zur PostgreSQL-Datenbank herstellen
 conn = psycopg2.connect(
     host="localhost",
-    database="postgres",
+    database="Personalstammdatenbank",
     user="postgres",
     password="@Postgres123"
 )
@@ -90,6 +90,6 @@ testfirma = Mandant('testfirma', conn)
 
 # Verbindung zur Datenbank schließen
 conn.close()
-
+'''
 
 

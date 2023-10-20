@@ -10,24 +10,26 @@ class TestNeuerMandant(unittest.TestCase):
         # Verbindung zur PostgreSQL-Datenbank herstellen
         conn = psycopg2.connect(
             host="localhost",
-            database="postgres",
+            database="Personalstammdatenbank",
             user="postgres",
             password="@Postgres123"
         )
 
         # neuen Mandanten erstellen und als User in Datenbank speichern
-        testfirma = Mandant('testfirma', conn)
+        testfirma = Mandant('firma', conn)
 
-        select_query = "SELECT usename FROM pg_catalog.pg_user WHERE usename = 'testfirma'"
+        role_query = "SET ROLE postgres"
+        select_query = "SELECT usename FROM pg_catalog.pg_user WHERE usename = 'firma'"
 
         cur = conn.cursor()
+        cur.execute(role_query)
         cur.execute(select_query)
 
         # Ergebnisse abrufen
         result = cur.fetchall()
         name_neuer_mandant = result[0][0]
 
-        self.assertEqual(name_neuer_mandant, 'testfirma')
+        self.assertEqual(name_neuer_mandant, 'firma')
 
         # Verbindung zur Datenbank schließen
         conn.close()
