@@ -12,3 +12,4 @@ conn = psycopg2.connect(
 firma = Mandant("Firma", conn)
 firma.nutzer_anlegen("Max", "Mustermann", conn)
 firma.get_nutzer("Max", "Mustermann").select_ausfuehren("mandanten", conn)
+

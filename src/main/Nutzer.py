@@ -4,6 +4,13 @@ import pandas as pd
 class Nutzer:
 
     def __init__(self, vorname, nachname, mandant_id, conn):
+
+        if vorname == "":
+            raise(ValueError(f"Der Vorname des Nutzers muss aus mindestens einem Zeichen bestehen."))
+
+        if nachname == "":
+            raise(ValueError(f"Der Vorname des Nutzers muss aus mindestens einem Zeichen bestehen."))
+
         self.vorname = vorname
         self.nachname = nachname
         self.mandant_id = mandant_id

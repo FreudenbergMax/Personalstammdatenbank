@@ -9,14 +9,14 @@ class Mandant:
 
     def __init__(self, mandantenname, conn):
 
-        if mandantenname == "postgres":
-            raise(ValueError(f"Dieser Name ist nicht erlaubt: {mandantenname}"))
+        if str.lower(mandantenname) == "postgres":
+            raise(ValueError(f"Dieser Name ist nicht erlaubt: {mandantenname}."))
 
         if mandantenname == "":
             raise(ValueError(f"Der Name des Mandanten muss aus mindestens einem Zeichen bestehen."))
 
         if len(mandantenname) > 128:
-            raise(ValueError(f"Der Name des Mandanten darf höchstens 128 Zeichen lang sein"))
+            raise(ValueError(f"Der Name des Mandanten darf höchstens 128 Zeichen lang sein."))
 
         self.mandantenname = mandantenname
         self.mandant_id = self._id_erstellen(conn)

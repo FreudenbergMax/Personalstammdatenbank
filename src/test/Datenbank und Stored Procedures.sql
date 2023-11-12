@@ -1,23 +1,82 @@
-create schema if not exists temp_test_schema;
+-- Quelle: https://adityamattos.com/multi-tenancy-in-python-fastapi-and-sqlalchemy-using-postgres-row-level-security
+set role postgres;
 
-set search_path to temp_test_schema;
+-- Abschaffung der Rolle 'tenant-user' und dessen Privilegien
+-- 'tenant-user' kann zukünftig erstellte Sequenzen (bspw. Serial) NICHT mehr nutzen benutzen 
+alter default privileges in schema public revoke usage on sequences from tenant_user;
+-- 'tenant-user' kann SELECT-, INSERT-, UPDATE- und DELETE-Befehle auf alle Tabellen im Schema 'public' (auch auf zukünftige Tabellen) NICHT mehr ausführen
+alter default privileges in schema public revoke select, insert, update, delete on tables from tenant_user;
+-- Berechtigungen auf Sequenzen für 'tenant'-user aufheben
+revoke usage on all sequences in schema public from tenant_user;
+-- Berechtigungen auf Tabellen für tenant-user aufheben
+revoke select, insert, update, delete on all tables in schema public from tenant_user;
+-- 'tenant_user' darf nicht mehr im Schema 'public' operieren 
+revoke usage on schema public from tenant_user;
+-- 'tenant-user' wird quasi enterbt
+revoke tenant_user from postgres;
+-- Rolle 'tenant_user' entfernen
+drop role tenant_user;
+
+-- Erstellung der Rolle 'tenant-user' mit diversen Zugriffsrechten
+-- Rolle für die User erstellen, welcher RLS unterliegt
+create role tenant_user;
+-- tenant-user erbt Berechtigungen von postgres (=Admin)
+--grant tenant_user to postgres;
+-- Rolle 'tenant-user' darf im Schema 'public' operieren
+grant usage on schema public to tenant_user;
+-- 'tenant-user' hat Lese- und Schreibberechtigung auf alle Tabellen im Schema 'public'
+grant select, insert, update, delete on all tables in schema public to tenant_user;
+-- 'tenant-user' kann Sequenzen verwenden. So soll bspw. Tabellen mit Serial-Spalten nutzbar sein
+grant usage on all sequences in schema public to tenant_user;
+-- 'tenant-user' kann SELECT-, INSERT-, UPDATE- und DELETE-Befehle auf alle Tabellen im Schema 'public' ausführen (auch auf zukünftige Tabellen)
+alter default privileges in schema public grant select, insert, update, delete on tables to tenant_user;
+-- 'tenant-user' kann zukünftig erstellte Sequenzen (bspw. Serial) benutzen 
+alter default privileges in schema public grant usage on sequences to tenant_user;
 
 set role postgres;
-drop table if exists ist_Mitarbeitertyp;
-drop table if exists Mitarbeitertypen;
-drop table if exists Mitarbeiter;
 
--- Funktion soll sicherstellen, dass für ein Mandant nur die Datensätze sichtbar sind, wenn in der Spalte "Mandant" dessen Name steht 
-create or replace function fn_RowLevelSecurity(Mandant text)
-returns boolean as $$
-begin
-  return Mandant = current_user;
-end;
-$$ language plpgsql;
+drop table if exists Nutzer;
+drop table if exists Mandanten;
+drop table if exists mitarbeiter;
+drop function if exists erstelle_neue_id(varchar(64), varchar(64));
+drop function if exists mandant_anlegen(integer, varchar(128));
+drop function if exists nutzer_anlegen(integer, varchar(64), varchar(64), integer);
+drop function if exists nutzer_entfernen(integer, varchar(64), varchar(64), integer);
+drop function if exists select_ausfuehren(varchar(64), integer);
+drop function if exists insert_mitarbeiter(integer, integer);
 
+create table mandanten(
+	mandant_id integer primary key,
+	firma varchar(128)
+);
+
+alter table mandanten enable row level security;
+
+-- Erstellung der RLS-Policy mit anschließender Aktivieriung der RLS-Fähigkeit der Tabelle "Mitarbeiter"
+create policy filter_mandanten
+    on mandanten
+    using (mandant_id = current_setting('app.current_tenant')::int);
+
+create table nutzer(
+	user_id integer primary key,
+	vorname varchar(64) not null,
+	nachname varchar(64) not null,
+	mandant_id integer not null,
+	constraint fk_Nutzer_mandanten
+		foreign key (mandant_id) 
+			references mandanten(mandant_id)
+);
+
+alter table nutzer enable row level security;
+
+-- Erstellung der RLS-Policy mit anschließender Aktivieriung der RLS-Fähigkeit der Tabelle "Mitarbeiter"
+create policy filter_nutzer
+    on nutzer
+    using (mandant_id = current_setting('app.current_tenant')::int);
+   
 create table Mitarbeiter (
     Mitarbeiter_ID integer primary key,
-    Mandant varchar(128) not null,
+    Mandant_ID integer not null,
     Vorname varchar(64) not null,
     Nachname varchar(64) not null,
     Geschlecht varchar(16) check (Geschlecht in ('weiblich', 'maennlich', 'divers')) not null,
@@ -31,275 +90,131 @@ create table Mitarbeiter (
     Austrittsdatum date
 );
 
+alter table Mitarbeiter enable row level security;
+
 -- Erstellung der RLS-Policy mit anschließender Aktivieriung der RLS-Fähigkeit der Tabelle "Mitarbeiter"
 create policy FilterMandant_Mitarbeiter
     on mitarbeiter
-    for all
-    using (fn_RowLevelSecurity(Mandant));
-
-alter table Mitarbeiter enable row level security;
-
--- Tabellen, die den Bereich "Mitarbeitertyp" (Angestellter, Arbeiter, Praktikant, Werkstudent etc.) behandeln, erstellen
-create table Mitarbeitertypen (
-	Mitarbeitertyp_ID integer primary key,
-	Mandant varchar(128) not null,
-	Mitarbeitertyp varchar(32)
-);
-
--- Erstellung der RLS-Policy mit anschließender Aktivieriung der RLS-Fähigkeit der Tabelle "Mitarbeitertypen"
-create policy FilterMandant_Mitarbeitertypen
-    on mitarbeitertypen
-    for all
-    using (fn_RowLevelSecurity(Mandant));
-
-alter table Mitarbeitertypen enable row level security;
-
--- Assoziationstabelle zwischen Mitarbeiter und Mitarbeitertyp
-create table ist_Mitarbeitertyp (
-	Mitarbeiter_ID integer not null,
-	Mitarbeitertyp_ID integer not null,
-	Mandant varchar(128) not null,
-	Datum_Von date not null,
-    Datum_Bis date not null,
-    primary key (Mitarbeiter_ID, Datum_Bis),
-    constraint fk_istmitarbeitertyp_mitarbeiter
-    	foreign key (Mitarbeiter_ID) 
-    		references Mitarbeiter(Mitarbeiter_ID),
-    constraint fk_istmitarbeitertyp_mitarbeitertypen
-    	foreign key (Mitarbeitertyp_ID) 
-    		references Mitarbeitertypen(Mitarbeitertyp_ID)
-);
-
--- Erstellung der RLS-Policy mit anschließender Aktivieriung der RLS-Fähigkeit der Tabelle "ist_Mitarbeitertyp"
-create policy FilterMandant_istMitarbeitertyp
-    on ist_Mitarbeitertyp
-    for all
-    using (fn_RowLevelSecurity(Mandant));
-
-alter table ist_Mitarbeitertyp enable row level security;
-
--- User und Gruppe löschen, falls existent
-drop user if exists firma;
-drop user if exists unternehmen;
-drop group if exists mandantengruppe;
-
--- Mandantengruppe erstellen und mit Privilegien ausstatten
-create group mandantengruppe;
-grant select, insert, update, delete on mitarbeiter to mandantengruppe;
-grant select, insert, update, delete on Mitarbeitertypen to mandantengruppe;
-grant select, insert, update, delete on ist_Mitarbeitertyp to mandantengruppe;
+    using (mandant_id = current_setting('app.current_tenant')::int);
 
 
 
-
-
-CREATE OR REPLACE FUNCTION erstelle_mandant(
-	p_mandant varchar(128)
-) RETURNS void AS
-$$
-begin
-	
-    -- Überprüfen, ob der Benutzer bereits existiert
-    IF NOT EXISTS (SELECT 1 FROM pg_user WHERE usename = p_mandant) THEN
-        -- Benutzer erstellen, falls er nicht existiert
-        EXECUTE 'CREATE USER ' || p_mandant;
-        -- Benutzer der Mandantengruppe zuordnen
-        execute 'alter group mandantengruppe add user ' || p_mandant;
-        RAISE NOTICE 'Benutzer % wurde erfolgreich erstellt.', p_mandant;
-    ELSE
-        RAISE NOTICE 'Benutzer % existiert bereits.', p_mandant;
-    END IF;
-   
-END;
-$$
-LANGUAGE plpgsql;
-
-
-
-
-
-CREATE OR REPLACE FUNCTION erstelle_neue_id(
-	p_mandant varchar(128),
+create or replace function erstelle_neue_id(
 	p_id_spalte varchar(64),
 	p_tabelle varchar(64)
-) RETURNS integer as
+) returns integer as
 $$
 declare 
 	v_neue_id integer;
 begin
 
     -- Neue ID erstellen
-    EXECUTE 'SELECT MAX(' || p_id_spalte || ') + 1 FROM ' || p_tabelle INTO v_neue_id;
+    execute 'SELECT MAX(' || p_id_spalte || ') + 1 FROM ' || p_tabelle into v_neue_id;
    
-    IF v_neue_id IS NULL THEN
+    if v_neue_id is null then
     	v_neue_id := 1;
-	END IF;
+	end if;
 
-    RETURN v_neue_id;
+    return v_neue_id;
 	
-END;
+end;
 $$
-LANGUAGE plpgsql;
+language plpgsql;
 
 
 
+create or replace function mandant_anlegen(
+	p_mandant_id integer,
+	p_firma varchar(128)
+) returns void as
+$$
+begin
+
+    insert into Mandanten(Mandant_ID, Firma)
+		values(p_mandant_id, p_firma);
+
+end;
+$$
+language plpgsql;
 
 
-CREATE OR REPLACE FUNCTION insert_tbl_mitarbeiter(
-	p_mandant varchar(128),
-	p_vorname varchar(64), 
-	p_nachname varchar(64), 
-	p_geschlecht varchar(16), 
-	p_geburtsdatum date, 
-	p_eintrittsdatum date, 
-	p_steuernummer varchar(32), 
-	p_sozialversicherungsnummer varchar(32), 
-	p_iban varchar(32), 
-	p_telefonnummer varchar(16), 
-	p_private_emailadresse varchar(64)
-) RETURNS void AS
+
+create or replace function nutzer_anlegen(
+	p_user_id integer,
+	p_vorname varchar(64),
+	p_nachname varchar(64),
+	p_mandant_id integer
+) returns void as
+$$
+begin
+
+    insert into Nutzer(User_ID, vorname, Nachname, Mandant_ID)
+		values(p_user_id, p_vorname, p_nachname, p_mandant_id);
+
+end;
+$$
+language plpgsql;
+
+
+
+create or replace function nutzer_entfernen(
+	p_user_id integer,
+	p_vorname varchar(64),
+	p_nachname varchar(64),
+	p_mandant_id integer
+) returns void as
+$$
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+    delete from nutzer 
+    where user_id = p_user_id 
+    	and vorname = p_vorname 
+    	and nachname = p_nachname 
+    	and mandant_id = p_mandant_id;
+
+end;
+$$
+language plpgsql;
+
+
+
+-- Quelle: https://www.sqlines.com/postgresql/how-to/return_result_set_from_stored_procedure
+create or replace function select_ausfuehren(
+	p_tabelle varchar(64),
+	p_mandant_id integer
+) returns text as
 $$
 declare 
-	v_mitarbeiter_id integer;
+	resultset text;
 begin
 	
-	-- neue Mitarbeiter-ID erstellen
-    v_mitarbeiter_id := erstelle_neue_id(p_mandant, 'mitarbeiter_ID', 'mitarbeiter');
-	
-   	-- Daten in Tabelle Mitarbeiter eintragen 
-    insert into mitarbeiter(Mitarbeiter_ID, 
-							mandant, 
-							vorname, 
-							nachname, 
-							geschlecht, 
-							geburtsdatum, 
-							eintrittsdatum, 
-							steuernummer, 
-							sozialversicherungsnummer, 
-							iban, 
-							telefonnummer, 
-							private_emailadresse) 
-	values(v_mitarbeiter_id,
-		   p_mandant, 
-		   p_vorname, 
-		   p_nachname, 
-		   p_geschlecht, 
-		   p_geburtsdatum, 
-		   p_eintrittsdatum, 
-		   p_steuernummer, 
-		   p_sozialversicherungsnummer, 
-		   p_iban, 
-		   p_telefonnummer, 
-		   p_private_emailadresse);
-   
-END;
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+    execute 'SELECT firma FROM ' || p_tabelle into resultset;
+
+    return resultset;
+
+end;
 $$
-LANGUAGE plpgsql;
+language plpgsql;
 
 
 
-
-
-CREATE OR REPLACE FUNCTION insert_tbl_mitarbeitertyp(
-	p_mandant varchar(128),
-	p_mitarbeitertyp varchar(32)
-) RETURNS void AS
-$$
-declare 
-	v_mitarbeitertyp_id integer;
-begin
-	
-	-- neue Mitarbeiter-ID erstellen
-    v_mitarbeitertyp_id := erstelle_neue_id(p_mandant, 'mitarbeitertyp_ID', 'mitarbeitertypen');
-	
-   	-- Daten in Tabelle Mitarbeitertyp eintragen 
-    insert into mitarbeitertypen(Mitarbeitertyp_ID, Mandant, Mitarbeitertyp)
-		values(v_mitarbeitertyp_id, p_mandant, p_mitarbeitertyp);
-   
-END;
-$$
-LANGUAGE plpgsql;
-
-
-
-
-
-CREATE OR REPLACE FUNCTION insert_tbl_istmitarbeitertyp(
-	p_mandant varchar(128),
-	p_startdatum date,
-	p_enddatum date
-) RETURNS void AS
-$$
-declare 
-	v_mitarbeiter_id integer;
-	v_mitarbeitertyp_id integer;
-begin
-	
-	-- IDs aus den Referenztabellen auslesen
-	v_mitarbeiter_id := id_auslesen(p_mandant, 'mitarbeiter_ID', 'mitarbeiter');
-    v_mitarbeitertyp_id := id_auslesen(p_mandant, 'mitarbeitertyp_ID', 'mitarbeitertypen');
-	
-   	-- Daten in Tabelle ist_Mitarbeitertyp eintragen 
-    insert into ist_Mitarbeitertyp(Mitarbeiter_ID, Mitarbeitertyp_ID, Mandant, Datum_Von, Datum_Bis)
-		values(v_mitarbeiter_id, v_mitarbeitertyp_id, p_mandant, p_startdatum, p_enddatum);
-   
-END;
-$$
-LANGUAGE plpgsql;
-
-
-
-
-
-CREATE OR REPLACE FUNCTION id_auslesen(
-	p_mandant varchar(128),
-	p_id_spalte varchar(64),
-	p_tabelle varchar(64)
-) RETURNS integer as
-$$
-declare 
-	v_id integer;
-begin
-	
-	-- auf Mandantenrolle umstellen, um sicherzugehen, dass nur die ID des Mandanten berücksichtigt wird
-	execute 'SET ROLE ' || p_mandant; 
-
-    -- Neue ID erstellen
-    EXECUTE 'SELECT MAX(' || p_id_spalte || ') FROM ' || p_tabelle INTO v_id;
-	
-   	set role postgres;
-   	
-    RETURN v_id;
-	
-END;
-$$
-LANGUAGE plpgsql;
-
-
-
-
-
-CREATE OR REPLACE FUNCTION insert_neuer_mitarbeiter_alt(
-	p_mandant varchar(128),
-	p_vorname varchar(64), 
-	p_nachname varchar(64), 
-	p_geschlecht varchar(16), 
-	p_geburtsdatum date, 
-	p_eintrittsdatum date, 
-	p_steuernummer varchar(32), 
-	p_sozialversicherungsnummer varchar(32), 
-	p_iban varchar(32), 
-	p_telefonnummer varchar(16), 
-	p_private_emailadresse varchar(64),
-	p_mitarbeitertyp varchar(32)
-) RETURNS void AS
+create or replace function insert_mitarbeiter(
+	p_mitarbeiter_id integer,
+	p_mandant_id integer
+) returns text as
 $$
 begin
-
-	perform insert_tbl_mitarbeiter(p_mandant, p_vorname, p_nachname, p_geschlecht, p_geburtsdatum, p_eintrittsdatum, p_steuernummer, p_sozialversicherungsnummer, p_iban, p_telefonnummer, p_private_emailadresse);
-	perform insert_tbl_mitarbeitertyp(p_mandant, p_mitarbeitertyp);
-	perform insert_tbl_istmitarbeitertyp(p_mandant, p_eintrittsdatum, '9999-12-31');
 	
-END;
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+    
+	-- Code, der die Mitarbeiterdaten in die Datenbank schreibt
+
+end;
 $$
-LANGUAGE plpgsql;
+language plpgsql;
