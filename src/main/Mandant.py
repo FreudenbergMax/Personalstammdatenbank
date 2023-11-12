@@ -2,6 +2,8 @@ import psycopg2
 import pandas as pd
 import openpyxl
 
+from src.main.Nutzer import Nutzer
+
 
 class Mandant:
 
@@ -11,34 +13,40 @@ class Mandant:
             raise(ValueError(f"Dieser Name ist nicht erlaubt: {mandantenname}"))
 
         if mandantenname == "":
-            raise(ValueError(f"Bitte geben Sie einen Namen für den Mandanten ein."))
+            raise(ValueError(f"Der Name des Mandanten muss aus mindestens einem Zeichen bestehen."))
 
         if len(mandantenname) > 128:
             raise(ValueError(f"Der Name des Mandanten darf höchstens 128 Zeichen lang sein"))
 
         self.mandantenname = mandantenname
-        self._mandant_anlegen(conn)
-        print(f"Neuer Mandant {self.mandantenname} erstellt!")
+        self.mandant_id = self._id_erstellen(conn)
+        self._in_datenbank_anlegen(conn)
+        self.liste_nutzer = []
 
-    def get_mandantenname(self):
+    def _id_erstellen(self, conn):
         """
-        gibt die Bezeichnung des Mandanten zurück
+        Methode ruft die stored Procedure 'erstelle_neue_id' auf, welche eine neue Mandant_ID berechnet und den Wert
+        zurückgibt.
+        :param conn: Connection zur Personalstammdatenbank
+        :return: berechnete Mandant_ID
         """
-        return self.mandantenname
+        neue_id_query = "SELECT erstelle_neue_id('Mandant_ID', 'Mandanten')"
 
-    def _mandant_anlegen(self, conn):
-        """
-        Legt den Mandanten als User in der Datenbank an und fügt sie der Gruppe "Mandantengruppe" zu.
-        So sit sichergestellt, dass der Mandant in der Datenbank hinterlegt sit und das Recht hat,
-        SELECT-, INSERT-, UPDATE- und DELETE-Befehle an die Datenbank zu senden
-        :param conn:
-        :return:
-        """
-        # Ein Cursor-Objekt erstellen
         cur = conn.cursor()
+        cur.execute(neue_id_query)
+        mandant_id = cur.fetchall()[0][0]
 
-        # Stored Procedure aufrufen, der den neuen User in der Datenbank erstellt
-        cur.callproc('erstelle_user', [self.mandantenname])
+        return mandant_id
+
+    def _in_datenbank_anlegen(self, conn):
+        """
+        Methode ruft die Stored Procedure 'mandant_anlegen' auf, welche die Daten des Mandanten in der
+        Personalstammdatenbank speichert.
+        :param conn: Connection zur Personalstammdatenbank
+        """
+        mandant_insert_query = f"SELECT mandant_anlegen({self.mandant_id}, '{self.mandantenname}')"
+        cur = conn.cursor()
+        cur.execute(mandant_insert_query)
 
         # Commit der Änderungen
         conn.commit()
@@ -46,50 +54,43 @@ class Mandant:
         # Cursor schließen
         cur.close()
 
-    def insert_neuer_mitarbeiter(self, mitarbeiterdaten, conn):
+    def nutzer_anlegen(self, vorname, nachname, conn):
         """
-        Diese Methode überträgt die eingetragenen Mitarbeiterdaten (im Rahmen der Bachelorarbeit
-        dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
-        'insert_neuer_mitarbeiter' aufgerufen wird.
-        :param mitarbeiterdaten: Name der Excel-Datei, dessen Mitarbeiterdaten in die Datenbank
-        eingetragen werden sollen.
-        :param conn:
-        :return:
+        Da jeder Mandant mehrere Nutzer haben kann, werden alle Nutzer eines Mandanten hier erzeugt und in einer
+        klasseneigenen Liste "liste_nutzer" gespeichert.
+        :param vorname: Vorname des Nutzers
+        :param nachname: Nachname des Nutzers
+        :param conn: Connection zur Datenbank
         """
+        nutzer = Nutzer(vorname, nachname, self.mandant_id, conn)
+        self.liste_nutzer.append(nutzer)
+        print("Nutzer", self.liste_nutzer[len(self.liste_nutzer)-1].get_vorname(), self.liste_nutzer[len(self.liste_nutzer)-1].get_nachname(), "angelegt.")
 
-        # Erstellung der Daten wird noch automatisiert
-        mandant = self.mandantenname
+    def get_nutzer(self, vorname, nachname):
+        """
+        Funktion sucht den angefragten Nutzer raus, mit dem dann Operationen auf der Datenbank durchgeführt werden
+        können.
+        :param vorname: Vorname des Nutzers
+        :param nachname: Nachname des Nutzers
+        :return: Nutzer-Objekt, der auf der Datenbank operieren soll
+        """
+        for i in range(len(self.liste_nutzer)):
+            if self.liste_nutzer[i].get_vorname() == vorname and self.liste_nutzer[i].get_nachname() == nachname:
+                return self.liste_nutzer[i]
 
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Übertrag in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"Mitarbeiterdaten/{mitarbeiterdaten}", index_col='Daten')
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
-        liste_ma_daten.insert(0, mandant)
+    def nutzer_entfernen(self, vorname, nachname, conn):
+        """
+        Funktion entfernt einen Nutzer.
+        :param vorname: Vorname des zu löschenden Nutzers
+        :param nachname: Nachname des zu löschenden Nutzers
+        :param conn: Connection zur Datenbank
+        """
+        for i in range(len(self.liste_nutzer)):
+            if self.liste_nutzer[i].get_vorname == vorname and self.liste_nutzer[i].get_nachname == nachname:
+                self.liste_nutzer.remove(self.liste_nutzer[i])
+                self.liste_nutzer[i].nutzer_aus_db_entfernen(conn)
+                print("Nutzer", vorname, nachname, "entfernt.")
 
-        # Ein Cursor-Objekt erstellen
-        cur = conn.cursor()
 
-        # Stored Procedure aufrufen
-        cur.callproc('insert_neuer_mitarbeiter', liste_ma_daten)
-
-        # Commit der Änderungen
-        conn.commit()
-
-        # Cursor schließen
-        cur.close()
-
-'''
-# Verbindung zur PostgreSQL-Datenbank herstellen
-conn = psycopg2.connect(
-    host="localhost",
-    database="Personalstammdatenbank",
-    user="postgres",
-    password="@Postgres123"
-)
-
-testfirma = Mandant('testfirma', conn)
-
-# Verbindung zur Datenbank schließen
-conn.close()
-'''
 
 

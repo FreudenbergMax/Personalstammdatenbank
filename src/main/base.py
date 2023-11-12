@@ -10,7 +10,7 @@ url_object = URL.create(
     username="postgres",
     password="@Postgres123",
     host="localhost",
-    database="Personalstammdatenbank",
+    database="Personalstammdatenbank"
 )
 
 engine = create_engine(url_object)

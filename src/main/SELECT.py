@@ -1,29 +1,19 @@
 import psycopg2
 
-# Verbindung zur PostgreSQL-Datenbank herstellen
 conn = psycopg2.connect(
     host="localhost",
-    database="postgres",
+    database="Personalstammdatenbank",
     user="postgres",
-    password="@Postgres123"
+    password="@Postgres123",
+    port=5432
 )
 
-# Ein Cursor-Objekt erstellen
+# Erstelle einen Cursor
 cursor = conn.cursor()
 
-# SQL-Abfrage definieren
-sql_query = "SELECT mitarbeiter_id, vorname, Nachname FROM Mitarbeiter"
+# SQL-code in Python einlesen und anschließend ausführen
+with open("../test/Datenbank und Stored Procedures.sql") as f:
+    setup_sql = f.read()
 
-# SQL-Abfrage ausführen
-cursor.execute(sql_query)
-
-# Ergebnisse abrufen
-results = cursor.fetchall()
-
-# Ergebnisse verarbeiten (hier einfach ausgeben)
-for row in results:
-    mitarbeiter_id, vorname, nachname = row
-    print(f"Mitarbeiter_ID: {mitarbeiter_id}, Vorname: {vorname}, Nachname: {nachname}")
-
-# Verbindung schließen
-conn.close()
+cursor.execute(setup_sql)
+conn.commit()
