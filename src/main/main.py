@@ -9,7 +9,7 @@ conn = psycopg2.connect(
         port=5432
     )
 
-firma = Mandant("Firma", conn)
-firma.nutzer_anlegen("Max", "Mustermann", conn)
-firma.get_nutzer("Max", "Mustermann").select_ausfuehren("mandanten", conn)
+testfirma = Mandant("testfirma", conn)
+testfirma.nutzer_anlegen("Max", "Mustermann", conn)
+testfirma.get_nutzer("Max", "Mustermann").insert_neuer_mitarbeiter("Max Mustermann.xlsx", conn)
 

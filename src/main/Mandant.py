@@ -1,7 +1,3 @@
-import psycopg2
-import pandas as pd
-import openpyxl
-
 from src.main.Nutzer import Nutzer
 
 
@@ -9,7 +5,10 @@ class Mandant:
 
     def __init__(self, mandantenname, conn):
 
-        if str.lower(mandantenname) == "postgres":
+        if not isinstance(mandantenname, str):
+            raise(TypeError("Der Name des Mandanten muss ein String sein."))
+
+        if "postgres" in str.lower(mandantenname):
             raise(ValueError(f"Dieser Name ist nicht erlaubt: {mandantenname}."))
 
         if mandantenname == "":

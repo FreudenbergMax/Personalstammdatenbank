@@ -21,12 +21,10 @@ class TestNeuerMandant(unittest.TestCase):
             port=5432
         )
 
-        # Erstelle einen Cursor
         self.cursor = self.conn.cursor()
 
         # SQL-code in Python einlesen und anschließend ausführen
         setup_sql = "create schema if not exists temp_test_schema;\n\nset search_path to temp_test_schema;\n\n"
-
         with open("Datenbank und Stored Procedures.sql") as f:
             setup_sql = setup_sql + f.read()
 
@@ -49,31 +47,48 @@ class TestNeuerMandant(unittest.TestCase):
 
         self.assertEqual(name_neuer_mandant, 'beispielbetrieb')
 
+    def test_name_zahl(self):
+        """
+        Test prüft, ob die Raise-Funktion aufgerufen wird, wenn der Name des Mandanten kein String, sondern eine Zahl
+        ist.
+        """
+
+        with self.assertRaises(TypeError) as context:
+            testfirma = Mandant(5, self.conn)
+
+        self.assertEqual(str(context.exception), 'Der Name des Mandanten muss ein String sein.')
+
     def test_name_postgres_exception(self):
         """
-        Test prüft, ob eine Exception geworfen wird, wenn versucht wird, als Mandantenname "postgres"
-        zu wählen. ("postgres" ist der Adminname der Personalstammdatenbank und darf für Mandanten
-        nicht zugänglich sein)
+        Test prüft, ob die Raise-Funktion aufgerufen wird, wenn versucht wird, im Mandantennamen den (Sub-)String
+        'postgres' unterzubringen.
         """
         # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
         with self.assertRaises(ValueError) as context:
-            testfirma = Mandant('postgres', self.conn)
+            testfirma1 = Mandant('postgres   ', self.conn)
+        self.assertEqual(str(context.exception), 'Dieser Name ist nicht erlaubt: postgres   .')
 
-        self.assertEqual(str(context.exception), "Dieser Name ist nicht erlaubt: postgres.")
+        with self.assertRaises(ValueError) as context:
+            testfirma2 = Mandant('   postgres   ', self.conn)
+        self.assertEqual(str(context.exception), 'Dieser Name ist nicht erlaubt:    postgres   .')
 
-    def test_kein_name_exception(self):
+        with self.assertRaises(ValueError) as context:
+            testfirma2 = Mandant('postgres', self.conn)
+        self.assertEqual(str(context.exception), 'Dieser Name ist nicht erlaubt: postgres.')
+
+    def test_leerer_name_exception(self):
         """
-        Test prüft, ob eine Exception geworfen wird, wenn bei der Anlage eines neuen Mandanten
-        kein Name vorhanden ist
+        Test prüft, ob die Raise-Funktion aufgerufen wird, wenn bei der Anlage eines neuen Mandanten
+        kein Name bzw. ein leerer String vorhanden ist
         """
         with self.assertRaises(ValueError) as context:
             testfirma = Mandant('', self.conn)
 
-        self.assertEqual(str(context.exception), "Der Name des Mandanten muss aus mindestens einem Zeichen bestehen.")
+        self.assertEqual(str(context.exception), 'Der Name des Mandanten muss aus mindestens einem Zeichen bestehen.')
 
     def test_zu_langer_name_exception(self):
         """
-        Test prüft, ob eine Exception geworfen wird, wenn versucht wird, einen Mandantennamen zu
+        Test prüft, ob die Raise-Funktion aufgerufen wird, wenn versucht wird, einen Mandantennamen zu
         wählen, der länger als 128 Zeichen lang ist.
         """
         name_129_zeichen = "a" * 129
@@ -81,7 +96,7 @@ class TestNeuerMandant(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             testfirma = Mandant(name_129_zeichen, self.conn)
 
-        self.assertEqual(str(context.exception), "Der Name des Mandanten darf höchstens 128 Zeichen lang sein.")
+        self.assertEqual(str(context.exception), 'Der Name des Mandanten darf höchstens 128 Zeichen lang sein.')
 
     def tearDown(self):
         """
