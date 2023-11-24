@@ -98,26 +98,29 @@ class Nutzer:
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
         liste_ma_daten.insert(0, self.mandant_id)
 
-        if liste_ma_daten[4] == '':
-            liste_ma_daten[4] = None
-        else:
-            liste_ma_daten[4] = datetime.strptime(liste_ma_daten[4], '%d.%m.%Y').date()
-
         if liste_ma_daten[5] == '':
             liste_ma_daten[5] = None
         else:
             liste_ma_daten[5] = datetime.strptime(liste_ma_daten[5], '%d.%m.%Y').date()
 
-        if liste_ma_daten[13] == '':
-            liste_ma_daten[13] = '31.12.9999'
+        if liste_ma_daten[6] == '':
+            liste_ma_daten[6] = None
         else:
-            liste_ma_daten[13] = datetime.strptime(liste_ma_daten[13], '%d.%m.%Y').date()
+            liste_ma_daten[6] = datetime.strptime(liste_ma_daten[6], '%d.%m.%Y').date()
+
+        if liste_ma_daten[14] == '':
+            liste_ma_daten[14] = datetime.strptime('31.12.9999', '%d.%m.%Y').date()
+        else:
+            liste_ma_daten[14] = datetime.strptime(liste_ma_daten[14], '%d.%m.%Y').date()
+
+        for i in range(0, len(liste_ma_daten)):
+            print(f"{i}: {liste_ma_daten[i]}; Datentyp: {type(liste_ma_daten[i])}")
 
         # Ein Cursor-Objekt erstellen
         cur = conn.cursor()
 
         # Stored Procedure aufrufen
-        cur.callproc('insert_mitarbeiterdaten', [liste_ma_daten[0], liste_ma_daten[1], liste_ma_daten[2], liste_ma_daten[3], liste_ma_daten[4], liste_ma_daten[5], liste_ma_daten[6], liste_ma_daten[7], liste_ma_daten[8], liste_ma_daten[9], liste_ma_daten[10], liste_ma_daten[11], liste_ma_daten[12], liste_ma_daten[13], liste_ma_daten[14], str(liste_ma_daten[15]), str(liste_ma_daten[16]), liste_ma_daten[17], liste_ma_daten[18], liste_ma_daten[19]])
+        cur.callproc('insert_mitarbeiterdaten', [liste_ma_daten[0], str(liste_ma_daten[1]), liste_ma_daten[2], liste_ma_daten[3], liste_ma_daten[4], liste_ma_daten[5], liste_ma_daten[6], liste_ma_daten[7], liste_ma_daten[8], liste_ma_daten[9], liste_ma_daten[10], liste_ma_daten[11], liste_ma_daten[12], liste_ma_daten[13], liste_ma_daten[14], liste_ma_daten[15], str(liste_ma_daten[16]), str(liste_ma_daten[17]), liste_ma_daten[18], liste_ma_daten[19], liste_ma_daten[20]])
 
         # Commit der Änderungen
         conn.commit()
