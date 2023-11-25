@@ -12,4 +12,3 @@ conn = psycopg2.connect(
 testfirma = Mandant("testfirma", conn)
 testfirma.nutzer_anlegen("Max", "Mustermann", conn)
 testfirma.get_nutzer("Max", "Mustermann").insert_neuer_mitarbeiter("Max Mustermann.xlsx", conn)
-testfirma.get_nutzer("Max", "Mustermann").insert_neuer_mitarbeiter("Max Mustermann.xlsx", conn)

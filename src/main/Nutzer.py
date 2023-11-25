@@ -96,37 +96,97 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Übertrag in Liste "liste_ma_daten"
         df_ma_daten = pd.read_excel(f"Mitarbeiterdaten/{mitarbeiterdaten}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
-        liste_ma_daten.insert(0, self.mandant_id)
 
-        if liste_ma_daten[5] == '':
-            liste_ma_daten[5] = None
-        else:
-            liste_ma_daten[5] = datetime.strptime(liste_ma_daten[5], '%d.%m.%Y').date()
-
-        if liste_ma_daten[6] == '':
-            liste_ma_daten[6] = None
-        else:
-            liste_ma_daten[6] = datetime.strptime(liste_ma_daten[6], '%d.%m.%Y').date()
-
-        if liste_ma_daten[14] == '':
-            liste_ma_daten[14] = datetime.strptime('31.12.9999', '%d.%m.%Y').date()
-        else:
-            liste_ma_daten[14] = datetime.strptime(liste_ma_daten[14], '%d.%m.%Y').date()
-
-        for i in range(0, len(liste_ma_daten)):
-            print(f"{i}: {liste_ma_daten[i]}; Datentyp: {type(liste_ma_daten[i])}")
+        personalnummer = str(self._existenz_pflichtdaten_pruefen(liste_ma_daten[0], 'Personalnummer'))
+        vorname = str(self._existenz_pflichtdaten_pruefen(liste_ma_daten[1], 'Vorname'))
+        zweitname = self._existenz_optionale_str_daten_feststellen(liste_ma_daten[2])
+        nachname = str(self._existenz_pflichtdaten_pruefen(liste_ma_daten[3], 'Nachname'))
+        geburtsdatum = datetime.strptime(self._existenz_pflichtdaten_pruefen(liste_ma_daten[4], 'Geburtsdatum'), '%d.%m.%Y').date()
+        eintrittsdatum = datetime.strptime(self._existenz_pflichtdaten_pruefen(liste_ma_daten[5], 'Eintrittsdatum'), '%d.%m.%Y').date()
+        steuernummer = self._existenz_optionale_str_daten_feststellen(liste_ma_daten[6])
+        sozialversicherungsnummer = self._existenz_optionale_str_daten_feststellen(liste_ma_daten[7])
+        iban = self._existenz_optionale_str_daten_feststellen(liste_ma_daten[8])
+        private_telefonnummer = self._existenz_optionale_str_daten_feststellen(liste_ma_daten[9])
+        private_email = self._existenz_optionale_str_daten_feststellen(liste_ma_daten[10])
+        dienstliche_telefonnummer = self._existenz_optionale_str_daten_feststellen(liste_ma_daten[11])
+        dienstliche_email = self._existenz_optionale_str_daten_feststellen(liste_ma_daten[12])
+        austrittsdatum = self._existenz_optionale_date_daten_feststellen(liste_ma_daten[13])
+        strasse = str(self._existenz_pflichtdaten_pruefen(liste_ma_daten[14], 'Strasse'))
+        hausnummer = str(self._existenz_pflichtdaten_pruefen(liste_ma_daten[15], 'Hausnummer'))
+        postleitzahl = str(self._existenz_pflichtdaten_pruefen(liste_ma_daten[16], 'Postleitzahl'))
+        stadt = str(self._existenz_pflichtdaten_pruefen(liste_ma_daten[17], 'Stadt'))
+        region = str(self._existenz_pflichtdaten_pruefen(liste_ma_daten[18], 'Region'))
+        land = str(self._existenz_pflichtdaten_pruefen(liste_ma_daten[19], 'Land'))
 
         # Ein Cursor-Objekt erstellen
         cur = conn.cursor()
 
         # Stored Procedure aufrufen
-        cur.callproc('insert_mitarbeiterdaten', [liste_ma_daten[0], str(liste_ma_daten[1]), liste_ma_daten[2], liste_ma_daten[3], liste_ma_daten[4], liste_ma_daten[5], liste_ma_daten[6], liste_ma_daten[7], liste_ma_daten[8], liste_ma_daten[9], liste_ma_daten[10], liste_ma_daten[11], liste_ma_daten[12], liste_ma_daten[13], liste_ma_daten[14], liste_ma_daten[15], str(liste_ma_daten[16]), str(liste_ma_daten[17]), liste_ma_daten[18], liste_ma_daten[19], liste_ma_daten[20]])
+        cur.callproc('insert_mitarbeiterdaten', [self.mandant_id,
+                                                 personalnummer,
+                                                 vorname,
+                                                 zweitname,
+                                                 nachname,
+                                                 geburtsdatum,
+                                                 eintrittsdatum,
+                                                 steuernummer,
+                                                 sozialversicherungsnummer,
+                                                 iban,
+                                                 private_telefonnummer,
+                                                 private_email,
+                                                 dienstliche_telefonnummer,
+                                                 dienstliche_email,
+                                                 austrittsdatum,
+                                                 strasse,
+                                                 hausnummer,
+                                                 postleitzahl,
+                                                 stadt,
+                                                 region,
+                                                 land])
 
         # Commit der Änderungen
         conn.commit()
 
         # Cursor schließen
         cur.close()
+
+    def _existenz_optionale_str_daten_feststellen(self, str_daten):
+        """
+        Funktion stellt fest, ob optionale Daten vorliegen oder nicht
+        :param str_daten: wird untersucht, ob Daten darin enthalten sind
+        :return: Falls Parameter 'daten' keine Daten enthält, wird None zurückgegeben, sonst Daten
+        """
+        if str_daten == '':
+            str_daten = None
+        else:
+            str_daten = str(str_daten)
+
+        return str_daten
+
+    def _existenz_optionale_date_daten_feststellen(self, date_daten):
+        """
+        Funktion stellt fest, ob optionale Daten vorliegen oder nicht
+        :param date_daten: wird untersucht, ob Daten darin enthalten sind
+        :return: Falls Parameter 'daten' keine Daten enthält, wird None zurückgegeben, sonst Daten
+        """
+        if date_daten == '':
+            date_daten = None
+        else:
+            date_daten = datetime.strptime(date_daten, '%d.%m.%Y').date()
+
+        return date_daten
+
+    def _existenz_pflichtdaten_pruefen(self, dateninhalt, art):
+        """
+        prüft, ob Daten, die zwingend für den Dateneintrag notwendig sind (z.B. Name, Adresse) , auch vorhanden sind
+        :param dateninhalt: zu prüfende Pflichtdaten
+        :param art: gibt an, um was für Daten es sich handeln soll
+        :return: Daten, sofern sie in Ordnung sind
+        """
+        if dateninhalt == '':
+            raise(ValueError(f"{art} ist nicht vorhanden."))
+
+        return dateninhalt
 
     def nutzer_aus_datenbank_entfernen(self, conn):
         """

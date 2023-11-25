@@ -1,6 +1,7 @@
 import unittest
 import psycopg2
 from src.main.Mandant import Mandant
+from src.main.test_SetUp import test_set_up
 import psycopg2.extras
 
 
@@ -11,25 +12,8 @@ class TestNeuerMandant(unittest.TestCase):
         Methode erstellt ein Testschema 'temp_test_schema' und darin die Personalstammdatenbank
         mit allen Tabellen und Stored Procedures. So können alle Tests ausgeführt werden, ohne die
         originale Datenbank zu manipulieren.
-        :return:
         """
-        self.conn = psycopg2.connect(
-            host="localhost",
-            database="Personalstammdatenbank",
-            user="postgres",
-            password="@Postgres123",
-            port=5432
-        )
-
-        self.cursor = self.conn.cursor()
-
-        # SQL-code in Python einlesen und anschließend ausführen
-        setup_sql = "create schema if not exists temp_test_schema;\n\nset search_path to temp_test_schema;\n\n"
-        with open("Datenbank und Stored Procedures.sql") as f:
-            setup_sql = setup_sql + f.read()
-
-        self.cursor.execute(setup_sql)
-        self.conn.commit()
+        self.conn, self.cursor = test_set_up()
 
     def test_neuer_mandant_angelegt(self):
         """
