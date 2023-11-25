@@ -15,7 +15,8 @@ class Mandant:
             raise(ValueError(f"Der Name des Mandanten muss aus mindestens einem Zeichen bestehen."))
 
         if len(mandantenname) > 128:
-            raise(ValueError(f"Der Name des Mandanten darf höchstens 128 Zeichen lang sein."))
+            raise(ValueError(f"Der Name des Mandanten darf höchstens 128 Zeichen lang sein."
+                             f"'{mandantenname}' besitzt {len(mandantenname)} Zeichen!"))
 
         self.mandantenname = mandantenname
         self.mandant_id = self._id_erstellen(conn)

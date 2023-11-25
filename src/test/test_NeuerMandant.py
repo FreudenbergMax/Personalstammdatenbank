@@ -1,8 +1,6 @@
 import unittest
-import psycopg2
 from src.main.Mandant import Mandant
 from src.main.test_SetUp import test_set_up
-import psycopg2.extras
 
 
 class TestNeuerMandant(unittest.TestCase):
@@ -80,7 +78,10 @@ class TestNeuerMandant(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             testfirma = Mandant(name_129_zeichen, self.conn)
 
-        self.assertEqual(str(context.exception), 'Der Name des Mandanten darf höchstens 128 Zeichen lang sein.')
+        self.assertEqual(str(context.exception), "Der Name des Mandanten darf höchstens 128 Zeichen lang sein."
+                                                 "'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                                                 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' "
+                                                 "besitzt 129 Zeichen!")
 
     def tearDown(self):
         """

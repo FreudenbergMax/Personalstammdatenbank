@@ -91,7 +91,9 @@ class TestNeuerNutzer(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             testfirma.nutzer_anlegen(vorname_65_zeichen, 'Mustermann', self.conn)
 
-        self.assertEqual(str(context.exception), 'Der Vorname darf höchstens 64 Zeichen lang sein.')
+        self.assertEqual(str(context.exception), "Der Vorname darf höchstens 64 Zeichen lang sein. "
+                                                 "'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' "
+                                                 "besitzt 65 Zeichen!")
 
     def test_nachname_zahl(self):
         """
@@ -149,7 +151,9 @@ class TestNeuerNutzer(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             testfirma.nutzer_anlegen('Max', nachname_65_zeichen, self.conn)
 
-        self.assertEqual(str(context.exception), 'Der Nachname darf höchstens 64 Zeichen lang sein.')
+        self.assertEqual(str(context.exception), "Der Nachname darf höchstens 64 Zeichen lang sein. "
+                                                 "'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' "
+                                                 "besitzt 65 Zeichen!")
 
     def tearDown(self):
         """
