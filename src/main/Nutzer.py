@@ -5,7 +5,7 @@ from datetime import datetime
 
 class Nutzer:
 
-    def __init__(self, vorname, nachname, mandant_id, conn):
+    def __init__(self, mandant_id, personalnummer, vorname, nachname, conn):
 
         if not isinstance(vorname, str):
             raise (TypeError("Der Vorname des Nutzers muss ein String sein."))
@@ -20,6 +20,13 @@ class Nutzer:
             raise (ValueError(f"Der Vorname darf höchstens 64 Zeichen lang sein. "
                               f"'{vorname}' besitzt {len(vorname)} Zeichen!"))
 
+        if personalnummer == "":
+            raise (ValueError(f"Die Personalnummer des Nutzers muss aus mindestens einem Zeichen bestehen."))
+
+        if len(personalnummer) > 32:
+            raise (ValueError(f"Die Personalnummer darf höchstens 32 Zeichen lang sein. "
+                              f"'{personalnummer}' besitzt {len(personalnummer)} Zeichen!"))
+
         if not isinstance(nachname, str):
             raise (TypeError("Der Nachname des Nutzers muss ein String sein."))
 
@@ -33,14 +40,18 @@ class Nutzer:
             raise (ValueError(f"Der Nachname darf höchstens 64 Zeichen lang sein. "
                               f"'{nachname}' besitzt {len(nachname)} Zeichen!"))
 
+        self.nutzer_id = self._id_erstellen(conn)
+        self.mandant_id = mandant_id
+        self.personalnummer = str(personalnummer)
         self.vorname = vorname
         self.nachname = nachname
-        self.mandant_id = mandant_id
-        self.nutzer_id = self._id_erstellen(conn)
         self._in_datenbank_anlegen(conn)
 
     def get_nutzer_id(self):
         return self.nutzer_id
+
+    def get_personalnummer(self):
+        return self.personalnummer
 
     def get_vorname(self):
         return self.vorname
@@ -69,7 +80,7 @@ class Nutzer:
         Personalstammdatenbank speichert.
         :param conn: Connection zur Personalstammdatenbank
         """
-        nutzer_insert_query = f"SELECT nutzer_anlegen({self.nutzer_id}, '{self.vorname}', '{self.nachname}', '{self.mandant_id}')"
+        nutzer_insert_query = f"SELECT nutzer_anlegen({self.nutzer_id}, '{self.mandant_id}', '{self.personalnummer}', '{self.vorname}', '{self.nachname}')"
         cur = conn.cursor()
         cur.execute(nutzer_insert_query)
 

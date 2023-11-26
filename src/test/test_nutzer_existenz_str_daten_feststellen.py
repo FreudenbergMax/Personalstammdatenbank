@@ -15,7 +15,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         """
         self.conn, self.cursor = test_set_up()
         self.testfirma = Mandant('Testfirma', self.conn)
-        self.testfirma.nutzer_anlegen('Max', 'Mustermann', self.conn)
+        self.testfirma.nutzer_anlegen('M10001', 'Max', 'Mustermann', self.conn)
 
     def test_optionale_zeichenkette_ist_leer(self):
         """
@@ -23,7 +23,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         übergegebene Variable ein optionaler leerer String ist.
         """
         zweitname = ''
-        zweitname = self.testfirma.get_nutzer('Max', 'Mustermann'). \
+        zweitname = self.testfirma.get_nutzer('M10001'). \
             _existenz_str_daten_feststellen(zweitname, 'Zweitname', 0, False)
 
         self.assertEqual(zweitname, None)
@@ -37,7 +37,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
 
         # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
         with self.assertRaises(ValueError) as context:
-            personalnummer = self.testfirma.get_nutzer('Max', 'Mustermann'). \
+            personalnummer = self.testfirma.get_nutzer('M10001'). \
                 _existenz_str_daten_feststellen(personalnummer, 'Personalnummer', 0, True)
 
         self.assertEqual(str(context.exception), "'Personalnummer' ist nicht vorhanden.")
@@ -49,7 +49,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         übertragen werden soll.
         """
         postleitzahl = 12345
-        postleitzahl = self.testfirma.get_nutzer('Max', 'Mustermann'). \
+        postleitzahl = self.testfirma.get_nutzer('M10001'). \
             _existenz_str_daten_feststellen(postleitzahl, 'Postleitzahl', 5, False)
 
         self.assertEqual(type(postleitzahl), str)
@@ -61,7 +61,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         übertragen werden soll.
         """
         double = 12.45
-        double = self.testfirma.get_nutzer('Max', 'Mustermann')._existenz_str_daten_feststellen(
+        double = self.testfirma.get_nutzer('M10001')._existenz_str_daten_feststellen(
             double, 'Postleitzahl', 5, False)
 
         self.assertEqual(type(double), str)
@@ -73,7 +73,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         die Datenbank übertragen werden soll.
         """
         date_daten = datetime.strptime('12.12.1992', '%d.%m.%Y').date()
-        date_daten = self.testfirma.get_nutzer('Max', 'Mustermann')._existenz_str_daten_feststellen(
+        date_daten = self.testfirma.get_nutzer('M10001')._existenz_str_daten_feststellen(
             date_daten, 'Postleitzahl', 10, False)
 
         self.assertEqual(type(date_daten), str)
@@ -86,7 +86,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         personalnummer = '0' + ('12345678' * 4)
 
         with self.assertRaises(ValueError) as context:
-            personalnummer = self.testfirma.get_nutzer('Max', 'Mustermann'). \
+            personalnummer = self.testfirma.get_nutzer('M10001'). \
                 _existenz_str_daten_feststellen(personalnummer, 'Personalnummer', 32, True)
 
         self.assertEqual(str(context.exception), "'Personalnummer' darf höchstens 32 Zeichen lang sein. "

@@ -3,19 +3,19 @@ set role postgres;
 -- Quelle: https://adityamattos.com/multi-tenancy-in-python-fastapi-and-sqlalchemy-using-postgres-row-level-security
 -- Abschaffung der Rolle 'tenant-user' und dessen Privilegien
 -- 'tenant-user' kann zukünftig erstellte Sequenzen (bspw. Serial) NICHT mehr nutzen benutzen 
-alter default privileges in schema public revoke usage on sequences from tenant_user;
+alter default privileges in schema temp_test_schema revoke usage on sequences from tenant_user;
 -- 'tenant-user' kann SELECT-, INSERT-, UPDATE- und DELETE-Befehle auf alle Tabellen im Schema 'public' (auch auf zukünftige Tabellen) NICHT mehr ausführen
-alter default privileges in schema public revoke select, insert, update, delete on tables from tenant_user;
+alter default privileges in schema temp_test_schema revoke select, insert, update, delete on tables from tenant_user;
 -- Berechtigungen auf Sequenzen für 'tenant'-user aufheben
-revoke usage on all sequences in schema public from tenant_user;
+revoke usage on all sequences in schema temp_test_schema from tenant_user;
 -- Berechtigungen auf Tabellen für tenant-user aufheben
-revoke select, insert, update, delete on all tables in schema public from tenant_user;
+revoke select, insert, update, delete on all tables in schema temp_test_schema from tenant_user;
 -- 'tenant_user' darf nicht mehr im Schema 'public' operieren 
-revoke usage on schema public from tenant_user;
+revoke usage on schema temp_test_schema from tenant_user;
 -- 'tenant-user' wird quasi enterbt
 revoke tenant_user from postgres;
 -- Rolle 'tenant_user' entfernen
-drop role tenant_user;
+drop role if exists tenant_user;
 
 -- Erstellung der Rolle 'tenant-user' mit diversen Zugriffsrechten
 -- Rolle für die user erstellen, welcher RLS unterliegt
@@ -23,15 +23,15 @@ create role tenant_user;
 -- tenant-user erbt Berechtigungen von postgres (=Admin)
 --grant tenant_user to postgres;
 -- Rolle 'tenant-user' darf im Schema 'public' operieren
-grant usage on schema public to tenant_user;
+grant usage on schema temp_test_schema to tenant_user;
 -- 'tenant-user' hat Lese- und Schreibberechtigung auf alle Tabellen im Schema 'public'
-grant select, insert, update, delete on all tables in schema public to tenant_user;
+grant select, insert, update, delete on all tables in schema temp_test_schema to tenant_user;
 -- 'tenant-user' kann Sequenzen verwenden. So soll bspw. Tabellen mit Serial-Spalten nutzbar sein
-grant usage on all sequences in schema public to tenant_user;
+grant usage on all sequences in schema temp_test_schema to tenant_user;
 -- 'tenant-user' kann SELECT-, INSERT-, UPDATE- und DELETE-Befehle auf alle Tabellen im Schema 'public' ausführen (auch auf zukünftige Tabellen)
-alter default privileges in schema public grant select, insert, update, delete on tables to tenant_user;
+alter default privileges in schema temp_test_schema grant select, insert, update, delete on tables to tenant_user;
 -- 'tenant-user' kann zukünftig erstellte Sequenzen (bspw. Serial) benutzen 
-alter default privileges in schema public grant usage on sequences to tenant_user;
+alter default privileges in schema temp_test_schema grant usage on sequences to tenant_user;
 
 set role postgres;
 
@@ -47,8 +47,8 @@ drop table if exists mitarbeiter;
 drop function if exists bekomme_aktuelle_Mitarbeiter_ID();
 drop function if exists erstelle_neue_id(varchar(64), varchar(64));
 drop function if exists mandant_anlegen(integer, varchar(128));
-drop function if exists nutzer_anlegen(integer, varchar(64), varchar(64), integer);
-drop function if exists nutzer_entfernen(integer, varchar(64), varchar(64), integer);
+drop function if exists nutzer_anlegen(integer, integer, varchar(32), varchar(64), varchar(64));
+drop function if exists nutzer_entfernen(integer, varchar(32));
 drop function if exists select_ausfuehren(varchar(64), integer);
 drop function if exists insert_mitarbeiterdaten(
 	p_mandant_id integer,
@@ -72,7 +72,7 @@ drop function if exists insert_mitarbeiterdaten(
 	p_stadt varchar(128),
 	p_region varchar(128),
 	p_land varchar(128));
-drop function if exists pruefe_einmaligkeit_personalnummer(p_mandant_id integer, p_personalnummer varchar(32));
+drop function if exists pruefe_einmaligkeit_personalnummer(integer, varchar(64), varchar(32));
 drop function if exists insert_tbl_mitarbeiter(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
@@ -96,6 +96,7 @@ drop function if exists insert_tbl_postleitzahlen(p_mandant_id integer, p_postle
 drop function if exists insert_tbl_strassenbezeichnungen(p_mandant_id integer, p_strasse varchar(64), p_hausnummer varchar(8), p_postleitzahl varchar(16));
 drop function if exists insert_tbl_wohnt_in(p_mandant_id integer, p_personalnummer varchar(32), p_strasse varchar(64), p_hausnummer varchar(8), p_eintrittsdatum date);
 	
+
 create table Mandanten(
 	Mandant_ID integer primary key,
 	Firma varchar(128) not null
@@ -110,9 +111,10 @@ create policy FilterMandant_Mandanten
 
 create table Nutzer(
 	Nutzer_ID integer primary key,
+	Mandant_ID integer not null,
+	Personalnummer varchar(32) not null,
 	Vorname varchar(64) not null,
 	Nachname varchar(64) not null,
-	Mandant_ID integer not null,
 	constraint fk_Nutzer_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
@@ -257,8 +259,6 @@ create policy FilterMandant_wohnt_in
     on wohnt_in
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
-   
-   
 /*
  * Funktion erstellt eine neue ID. Sie wird verwendet, um für neu anzulegende Mandanten und Nutzer die 
  * entsprechende Mandant_ID bzw. Nutzer_ID zu erzeugen.
@@ -285,29 +285,6 @@ end;
 $$
 language plpgsql;
 
-
-/*
-create or replace function bekomme_aktuelle_Mitarbeiter_ID(
-) returns integer as
-$$
-declare 
-	v_neue_id integer;
-begin
-
-    -- Neue ID erstellen
-    execute 'SELECT MAX(Mitarbeiter_ID) FROM Mitarbeiter' into v_neue_id;
-   
-    if v_neue_id is null then
-    	v_neue_id := 1;
-	end if;
-
-    return v_neue_id;
-	
-end;
-$$
-language plpgsql;
-*/
-
 /*
  * Funktion trägt die Daten eines neuen Mandanten in die Datenbank ein.
  */
@@ -325,53 +302,48 @@ end;
 $$
 language plpgsql;
 
-
 /*
  * Funktion trägt die Daten eines neuen Nutzers in die Datenbank ein.
  */
 create or replace function nutzer_anlegen(
 	p_nutzer_id integer,
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
 	p_vorname varchar(64),
-	p_nachname varchar(64),
-	p_mandant_id integer
+	p_nachname varchar(64)
 ) returns void as
 $$
 begin
+	
+	perform pruefe_einmaligkeit_personalnummer(p_mandant_id, 'nutzer', p_personalnummer);
 
-    insert into Nutzer(nutzer_ID, vorname, Nachname, Mandant_ID)
-		values(p_nutzer_id, p_vorname, p_nachname, p_mandant_id);
+    insert into Nutzer(Nutzer_ID, Mandant_ID, Personalnummer, Vorname, Nachname)
+		values(p_nutzer_id, p_mandant_id, p_personalnummer, p_vorname, p_nachname);
 
 end;
 $$
 language plpgsql;
-
 
 /*
  * Funktion entfernt einen Nutzer aus der Datenbank.
  */
 create or replace function nutzer_entfernen(
-	p_nutzer_id integer,
-	p_vorname varchar(64),
-	p_nachname varchar(64),
-	p_mandant_id integer
+	p_mandant_id integer,
+	p_personalnummer varchar(32)
 ) returns void as
 $$
 begin
-	
+
 	set session role tenant_user;
 	execute 'SET app.current_tenant=' || p_mandant_id;
 	
-    delete from nutzer 
-    where nutzer_id = p_nutzer_id 
-    	and vorname = p_vorname 
-    	and nachname = p_nachname 
-    	and mandant_id = p_mandant_id;
+    delete from nutzer where Personalnummer = p_personalnummer and Mandant_ID = p_mandant_id;
+
+	set role postgres;
 
 end;
 $$
 language plpgsql;
-
-
 
 /*
  * Diese Funktion prüft, ob die Personalnummer für einen neuen Mitarbeiter bereits vergeben ist. Ist die Personalnummer vergeben, so 
@@ -379,32 +351,30 @@ language plpgsql;
  */
 create or replace function pruefe_einmaligkeit_personalnummer(
 	p_mandant_id integer,
+	p_tabelle varchar(64),
 	p_personalnummer varchar(32)
 ) returns void as
 $$
 declare
-	v_vorhandene_personalnummer varchar(16);
+	v_vorhandene_personalnummer varchar(32);
 begin
-	
+
 	set session role tenant_user;
 	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+    execute 'SELECT personalnummer FROM '|| p_tabelle ||' WHERE personalnummer = $1' INTO v_vorhandene_personalnummer USING p_personalnummer;
 
-    execute 'SELECT personalnummer FROM Mitarbeiter WHERE personalnummer = $1' INTO v_vorhandene_personalnummer USING p_personalnummer;
-    --raise notice '%', v_vorhandene_personalnummer;
-   
     if v_vorhandene_personalnummer is not null then
     	raise exception 'Diese Personalnummer wird bereits verwendet!';
 	end if;
+
+	set role postgres;
 
 end;
 $$
 language plpgsql;
 
 
-
-/*
- * Funktion trägt die Daten in die Tabelle "Mitarbeiter" ein
- */
 create or replace function insert_tbl_mitarbeiter(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
@@ -688,7 +658,7 @@ begin
 	set session role tenant_user;
 	execute 'SET app.current_tenant=' || p_mandant_id;
 	
-	perform pruefe_einmaligkeit_personalnummer(p_mandant_id, p_personalnummer);
+	perform pruefe_einmaligkeit_personalnummer(p_mandant_id, 'mitarbeiter', p_personalnummer);
 	
 	perform insert_tbl_mitarbeiter(p_mandant_id, 
 								   p_personalnummer, 
@@ -705,6 +675,7 @@ begin
 								   p_dienstliche_telefonnummer, 
 								   p_dienstliche_emailadresse, 
 								   p_austrittsdatum);
+	
 	
 	-- wenn einer dieser Werte 'null' ist, dann dürfen die Adress-Tabellen nicht befüllt werden!
 	perform insert_tbl_laender(p_mandant_id, p_land);
@@ -728,7 +699,6 @@ begin
 		-- befülle Tabellen im Bereich "Unfallversicherung", falls notwendig
 	-- else:
 		-- befülle alle Tabellen im Bereich "Sozialversicherungen"
-
 
 end;
 $$
@@ -761,3 +731,4 @@ begin
 end;
 $$
 language plpgsql;
+

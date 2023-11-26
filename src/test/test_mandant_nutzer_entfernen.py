@@ -19,19 +19,22 @@ class TestNutzerEntfernen(unittest.TestCase):
         Mandant-Objekts entfernt wurde.
         """
         testfirma = Mandant('Testfirma', self.conn)
-        testfirma.nutzer_anlegen('Max', 'Mustermann', self.conn)
+        testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.conn)
 
         # Zwischenprüfung, ob Nutzer in Nutzerliste angelegt ist
-        gesuchter_nutzer = testfirma.get_nutzer('Max', 'Mustermann')
+        gesuchter_nutzer = testfirma.get_nutzer('M100001')
         self.assertEqual(gesuchter_nutzer.get_vorname(), 'Max')
         self.assertEqual(gesuchter_nutzer.get_nachname(), 'Mustermann')
 
         # Prüfung, ob Nutzer nun entfernt wird
-        testfirma.nutzer_entfernen('Max', 'Mustermann', self.conn)
+        testfirma.nutzer_entfernen('M100001', self.conn)
 
         with self.assertRaises(ValueError) as context:
-            testfirma.get_nutzer('Max', 'Mustermann')
-        self.assertEqual(str(context.exception), 'Nutzer Max Mustermann nicht vorhanden!')
+            testfirma.get_nutzer('M100001')
+        self.assertEqual(str(context.exception), "Nutzer mit Personalnummer M100001 nicht vorhanden!")
+
+    def test_kein_entfernen_von_nutzer_anderer_mandanten(self):
+        pass
 
     def tearDown(self):
         """

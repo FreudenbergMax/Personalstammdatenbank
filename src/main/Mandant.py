@@ -54,52 +54,49 @@ class Mandant:
         # Cursor schließen
         cur.close()
 
-    def nutzer_anlegen(self, vorname, nachname, conn):
+    def nutzer_anlegen(self, personalnummer, vorname, nachname, conn):
         """
         Da jeder Mandant mehrere Nutzer haben kann, werden alle Nutzer eines Mandanten hier erzeugt und in einer
         klasseneigenen Liste "liste_nutzer" gespeichert.
+        :param personalnummer: des Nutzers
         :param vorname: Vorname des Nutzers
         :param nachname: Nachname des Nutzers
         :param conn: Connection zur Datenbank
         """
-        nutzer = Nutzer(vorname, nachname, self.mandant_id, conn)
+        nutzer = Nutzer(self.mandant_id, personalnummer, vorname, nachname, conn)
         self.liste_nutzer.append(nutzer)
-        print("Nutzer", self.liste_nutzer[len(self.liste_nutzer)-1].get_vorname(), self.liste_nutzer[len(self.liste_nutzer)-1].get_nachname(), "angelegt.")
+        print("Nutzer", self.liste_nutzer[len(self.liste_nutzer)-1].get_vorname(),
+              self.liste_nutzer[len(self.liste_nutzer)-1].get_nachname(), "angelegt.")
 
-    def get_nutzer(self, vorname, nachname):
+    def get_nutzer(self, personalnummer):
         """
         Funktion sucht den angefragten Nutzer raus, mit dem dann Operationen auf der Datenbank durchgeführt werden
         können.
-        :param vorname: Vorname des Nutzers
-        :param nachname: Nachname des Nutzers
+        :param personalnummer: des Nutzers
         :return: Nutzer-Objekt, der auf der Datenbank operieren soll
         """
         gesuchter_nutzer = None
 
         for i in range(len(self.liste_nutzer)):
-            if self.liste_nutzer[i].get_vorname() == vorname and self.liste_nutzer[i].get_nachname() == nachname:
+            if self.liste_nutzer[i].get_personalnummer() == personalnummer:
                 gesuchter_nutzer = self.liste_nutzer[i]
 
         if gesuchter_nutzer is None:
-            raise ValueError(f"Nutzer {vorname} {nachname} nicht vorhanden!")
+            raise ValueError(f"Nutzer mit Personalnummer {personalnummer} nicht vorhanden!")
         else:
             return gesuchter_nutzer
 
-    def nutzer_entfernen(self, vorname, nachname, conn):
+    def nutzer_entfernen(self, personalnummer, conn):
         """
         Funktion entfernt einen Nutzer.
-        :param vorname: Vorname des zu löschenden Nutzers
-        :param nachname: Nachname des zu löschenden Nutzers
+        :param personalnummer: des Nutzers, der entfernt werden soll
         :param conn: Connection zur Datenbank
         """
         for i in range(len(self.liste_nutzer)):
-            if self.liste_nutzer[i].get_vorname() == vorname and self.liste_nutzer[i].get_nachname() == nachname:
+            if self.liste_nutzer[i].get_personalnummer() == personalnummer:
 
                 # Nutzer aus Datenbank entfernen
-                nutzer_delete_query = f"SELECT nutzer_entfernen({self.liste_nutzer[i].get_nutzer_id()}, " \
-                                                                f"'{self.liste_nutzer[i].get_vorname()}', " \
-                                                                f"'{self.liste_nutzer[i].get_nachname()}', " \
-                                                                f"'{self.mandant_id}')"
+                nutzer_delete_query = f"SELECT nutzer_entfernen({self.mandant_id}, '{personalnummer}')"
 
                 cur = conn.cursor()
                 cur.execute(nutzer_delete_query)
@@ -110,12 +107,7 @@ class Mandant:
                 # Cursor schließen
                 cur.close()
 
-                conn.close()
+                #conn.close()
 
                 # Nutzer aus Liste 'liste_nutzer' des Mandant-Objekt entfernen
                 self.liste_nutzer.remove(self.liste_nutzer[i])
-                print("Nutzer", vorname, nachname, "entfernt.")
-
-
-
-

@@ -18,11 +18,11 @@ class TestNutzerAnlegen(unittest.TestCase):
         Test prüft, ob ein neuer Nutzer in der Datenbank gespeichert wird.
         """
         testfirma = Mandant('Testfirma', self.conn)
-        testfirma.nutzer_anlegen('Max', 'Mustermann', self.conn)
+        testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.conn)
 
         # Prüfung, ob Nutzer-Objekt angelegt und in Liste des entsprechenden Mandant-Objekts hinterlegt ist
-        self.assertEqual(testfirma.get_nutzer('Max', 'Mustermann').get_vorname(), 'Max')
-        self.assertEqual(testfirma.get_nutzer('Max', 'Mustermann').get_nachname(), 'Mustermann')
+        self.assertEqual(testfirma.get_nutzer('M100001').get_vorname(), 'Max')
+        self.assertEqual(testfirma.get_nutzer('M100001').get_nachname(), 'Mustermann')
 
         # Prüfung, ob Nutzer in Datenbank angelegt ist
         select_query = "SELECT vorname, nachname FROM nutzer WHERE vorname = 'Max' AND nachname = 'Mustermann'"
@@ -42,7 +42,7 @@ class TestNutzerAnlegen(unittest.TestCase):
         testfirma = Mandant('testfirma', self.conn)
 
         with self.assertRaises(TypeError) as context:
-            testfirma.nutzer_anlegen(1.2, 'Mustermann', self.conn)
+            testfirma.nutzer_anlegen('M100001', 1.2, 'Mustermann', self.conn)
 
         self.assertEqual(str(context.exception), 'Der Vorname des Nutzers muss ein String sein.')
 
@@ -55,15 +55,15 @@ class TestNutzerAnlegen(unittest.TestCase):
 
         # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
         with self.assertRaises(ValueError) as context:
-            testfirma.nutzer_anlegen('postgres   ', 'Mustermann', self.conn)
+            testfirma.nutzer_anlegen('M100001', 'postgres   ', 'Mustermann', self.conn)
         self.assertEqual(str(context.exception), 'Dieser Vorname ist nicht erlaubt: postgres   .')
 
         with self.assertRaises(ValueError) as context:
-            testfirma.nutzer_anlegen('   postgres   ', 'Mustermann', self.conn)
+            testfirma.nutzer_anlegen('M100001', '   postgres   ', 'Mustermann', self.conn)
         self.assertEqual(str(context.exception), 'Dieser Vorname ist nicht erlaubt:    postgres   .')
 
         with self.assertRaises(ValueError) as context:
-            testfirma.nutzer_anlegen('postgres', 'Mustermann', self.conn)
+            testfirma.nutzer_anlegen('M100001', 'postgres', 'Mustermann', self.conn)
         self.assertEqual(str(context.exception), 'Dieser Vorname ist nicht erlaubt: postgres.')
 
     def test_leerer_vorname_exception(self):
@@ -73,7 +73,7 @@ class TestNutzerAnlegen(unittest.TestCase):
         testfirma = Mandant('testfirma', self.conn)
 
         with self.assertRaises(ValueError) as context:
-            testfirma.nutzer_anlegen('', 'Mustermann', self.conn)
+            testfirma.nutzer_anlegen('M100001', '', 'Mustermann', self.conn)
 
         self.assertEqual(str(context.exception), 'Der Vorname des Nutzers muss aus mindestens einem Zeichen bestehen.')
 
@@ -88,7 +88,7 @@ class TestNutzerAnlegen(unittest.TestCase):
         vorname_65_zeichen = "a" * 65
 
         with self.assertRaises(ValueError) as context:
-            testfirma.nutzer_anlegen(vorname_65_zeichen, 'Mustermann', self.conn)
+            testfirma.nutzer_anlegen('M100001', vorname_65_zeichen, 'Mustermann', self.conn)
 
         self.assertEqual(str(context.exception), "Der Vorname darf höchstens 64 Zeichen lang sein. "
                                                  "'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' "
@@ -102,7 +102,7 @@ class TestNutzerAnlegen(unittest.TestCase):
         testfirma = Mandant('testfirma', self.conn)
 
         with self.assertRaises(TypeError) as context:
-            testfirma.nutzer_anlegen('Max', 3, self.conn)
+            testfirma.nutzer_anlegen('M100001', 'Max', 3, self.conn)
 
         self.assertEqual(str(context.exception), 'Der Nachname des Nutzers muss ein String sein.')
 
@@ -115,15 +115,15 @@ class TestNutzerAnlegen(unittest.TestCase):
 
         # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
         with self.assertRaises(ValueError) as context:
-            testfirma.nutzer_anlegen('Max', 'postgres   ', self.conn)
+            testfirma.nutzer_anlegen('M100001', 'Max', 'postgres   ', self.conn)
         self.assertEqual(str(context.exception), 'Dieser Nachname ist nicht erlaubt: postgres   .')
 
         with self.assertRaises(ValueError) as context:
-            testfirma.nutzer_anlegen('Max', '   postgres   ', self.conn)
+            testfirma.nutzer_anlegen('M100001', 'Max', '   postgres   ', self.conn)
         self.assertEqual(str(context.exception), 'Dieser Nachname ist nicht erlaubt:    postgres   .')
 
         with self.assertRaises(ValueError) as context:
-            testfirma.nutzer_anlegen('Max', 'postgres', self.conn)
+            testfirma.nutzer_anlegen('M100001', 'Max', 'postgres', self.conn)
         self.assertEqual(str(context.exception), 'Dieser Nachname ist nicht erlaubt: postgres.')
 
     def test_leerer_nachname_exception(self):
@@ -133,7 +133,7 @@ class TestNutzerAnlegen(unittest.TestCase):
         testfirma = Mandant('testfirma', self.conn)
 
         with self.assertRaises(ValueError) as context:
-            testfirma.nutzer_anlegen('Max', '', self.conn)
+            testfirma.nutzer_anlegen('M100001', 'Max', '', self.conn)
 
         self.assertEqual(str(context.exception), 'Der Nachname des Nutzers muss aus mindestens einem Zeichen bestehen.')
 
@@ -148,7 +148,7 @@ class TestNutzerAnlegen(unittest.TestCase):
         nachname_65_zeichen = "a" * 65
 
         with self.assertRaises(ValueError) as context:
-            testfirma.nutzer_anlegen('Max', nachname_65_zeichen, self.conn)
+            testfirma.nutzer_anlegen('M100001', 'Max', nachname_65_zeichen, self.conn)
 
         self.assertEqual(str(context.exception), "Der Nachname darf höchstens 64 Zeichen lang sein. "
                                                  "'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' "
