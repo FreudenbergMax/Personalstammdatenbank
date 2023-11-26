@@ -13,21 +13,45 @@ class TestNeuerMandant(unittest.TestCase):
         """
         self.conn, self.cursor = test_set_up()
 
-    def test_neuer_mandant_angelegt(self):
+    def test_erster_mandant_angelegt(self):
         """
         Test prüft ab, ob ein neuer Mandant angelegt wird, sofern alle Bedingungen erfüllt sind.
         """
         testfirma = Mandant('beispielbetrieb', self.conn)
 
-        select_query = "SELECT firma FROM mandanten WHERE firma = 'beispielbetrieb'"
+        select_query = "SELECT * FROM mandanten WHERE firma = 'beispielbetrieb'"
 
         cur = self.conn.cursor()
         cur.execute(select_query)
 
         # Ergebnisse abrufen
-        name_neuer_mandant = cur.fetchall()[0][0]
+        ausgabe = cur.fetchall()
+        mandant_id = ausgabe[0][0]
+        name_neuer_mandant = ausgabe[0][1]
 
+        self.assertEqual(mandant_id, 1)
         self.assertEqual(name_neuer_mandant, 'beispielbetrieb')
+
+    def test_weiterer_mandant_angelegt(self):
+        """
+        Test prüft ab, ob ein neuer Mandant angelegt wird, sofern alle Bedingungen erfüllt sind, und ob der Zähler
+        für die Erstellung der Mandanten_ID, der in der Stored Procedure 'erstelle_neue_id' implementiert ist, läuft.
+        """
+        testfirma = Mandant('beispielbetrieb', self.conn)
+        testunternehmen = Mandant('testunternehmen', self.conn)
+
+        select_query = "SELECT * FROM mandanten WHERE firma = 'testunternehmen'"
+
+        cur = self.conn.cursor()
+        cur.execute(select_query)
+
+        # Ergebnisse abrufen
+        ausgabe = cur.fetchall()
+        mandant_id = ausgabe[0][0]
+        name_neuer_mandant = ausgabe[0][1]
+
+        self.assertEqual(mandant_id, 2)
+        self.assertEqual(name_neuer_mandant, 'testunternehmen')
 
     def test_name_zahl(self):
         """

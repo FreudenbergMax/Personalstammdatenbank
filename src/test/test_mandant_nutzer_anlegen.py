@@ -3,20 +3,19 @@ from src.main.Mandant import Mandant
 from src.main.test_SetUp import test_set_up
 
 
-class TestNeuerNutzer(unittest.TestCase):
+class TestNutzerAnlegen(unittest.TestCase):
 
     def setUp(self):
         """
         Methode erstellt ein Testschema 'temp_test_schema' und darin die Personalstammdatenbank
         mit allen Tabellen und Stored Procedures. So können alle Tests ausgeführt werden, ohne die
         originale Datenbank zu manipulieren.
-        :return:
         """
         self.conn, self.cursor = test_set_up()
 
-    def test_neuer_nutzer_angelegt(self):
+    def test_neuer_nutzer_in_datenbank_angelegt(self):
         """
-        Test prüft, ob ein neuer Nutzer angelegt und in der Datenbank gespeichert wird.
+        Test prüft, ob ein neuer Nutzer in der Datenbank gespeichert wird.
         """
         testfirma = Mandant('Testfirma', self.conn)
         testfirma.nutzer_anlegen('Max', 'Mustermann', self.conn)

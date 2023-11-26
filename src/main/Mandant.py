@@ -74,9 +74,16 @@ class Mandant:
         :param nachname: Nachname des Nutzers
         :return: Nutzer-Objekt, der auf der Datenbank operieren soll
         """
+        gesuchter_nutzer = None
+
         for i in range(len(self.liste_nutzer)):
             if self.liste_nutzer[i].get_vorname() == vorname and self.liste_nutzer[i].get_nachname() == nachname:
-                return self.liste_nutzer[i]
+                gesuchter_nutzer = self.liste_nutzer[i]
+
+        if gesuchter_nutzer is None:
+            raise ValueError(f"Nutzer {vorname} {nachname} nicht vorhanden!")
+        else:
+            return gesuchter_nutzer
 
     def nutzer_entfernen(self, vorname, nachname, conn):
         """
@@ -86,9 +93,27 @@ class Mandant:
         :param conn: Connection zur Datenbank
         """
         for i in range(len(self.liste_nutzer)):
-            if self.liste_nutzer[i].get_vorname == vorname and self.liste_nutzer[i].get_nachname == nachname:
+            if self.liste_nutzer[i].get_vorname() == vorname and self.liste_nutzer[i].get_nachname() == nachname:
+
+                # Nutzer aus Datenbank entfernen
+                nutzer_delete_query = f"SELECT nutzer_entfernen({self.liste_nutzer[i].get_nutzer_id()}, " \
+                                                                f"'{self.liste_nutzer[i].get_vorname()}', " \
+                                                                f"'{self.liste_nutzer[i].get_nachname()}', " \
+                                                                f"'{self.mandant_id}')"
+
+                cur = conn.cursor()
+                cur.execute(nutzer_delete_query)
+
+                # Commit der Änderungen
+                conn.commit()
+
+                # Cursor schließen
+                cur.close()
+
+                conn.close()
+
+                # Nutzer aus Liste 'liste_nutzer' des Mandant-Objekt entfernen
                 self.liste_nutzer.remove(self.liste_nutzer[i])
-                self.liste_nutzer[i].nutzer_aus_db_entfernen(conn)
                 print("Nutzer", vorname, nachname, "entfernt.")
 
 

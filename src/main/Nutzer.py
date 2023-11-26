@@ -39,6 +39,9 @@ class Nutzer:
         self.nutzer_id = self._id_erstellen(conn)
         self._in_datenbank_anlegen(conn)
 
+    def get_nutzer_id(self):
+        return self.nutzer_id
+
     def get_vorname(self):
         return self.vorname
 
@@ -76,7 +79,7 @@ class Nutzer:
         # Cursor schließen
         cur.close()
 
-    def select_ausfuehren(self, tabelle, conn):
+    def abfrage_ausfuehren(self, tabelle, conn):
         """
 
         :param tabelle:
@@ -170,56 +173,14 @@ class Nutzer:
         if str_daten == '' and not pflicht:
             str_daten = None
         elif str_daten == '' and pflicht:
-            raise (ValueError(f"{art} ist nicht vorhanden."))
+            raise (ValueError(f"'{art}' ist nicht vorhanden."))
+        elif len(str(str_daten)) > anzahl_zeichen:
+            raise (ValueError(f"'{art}' darf höchstens {anzahl_zeichen} Zeichen lang sein. "
+                              f"Ihre Eingabe '{str_daten}' besitzt {len(str_daten)} Zeichen!"))
         else:
             str_daten = str(str_daten)
-            if len(str_daten) > anzahl_zeichen:
-                raise (ValueError(f"{art} darf höchstens {anzahl_zeichen} Zeichen lang sein. "
-                                  f"{str_daten} besitzt {len(str_daten)} Zeichen!"))
 
         return str_daten
-
-    '''
-    def _existenz_optionale_str_daten_feststellen(self, str_daten, art, anzahl_zeichen):
-        """
-        Methode stellt fest, ob optionale Daten vorliegen oder nicht und wenn ja, so sollen diese auf jeden Fall
-        als String zurückgegeben werden. So soll sichergestellt werden, dass dem Datenbanksystem die Daten in dem
-        Datentyp übergeben werden, in der sie in der Personalstammdatenbank gespeichert werden können.
-        :param str_daten: wird untersucht, ob Daten darin enthalten sind
-        :param art: gibt an, um was für Daten es sich handeln soll
-        :param anzahl_zeichen: Anzahl der Zeichen, die der Inhalt von 'str_daten' höchstens besitzen darf
-        :return: Falls Parameter 'daten' keine Daten enthält, wird None zurückgegeben, sonst Daten
-        """
-        if str_daten == '':
-            str_daten = None
-        else:
-            str_daten = str(str_daten)
-            if len(str_daten) > anzahl_zeichen:
-                raise (ValueError(f"{art} darf höchstens {anzahl_zeichen} Zeichen lang sein. "
-                                  f"{str_daten} besitzt {len(str_daten)} Zeichen!"))
-
-        return str_daten
-
-    def existenz_str_pflichtdaten_pruefen(self, str_daten, art, anzahl_zeichen):
-        """
-        prüft, ob Daten, die zwingend für den Dateneintrag notwendig sind (z.B. Name, Adresse) , auch vorhanden sind
-        :param str_daten: zu prüfende Pflichtdaten
-        :param art: gibt an, um was für Daten es sich handeln soll
-        :param anzahl_zeichen: Anzahl der Zeichen, die der Inhalt von 'str_daten' höchstens besitzen darf.
-                               Standarddatentyp ist 'None', damit dieser Parameter optional ist, diese Methode auch für
-                               Nicht-Strings verwendet wird. Zahlen bspw. haben keine Zeichenlänge.
-        :return: Daten, sofern sie in Ordnung sind
-        """
-        if str_daten == '':
-            raise (ValueError(f"{art} ist nicht vorhanden."))
-        else:
-            str_daten = str(str_daten)
-            if len(str_daten) > anzahl_zeichen:
-                raise (ValueError(f"{art} darf höchstens {anzahl_zeichen} Zeichen lang sein. "
-                                  f"{str_daten} besitzt {len(str_daten)} Zeichen!"))
-
-        return str_daten
-    '''
 
     def _existenz_date_daten_feststellen(self, date_daten, art, pflicht):
         """
@@ -233,74 +194,22 @@ class Nutzer:
         """
         if date_daten == '' and not pflicht:
             date_daten = None
-        elif date_daten == '' and pflicht:
-            raise (ValueError(f"{art} ist nicht vorhanden."))
-        elif not re.compile(r'\d{2}\.\d{2}\.\d{4}').fullmatch(date_daten):
-            raise (ValueError(f"{date_daten} hat nicht das Muster 'TT.MM.JJJJ'!"))
+            return date_daten
+
+        if date_daten == '' and pflicht:
+            raise (ValueError(f"'{art}' ist nicht vorhanden."))
+
+        if not re.compile(r'\d{2}\.\d{2}\.\d{4}').fullmatch(date_daten):
+            raise (ValueError(f"'{date_daten}' hat nicht das Muster 'TT.MM.JJJJ'!"))
+        '''
+        elif not re.compile(r'^(0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[0-2])\.\d{4}$').fullmatch(date_daten):
+            raise (ValueError('day is out of range for month'))
         else:
             date_daten = datetime.strptime(date_daten, '%d.%m.%Y').date()
-
-        return date_daten
-    '''
-    def _existenz_optionale_date_daten_feststellen(self, date_daten):
-        """
-        Methode stellt fest, ob optionale Daten vorliegen oder nicht und wenn ja, so sollen diese auf jeden Fall
-        als Date-Datentyp zurückgegeben werden. So soll sichergestellt werden, dass dem Datenbanksystem die Daten in dem
-        Datentyp übergeben werden, in der sie in der Personalstammdatenbank gespeichert werden können.
-        :param date_daten: wird untersucht, ob Daten darin enthalten sind
-        :return: Falls Parameter 'daten' keine Daten enthält, wird None zurückgegeben, sonst Daten
-        """
-        if date_daten == '':
-            date_daten = None
-        elif not re.compile(r'\d{2}\.\d{2}\.\d{4}').fullmatch(date_daten):
-            raise (ValueError(f"{date_daten} hat nicht das Muster 'TT.MM.JJJJ'!"))
-        else:
+        '''
+        try:
             date_daten = datetime.strptime(date_daten, '%d.%m.%Y').date()
+        except ValueError:
+            raise(ValueError(f"'{date_daten}' ist nicht möglich!"))
 
         return date_daten
-
-    def existenz_date_pflichtdaten_pruefen(self, date_daten, art):
-        """
-        prüft, ob Daten, die zwingend für den Dateneintrag notwendig sind (z.B. Name, Adresse) , auch vorhanden sind
-        :param date_daten: zu prüfende Pflichtdaten
-        :param art: gibt an, um was für Daten es sich handeln soll
-        :return: Daten, sofern sie in Ordnung sind
-        """
-        if date_daten == '':
-            raise (ValueError(f"{art} ist nicht vorhanden."))
-        elif not re.compile(r'\d{2}\.\d{2}\.\d{4}').fullmatch(date_daten):
-            raise (ValueError(f"{date_daten} hat nicht das Muster 'TT.MM.JJJJ'!"))
-        else:
-            date_daten = datetime.strptime(date_daten, '%d.%m.%Y').date()
-
-        return date_daten
-
-    def pruefe_zeichenlaenge(self, string, art, anzahl_zeichen):
-        """
-        Methode prueft, ob eine Zeichenkette nicht das Maximum der erlaubten Anzahl an Zeichen übersteigt.
-        Begrenzung ist notwendig, da varchar-Attribute der Datenbank nur eine bestimmte Zeichenlänge haben dürfen.
-        :param string: Zeichenkette, welche geprüft werden soll
-        :param art: gibt an, um was für Daten es sich handeln soll
-        :param anzahl_zeichen: maximale Anzahl an Zeichen, die der zu prüfende String besitzen darf
-        """
-        if len(string) > anzahl_zeichen:
-            raise (ValueError(f"{art} darf höchstens {anzahl_zeichen} Zeichen lang sein. "
-                              f"{string} besitzt {len(string)} Zeichen!"))
-    '''
-
-    def nutzer_aus_datenbank_entfernen(self, conn):
-        """
-        Methode entfernt einen Nutzer aus der Tabelle "Nutzer" der Personalstammdatenbank
-        :param conn: Connection zur Personalstammdatenbank
-        """
-        nutzer_delete_query = f"SELECT nutzer_entfernen({self.nutzer_id}, '{self.vorname}', '{self.nachname}', '{self.mandant_id}')"
-        cur = conn.cursor()
-        cur.execute(nutzer_delete_query)
-
-        # Commit der Änderungen
-        conn.commit()
-
-        # Cursor schließen
-        cur.close()
-
-        conn.close()

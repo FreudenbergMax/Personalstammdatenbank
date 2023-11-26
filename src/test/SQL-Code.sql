@@ -132,7 +132,7 @@ create table Mitarbeiter (
     Vorname varchar(64) not null,
     Zweitname varchar(128),
     Nachname varchar(64) not null,
-    Geburtsdatum date,
+    Geburtsdatum date not null,
     Eintrittsdatum date not null, 
     Steuernummer varchar(32),
     Sozialversicherungsnummer varchar(32),
@@ -358,7 +358,7 @@ create or replace function nutzer_entfernen(
 $$
 begin
 	
-	set session role tenant_nutzer;
+	set session role tenant_user;
 	execute 'SET app.current_tenant=' || p_mandant_id;
 	
     delete from nutzer 
@@ -706,6 +706,7 @@ begin
 								   p_dienstliche_emailadresse, 
 								   p_austrittsdatum);
 	
+	-- wenn einer dieser Werte 'null' ist, dann dürfen die Adress-Tabellen nicht befüllt werden!
 	perform insert_tbl_laender(p_mandant_id, p_land);
 	perform insert_tbl_regionen(p_mandant_id, p_region, p_land);
 	perform insert_tbl_staedte(p_mandant_id, p_stadt, p_region);
