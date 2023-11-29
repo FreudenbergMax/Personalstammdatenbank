@@ -19,24 +19,9 @@ class Mandant:
                              f"'{mandantenname}' besitzt {len(mandantenname)} Zeichen!"))
 
         self.mandantenname = mandantenname
-        self.mandant_id = self._id_erstellen(conn)
-        self._in_datenbank_anlegen(conn)
+        #self.mandant_id = self._id_erstellen(conn)
+        self.mandant_id = self._in_datenbank_anlegen(conn)
         self.liste_nutzer = []
-
-    def _id_erstellen(self, conn):
-        """
-        Methode ruft die stored Procedure 'erstelle_neue_id' auf, welche eine neue Mandant_ID berechnet und den Wert
-        zurückgibt.
-        :param conn: Connection zur Personalstammdatenbank
-        :return: berechnete Mandant_ID
-        """
-        neue_id_query = "SELECT erstelle_neue_id('Mandant_ID', 'Mandanten')"
-
-        cur = conn.cursor()
-        cur.execute(neue_id_query)
-        mandant_id = cur.fetchall()[0][0]
-
-        return mandant_id
 
     def _in_datenbank_anlegen(self, conn):
         """
@@ -44,15 +29,17 @@ class Mandant:
         Personalstammdatenbank speichert.
         :param conn: Connection zur Personalstammdatenbank
         """
-        mandant_insert_query = f"SELECT mandant_anlegen({self.mandant_id}, '{self.mandantenname}')"
+        mandant_insert_query = f"SELECT mandant_anlegen('{self.mandantenname}')"
         cur = conn.cursor()
-        cur.execute(mandant_insert_query)
+        mandant_id = cur.execute(mandant_insert_query)
 
         # Commit der Änderungen
         conn.commit()
 
         # Cursor schließen
         cur.close()
+
+        return mandant_id
 
     def nutzer_anlegen(self, personalnummer, vorname, nachname, conn):
         """

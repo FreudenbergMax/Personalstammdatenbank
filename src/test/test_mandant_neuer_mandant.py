@@ -1,4 +1,6 @@
 import unittest
+import psycopg2
+
 from src.main.Mandant import Mandant
 from src.main.test_SetUp import test_set_up
 
@@ -52,6 +54,24 @@ class TestNeuerMandant(unittest.TestCase):
 
         self.assertEqual(mandant_id, 2)
         self.assertEqual(name_neuer_mandant, 'testunternehmen')
+
+    def test_weiterer_mandant_mit_gleichem_Namen_Exception(self):
+        """
+        Test prüft ab, ob bei der Neuanlage eines Mandanten die Exception der Stored Procedure 'mandant_anlegen'
+        geworfen wird, wenn der Name des Mandanten bereits existiert.
+        """
+        testfirma1 = Mandant('beispielbetrieb', self.conn)
+
+        with self.assertRaises(Exception) as context:
+            testfirma2 = Mandant('beispielbetrieb', self.conn)
+
+        self.assertEqual(str(context.exception), 'FEHLER:  Dieser Mandant ist bereits angelegt!\n'
+                                                 'CONTEXT:  PL/pgSQL-Funktion mandant_anlegen(character varying) Zeile 12 bei RAISE\n')
+
+        # Folgende Code-Zeile notwendig, da eine geworfene Exception in einer postgres-Stored Procedure
+        # die Transaktion beendet und deswegen in der TearDown-Methode eine fehlermeldung kommt.
+        # Keine elegenatere Möglichkeit zur Fehlerbehebung gefunden
+        self.conn, self.cursor = test_set_up()
 
     def test_name_zahl(self):
         """

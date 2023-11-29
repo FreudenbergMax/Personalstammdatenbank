@@ -98,8 +98,8 @@ drop function if exists insert_tbl_wohnt_in(p_mandant_id integer, p_personalnumm
 	
 
 create table Mandanten(
-	Mandant_ID integer primary key,
-	Firma varchar(128) not null
+	Mandant_ID serial primary key,
+	Firma varchar(128) unique not null
 );
 
 alter table Mandanten enable row level security;
@@ -110,7 +110,7 @@ create policy FilterMandant_Mandanten
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
 create table Nutzer(
-	Nutzer_ID integer primary key,
+	Nutzer_ID serial primary key,
 	Mandant_ID integer not null,
 	Personalnummer varchar(32) not null,
 	Vorname varchar(64) not null,
@@ -263,6 +263,7 @@ create policy FilterMandant_wohnt_in
  * Funktion erstellt eine neue ID. Sie wird verwendet, um für neu anzulegende Mandanten und Nutzer die 
  * entsprechende Mandant_ID bzw. Nutzer_ID zu erzeugen.
  */
+ /*
 create or replace function erstelle_neue_id(
 	p_id_spalte varchar(64),
 	p_tabelle varchar(64)
@@ -286,24 +287,32 @@ begin
 end;
 $$
 language plpgsql;
-
+*/
 /*
  * Funktion trägt die Daten eines neuen Mandanten in die Datenbank ein.
  */
 create or replace function mandant_anlegen(
-	p_mandant_id integer,
 	p_firma varchar(128)
-) returns void as
+) returns integer as
 $$
+declare
+	v_mandant varchar(128);
+	v_mandant_id integer;
 begin
 
-	set session role tenant_user;
-	execute 'SET app.current_tenant=' || p_mandant_id;
-
-    insert into Mandanten(Mandant_ID, Firma)
-		values(p_mandant_id, p_firma);
-
 	set role postgres;
+
+	-- Prüfung, ob der Name des Mandanten (bzw. der Firma) bereits existiert. Falls ja, so soll eine Exception geworfen werden. Andernfalls soll der Mandant angelegt werden
+	execute 'SELECT firma FROM mandanten WHERE firma = $1' INTO v_mandant USING p_firma;
+	if v_mandant is not null then
+		raise exception 'Dieser Mandant ist bereits angelegt!';
+	else
+		insert into Mandanten(Firma) values(p_firma);
+	end if;
+    
+	-- Mandant_ID des soeben angelegten Mandanten abfragen, damit diese im Mandant-Objekt auf der Python-Seite gespeichert werden kann.
+	execute 'SELECT mandant_id FROM mandanten WHERE firma = $1' INTO v_mandant_id USING p_firma;
+	return v_mandant_id;
 
 end;
 $$
