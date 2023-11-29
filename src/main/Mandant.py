@@ -19,8 +19,8 @@ class Mandant:
                              f"'{mandantenname}' besitzt {len(mandantenname)} Zeichen!"))
 
         self.mandantenname = mandantenname
-        #self.mandant_id = self._id_erstellen(conn)
         self.mandant_id = self._in_datenbank_anlegen(conn)
+        #print("Mandant_ID:", self.mandant_id)
         self.liste_nutzer = []
 
     def _in_datenbank_anlegen(self, conn):
@@ -31,7 +31,9 @@ class Mandant:
         """
         mandant_insert_query = f"SELECT mandant_anlegen('{self.mandantenname}')"
         cur = conn.cursor()
-        mandant_id = cur.execute(mandant_insert_query)
+        cur.execute(mandant_insert_query)
+
+        mandant_id = cur.fetchone()[0]
 
         # Commit der Änderungen
         conn.commit()
@@ -79,6 +81,8 @@ class Mandant:
         :param personalnummer: des Nutzers, der entfernt werden soll
         :param conn: Connection zur Datenbank
         """
+        nutzer_entfernt = False
+
         for i in range(len(self.liste_nutzer)):
             if self.liste_nutzer[i].get_personalnummer() == personalnummer:
 
@@ -98,3 +102,9 @@ class Mandant:
 
                 # Nutzer aus Liste 'liste_nutzer' des Mandant-Objekt entfernen
                 self.liste_nutzer.remove(self.liste_nutzer[i])
+
+                nutzer_entfernt = True
+                print(f"Nutzer {personalnummer} wurde entfernt!")
+
+        if not nutzer_entfernt:
+            print(f"Nutzer {personalnummer} existiert nicht!")

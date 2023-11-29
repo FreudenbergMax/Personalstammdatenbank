@@ -66,7 +66,7 @@ class TestNeuerMandant(unittest.TestCase):
             testfirma2 = Mandant('beispielbetrieb', self.conn)
 
         self.assertEqual(str(context.exception), 'FEHLER:  Dieser Mandant ist bereits angelegt!\n'
-                                                 'CONTEXT:  PL/pgSQL-Funktion mandant_anlegen(character varying) Zeile 12 bei RAISE\n')
+                                                 'CONTEXT:  PL/pgSQL-Funktion mandant_anlegen(character varying) Zeile 10 bei RAISE\n')
 
         # Folgende Code-Zeile notwendig, da eine geworfene Exception in einer postgres-Stored Procedure
         # die Transaktion beendet und deswegen in der TearDown-Methode eine fehlermeldung kommt.

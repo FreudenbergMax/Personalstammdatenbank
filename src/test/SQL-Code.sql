@@ -33,8 +33,6 @@ alter default privileges in schema temp_test_schema grant select, insert, update
 -- 'tenant-user' kann zukünftig erstellte Sequenzen (bspw. Serial) benutzen 
 alter default privileges in schema temp_test_schema grant usage on sequences to tenant_user;
 
-set role postgres;
-
 drop table if exists Nutzer;
 drop table if exists wohnt_in;
 drop table if exists Strassenbezeichnungen;
@@ -260,36 +258,7 @@ create policy FilterMandant_wohnt_in
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
 /*
- * Funktion erstellt eine neue ID. Sie wird verwendet, um für neu anzulegende Mandanten und Nutzer die 
- * entsprechende Mandant_ID bzw. Nutzer_ID zu erzeugen.
- */
- /*
-create or replace function erstelle_neue_id(
-	p_id_spalte varchar(64),
-	p_tabelle varchar(64)
-) returns integer as
-$$
-declare 
-	v_neue_id integer;
-begin
-
-	set role postgres;
-
-    -- Neue ID erstellen
-    execute 'SELECT MAX(' || p_id_spalte || ') + 1 FROM ' || p_tabelle into v_neue_id;
-   
-    if v_neue_id is null then
-    	v_neue_id := 1;
-	end if;
-
-    return v_neue_id;
-	
-end;
-$$
-language plpgsql;
-*/
-/*
- * Funktion trägt die Daten eines neuen Mandanten in die Datenbank ein.
+ * Funktion legt neuen Mandanten in der Datenbank an.
  */
 create or replace function mandant_anlegen(
 	p_firma varchar(128)
@@ -299,8 +268,6 @@ declare
 	v_mandant varchar(128);
 	v_mandant_id integer;
 begin
-
-	set role postgres;
 
 	-- Prüfung, ob der Name des Mandanten (bzw. der Firma) bereits existiert. Falls ja, so soll eine Exception geworfen werden. Andernfalls soll der Mandant angelegt werden
 	execute 'SELECT firma FROM mandanten WHERE firma = $1' INTO v_mandant USING p_firma;
@@ -322,46 +289,28 @@ language plpgsql;
  * Funktion trägt die Daten eines neuen Nutzers in die Datenbank ein.
  */
 create or replace function nutzer_anlegen(
-	p_nutzer_id integer,
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_vorname varchar(64),
 	p_nachname varchar(64)
-) returns void as
+) returns integer as
 $$
+declare
+	v_nutzer_id integer;
 begin
-
-	set session role tenant_user;
-	execute 'SET app.current_tenant=' || p_mandant_id;
 	
 	perform pruefe_einmaligkeit_personalnummer(p_mandant_id, 'nutzer', p_personalnummer);
 
-    insert into Nutzer(Nutzer_ID, Mandant_ID, Personalnummer, Vorname, Nachname)
-		values(p_nutzer_id, p_mandant_id, p_personalnummer, p_vorname, p_nachname);
+    insert into Nutzer(Mandant_ID, Personalnummer, Vorname, Nachname)
+		values(p_mandant_id, p_personalnummer, p_vorname, p_nachname);
+	
+	-- Mandant_ID des soeben angelegten Mandanten abfragen, damit diese im Mandant-Objekt auf der Python-Seite gespeichert werden kann.
+	execute 'SELECT nutzer_id FROM nutzer WHERE personalnummer = $1' INTO v_nutzer_id USING p_personalnummer;
 	
 	set role postgres;
-
-end;
-$$
-language plpgsql;
-
-/*
- * Funktion entfernt einen Nutzer aus der Datenbank.
- */
-create or replace function nutzer_entfernen(
-	p_mandant_id integer,
-	p_personalnummer varchar(32)
-) returns void as
-$$
-begin
-
-	set session role tenant_user;
-	execute 'SET app.current_tenant=' || p_mandant_id;
 	
-    delete from nutzer where Personalnummer = p_personalnummer and Mandant_ID = p_mandant_id;
-
-	set role postgres;
-
+	return v_nutzer_id;
+	
 end;
 $$
 language plpgsql;
@@ -395,7 +344,30 @@ end;
 $$
 language plpgsql;
 
+/*
+ * Funktion entfernt einen Nutzer aus der Datenbank.
+ */
+create or replace function nutzer_entfernen(
+	p_mandant_id integer,
+	p_personalnummer varchar(32)
+) returns void as
+$$
+begin
 
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+    delete from nutzer where Personalnummer = p_personalnummer and Mandant_ID = p_mandant_id;
+
+	set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt die Daten in die Tabelle "Mitarbeiter" ein.
+ */
 create or replace function insert_tbl_mitarbeiter(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),

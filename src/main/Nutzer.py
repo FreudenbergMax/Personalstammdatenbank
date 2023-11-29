@@ -40,12 +40,12 @@ class Nutzer:
             raise (ValueError(f"Der Nachname darf höchstens 64 Zeichen lang sein. "
                               f"'{nachname}' besitzt {len(nachname)} Zeichen!"))
 
-        self.nutzer_id = self._id_erstellen(conn)
+        #self.nutzer_id = self._id_erstellen(conn)
         self.mandant_id = mandant_id
         self.personalnummer = str(personalnummer)
         self.vorname = vorname
         self.nachname = nachname
-        self._in_datenbank_anlegen(conn)
+        self.nutzer_id = self._in_datenbank_anlegen(conn)
 
     def get_nutzer_id(self):
         return self.nutzer_id
@@ -59,36 +59,23 @@ class Nutzer:
     def get_nachname(self):
         return self.nachname
 
-    def _id_erstellen(self, conn):
-        """
-        Methode ruft die stored Procedure 'erstelle_neue_id' auf, welche eine neue Nutzer_ID berechnet und den Wert
-        zurückgibt.
-        :param conn: Connection zur Personalstammdatenbank
-        :return: berechnete Mandant_ID
-        """
-        neue_id_query = "SELECT erstelle_neue_id('nutzer_id', 'Nutzer')"
-
-        cur = conn.cursor()
-        cur.execute(neue_id_query)
-        nutzer_id = cur.fetchall()[0][0]
-
-        return nutzer_id
-
     def _in_datenbank_anlegen(self, conn):
         """
         Methode ruft die Stored Procedure 'nutzer_anlegen' auf, welche die Daten des Nutzers in der
         Personalstammdatenbank speichert.
         :param conn: Connection zur Personalstammdatenbank
         """
-        nutzer_insert_query = f"SELECT nutzer_anlegen({self.nutzer_id}, '{self.mandant_id}', '{self.personalnummer}', '{self.vorname}', '{self.nachname}')"
+        nutzer_insert_query = f"SELECT nutzer_anlegen('{self.mandant_id}', '{self.personalnummer}', '{self.vorname}', '{self.nachname}')"
         cur = conn.cursor()
-        cur.execute(nutzer_insert_query)
+        nutzer_id = cur.execute(nutzer_insert_query)
 
         # Commit der Änderungen
         conn.commit()
 
         # Cursor schließen
         cur.close()
+
+        return nutzer_id
 
     def abfrage_ausfuehren(self, tabelle, conn):
         """
