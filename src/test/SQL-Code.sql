@@ -272,6 +272,8 @@ declare
 	v_neue_id integer;
 begin
 
+	set role postgres;
+
     -- Neue ID erstellen
     execute 'SELECT MAX(' || p_id_spalte || ') + 1 FROM ' || p_tabelle into v_neue_id;
    
@@ -295,8 +297,13 @@ create or replace function mandant_anlegen(
 $$
 begin
 
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+
     insert into Mandanten(Mandant_ID, Firma)
 		values(p_mandant_id, p_firma);
+
+	set role postgres;
 
 end;
 $$
@@ -314,11 +321,16 @@ create or replace function nutzer_anlegen(
 ) returns void as
 $$
 begin
+
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
 	
 	perform pruefe_einmaligkeit_personalnummer(p_mandant_id, 'nutzer', p_personalnummer);
 
     insert into Nutzer(Nutzer_ID, Mandant_ID, Personalnummer, Vorname, Nachname)
 		values(p_nutzer_id, p_mandant_id, p_personalnummer, p_vorname, p_nachname);
+	
+	set role postgres;
 
 end;
 $$
