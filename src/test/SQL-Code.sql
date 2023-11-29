@@ -40,12 +40,14 @@ drop table if exists Postleitzahlen;
 drop table if exists Staedte;
 drop table if exists Regionen;
 drop table if exists Laender;
+drop table if exists hat_Geschlecht;
+drop table if exists Geschlechter;
 drop table if exists Mandanten;
 drop table if exists mitarbeiter;
 drop function if exists bekomme_aktuelle_Mitarbeiter_ID();
 drop function if exists erstelle_neue_id(varchar(64), varchar(64));
-drop function if exists mandant_anlegen(integer, varchar(128));
-drop function if exists nutzer_anlegen(integer, integer, varchar(32), varchar(64), varchar(64));
+drop function if exists mandant_anlegen(varchar(128));
+drop function if exists nutzer_anlegen(integer, varchar(32), varchar(64), varchar(64));
 drop function if exists nutzer_entfernen(integer, varchar(32));
 drop function if exists select_ausfuehren(varchar(64), integer);
 drop function if exists insert_mitarbeiterdaten(
@@ -69,7 +71,8 @@ drop function if exists insert_mitarbeiterdaten(
 	p_postleitzahl varchar(16),
 	p_stadt varchar(128),
 	p_region varchar(128),
-	p_land varchar(128));
+	p_land varchar(128),
+	p_geschlecht varchar(32));
 drop function if exists pruefe_einmaligkeit_personalnummer(integer, varchar(64), varchar(32));
 drop function if exists insert_tbl_mitarbeiter(
 	p_mandant_id integer,
@@ -93,6 +96,8 @@ drop function if exists insert_tbl_staedte(p_mandant_id integer, p_stadt varchar
 drop function if exists insert_tbl_postleitzahlen(p_mandant_id integer, p_postleitzahl varchar(16), p_stadt varchar(128));
 drop function if exists insert_tbl_strassenbezeichnungen(p_mandant_id integer, p_strasse varchar(64), p_hausnummer varchar(8), p_postleitzahl varchar(16));
 drop function if exists insert_tbl_wohnt_in(p_mandant_id integer, p_personalnummer varchar(32), p_strasse varchar(64), p_hausnummer varchar(8), p_eintrittsdatum date);
+drop function if exists insert_tbl_geschlechter(p_mandant_id integer, p_geschlecht varchar(32));
+drop function if exists insert_tbl_hat_geschlecht(p_mandant_id integer, p_personalnummer varchar(32), p_geschlecht varchar(32), p_eintrittsdatum date);
 	
 
 create table Mandanten(
@@ -366,7 +371,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion trägt die Daten in die Tabelle "Mitarbeiter" ein.
+ * Funktion trägt die Daten in die Tabelle "Mitarbeiter" ein
  */
 create or replace function insert_tbl_mitarbeiter(
 	p_mandant_id integer,
@@ -426,7 +431,6 @@ end;
 $$
 language plpgsql;
 
-
 /*
  * Funktion trägt die Daten in die Tabelle "Laender" ein
  */
@@ -453,7 +457,6 @@ begin
 end;
 $$
 language plpgsql;
-
 
 /*
  * Funktion trägt die Daten in die Tabelle "Regionen" ein
@@ -485,8 +488,6 @@ end;
 $$
 language plpgsql;
 
-
-
 /*
  * Funktion trägt die Daten in die Tabelle "Staedte" ein
  */
@@ -517,8 +518,6 @@ end;
 $$
 language plpgsql;
 
-
-
 /*
  * Funktion trägt die Daten in die Tabelle "Postleitzahlen" ein
  */
@@ -548,8 +547,6 @@ begin
 end;
 $$
 language plpgsql;
-
-
 
 /*
  * Funktion trägt die Daten in die Tabelle "Strassenbezeichnungen" ein
@@ -587,7 +584,6 @@ end;
 $$
 language plpgsql;
 
-
 /*
  * Funktion trägt die Daten in die Assoziation "wohnt_in" ein
  */
@@ -618,6 +614,60 @@ $$
 language plpgsql;
 
 
+/*
+ * Funktion trägt neue Daten in Tabelle 'Geschlechter' ein.
+ */
+create or replace function insert_tbl_geschlechter(
+	p_mandant_id integer,
+	p_geschlecht varchar(32)
+) returns void as
+$$
+declare
+	v_geschlecht_vorhanden varchar(32);
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+
+	execute 'SELECT geschlecht FROM geschlechter WHERE geschlecht = $1' INTO v_geschlecht_vorhanden USING p_geschlecht;
+    
+    if v_geschlecht_vorhanden is null then
+    	insert into Geschlechter(Mandant_ID, Geschlecht) values (p_mandant_id, p_geschlecht);
+	else
+		raise notice 'Geschlecht % ist bereits vorhanden!', v_postleitzahl_vorhanden;
+	end if;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt die Daten in die Assoziation "hat_Geschlecht" ein
+ */
+create or replace function insert_tbl_hat_geschlecht(
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
+	p_geschlecht varchar(32),
+	p_eintrittsdatum date
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+	v_geschlecht_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
+	execute 'SELECT geschlecht_ID FROM geschlechter WHERE geschlecht = $1' into v_geschlecht_id using p_geschlecht;
+    
+    insert into hat_Geschlecht(Mitarbeiter_ID, Geschlecht_ID, Mandant_ID, Datum_Von, Datum_Bis) 
+   		values (v_mitarbeiter_id, v_geschlecht_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+
+end;
+$$
+language plpgsql;
 
 /*
  * Zentrale Funktion, mit der die Daten eines neuen Mitarbeiters in die Datenbank eingetragen werden soll.
@@ -643,7 +693,8 @@ create or replace function insert_mitarbeiterdaten(
 	p_postleitzahl varchar(16),
 	p_stadt varchar(128),
 	p_region varchar(128),
-	p_land varchar(128)
+	p_land varchar(128),
+	p_geschlecht varchar(32)
 ) returns void as
 $$
 begin
@@ -669,14 +720,21 @@ begin
 								   p_dienstliche_emailadresse, 
 								   p_austrittsdatum);
 	
-	
 	-- wenn einer dieser Werte 'null' ist, dann dürfen die Adress-Tabellen nicht befüllt werden!
-	perform insert_tbl_laender(p_mandant_id, p_land);
-	perform insert_tbl_regionen(p_mandant_id, p_region, p_land);
-	perform insert_tbl_staedte(p_mandant_id, p_stadt, p_region);
-	perform insert_tbl_postleitzahlen(p_mandant_id, p_postleitzahl,p_stadt);
-	perform insert_tbl_strassenbezeichnungen(p_mandant_id, p_strasse, p_hausnummer, p_postleitzahl);
-	perform insert_tbl_wohnt_in(p_mandant_id, p_personalnummer, p_strasse, p_hausnummer, p_eintrittsdatum);
+	if p_land is not null and p_region is not null and p_stadt is not null and p_postleitzahl is not null and p_strasse is not null and p_hausnummer is not null then
+		perform insert_tbl_laender(p_mandant_id, p_land);
+		perform insert_tbl_regionen(p_mandant_id, p_region, p_land);
+		perform insert_tbl_staedte(p_mandant_id, p_stadt, p_region);
+		perform insert_tbl_postleitzahlen(p_mandant_id, p_postleitzahl, p_stadt);
+		perform insert_tbl_strassenbezeichnungen(p_mandant_id, p_strasse, p_hausnummer, p_postleitzahl);
+		perform insert_tbl_wohnt_in(p_mandant_id, p_personalnummer, p_strasse, p_hausnummer, p_eintrittsdatum);
+	end if;
+	
+	-- Sofern p_geschlecht nicht 'null' ist, den Bereich 'Geschlecht mit Daten befüllen'
+	if p_geschlecht is not null then
+		perform insert_tbl_geschlechter(p_mandant_id, p_geschlecht);
+		perform insert_tbl_hat_geschlecht(p_mandant_id, p_personalnummer, p_geschlecht, p_eintrittsdatum);
+	end if;
 	
 	-- Pseudocode Tarif oder AT
 	-- if Tarifbezeichnung not null:
@@ -696,8 +754,6 @@ begin
 end;
 $$
 language plpgsql;
-
-
 
 /*
  * Diese Funktion nimmt eine SELECT-Anfrage (z.B. zwecks Abfrage für eine Datenanalyse) 
