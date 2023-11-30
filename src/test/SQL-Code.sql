@@ -15,11 +15,11 @@ revoke usage on schema temp_test_schema from tenant_user;
 -- 'tenant-user' wird quasi enterbt
 revoke tenant_user from postgres;
 -- Rolle 'tenant_user' entfernen
-drop role if exists tenant_user;
+--drop role if exists tenant_user;
 
 -- Erstellung der Rolle 'tenant-user' mit diversen Zugriffsrechten
 -- Rolle für die user erstellen, welcher RLS unterliegt
-create role tenant_user;
+--create role tenant_user;
 -- tenant-user erbt Berechtigungen von postgres (=Admin)
 --grant tenant_user to postgres;
 -- Rolle 'tenant-user' darf im Schema 'public' operieren
@@ -50,54 +50,19 @@ drop function if exists mandant_anlegen(varchar(128));
 drop function if exists nutzer_anlegen(integer, varchar(32), varchar(64), varchar(64));
 drop function if exists nutzer_entfernen(integer, varchar(32));
 drop function if exists select_ausfuehren(varchar(64), integer);
-drop function if exists insert_mitarbeiterdaten(
-	p_mandant_id integer,
-	p_personalnummer varchar(32),
-	p_vorname varchar(64),
-	p_zweitname varchar(128),
-	p_nachname varchar(64),
-	p_geburtsdatum date,
-	p_eintrittsdatum date, 
-	p_steuernummer varchar(32),
-	p_sozialversicherungsnummer varchar(32),
-	p_iban varchar(32),
-	p_private_telefonnummer varchar(16),
-    p_private_emailadresse varchar(64),
-    p_dienstliche_telefonnummer varchar(16),
-    p_dienstliche_emailadresse varchar(64),
-    p_austrittsdatum date,
-    p_strasse varchar(64),
-	p_hausnummer varchar(8),
-	p_postleitzahl varchar(16),
-	p_stadt varchar(128),
-	p_region varchar(128),
-	p_land varchar(128),
-	p_geschlecht varchar(32));
+drop function if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), varchar(32),
+varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), varchar(32));
 drop function if exists pruefe_einmaligkeit_personalnummer(integer, varchar(64), varchar(32));
-drop function if exists insert_tbl_mitarbeiter(
-	p_mandant_id integer,
-	p_personalnummer varchar(32),
-	p_vorname varchar(64),
-	p_zweitname varchar(128),
-	p_nachname varchar(64),
-	p_geburtsdatum date,
-	p_eintrittsdatum date, 
-	p_steuernummer varchar(32),
-	p_sozialversicherungsnummer varchar(32),
-	p_iban varchar(32),
-	p_private_telefonnummer varchar(16),
-    p_private_emailadresse varchar(64),
-    p_dienstliche_telefonnummer varchar(16),
-    p_dienstliche_emailadresse varchar(64),
-    p_austrittsdatum date);
-drop function if exists insert_tbl_laender(p_mandant_id integer, p_land varchar(128));
-drop function if exists insert_tbl_regionen(p_mandant_id integer, p_region varchar(128), p_land varchar(128));
-drop function if exists insert_tbl_staedte(p_mandant_id integer, p_stadt varchar(128), p_region varchar(128));
-drop function if exists insert_tbl_postleitzahlen(p_mandant_id integer, p_postleitzahl varchar(16), p_stadt varchar(128));
-drop function if exists insert_tbl_strassenbezeichnungen(p_mandant_id integer, p_strasse varchar(64), p_hausnummer varchar(8), p_postleitzahl varchar(16));
-drop function if exists insert_tbl_wohnt_in(p_mandant_id integer, p_personalnummer varchar(32), p_strasse varchar(64), p_hausnummer varchar(8), p_eintrittsdatum date);
-drop function if exists insert_tbl_geschlechter(p_mandant_id integer, p_geschlecht varchar(32));
-drop function if exists insert_tbl_hat_geschlecht(p_mandant_id integer, p_personalnummer varchar(32), p_geschlecht varchar(32), p_eintrittsdatum date);
+drop function if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date,  varchar(32), varchar(32), varchar(32), 
+varchar(16), varchar(64), varchar(16), varchar(64), date);
+drop function if exists insert_tbl_laender(integer, varchar(128));
+drop function if exists insert_tbl_regionen(integer, varchar(128), varchar(128));
+drop function if exists insert_tbl_staedte(integer, varchar(128), varchar(128));
+drop function if exists insert_tbl_postleitzahlen(integer, varchar(16), varchar(128));
+drop function if exists insert_tbl_strassenbezeichnungen(integer, varchar(64), varchar(8), varchar(16));
+drop function if exists insert_tbl_wohnt_in(integer, varchar(32), varchar(64), varchar(8), date);
+drop function if exists insert_tbl_geschlechter(integer, varchar(32));
+drop function if exists insert_tbl_hat_geschlecht(integer, varchar(32), varchar(32), date);
 	
 
 create table Mandanten(
@@ -260,6 +225,43 @@ create table wohnt_in (
 alter table wohnt_in enable row level security;
 create policy FilterMandant_wohnt_in
     on wohnt_in
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+-- Bereich "Geschlechter" erstellen
+create table Geschlechter(
+	Geschlecht_ID serial primary key,
+	Mandant_ID integer not null,
+	Geschlecht varchar(32),
+	unique(Mandant_ID, Geschlecht),
+	constraint fk_geschlechter_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table Geschlechter enable row level security;
+create policy FilterMandant_Geschlechter
+    on Geschlechter
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+create table hat_Geschlecht(
+	Mitarbeiter_ID integer not null,
+	Geschlecht_ID integer not null,
+	Mandant_ID integer not null,
+	Datum_Von date not null,
+	Datum_Bis date not null,
+	primary key(Mitarbeiter_ID, Datum_Bis),
+	constraint fk_hatgeschlecht_mitarbeiter
+    	foreign key (Mitarbeiter_ID) 
+    		references Mitarbeiter(Mitarbeiter_ID),
+	constraint fk_hatgeschlecht_Geschlechter
+    	foreign key (Geschlecht_ID) 
+    		references Geschlechter(Geschlecht_ID),
+	constraint fk_hatgeschlecht_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table hat_Geschlecht enable row level security;
+create policy FilterMandant_hat_geschlecht
+    on hat_Geschlecht
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
 /*
@@ -618,24 +620,23 @@ language plpgsql;
  * Funktion trägt neue Daten in Tabelle 'Geschlechter' ein.
  */
 create or replace function insert_tbl_geschlechter(
-	p_mandant_id integer,
-	p_geschlecht varchar(32)
+    p_mandant_id integer,
+    p_geschlecht varchar(32)
 ) returns void as
 $$
 declare
-	v_geschlecht_vorhanden varchar(32);
+    v_geschlecht_vorhanden VARCHAR(32);
 begin
-	
-	set session role tenant_user;
-	execute 'SET app.current_tenant=' || p_mandant_id;
-
-	execute 'SELECT geschlecht FROM geschlechter WHERE geschlecht = $1' INTO v_geschlecht_vorhanden USING p_geschlecht;
     
-    if v_geschlecht_vorhanden is null then
-    	insert into Geschlechter(Mandant_ID, Geschlecht) values (p_mandant_id, p_geschlecht);
-	else
-		raise notice 'Geschlecht % ist bereits vorhanden!', v_postleitzahl_vorhanden;
-	end if;
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into Geschlechter(Mandant_ID, Geschlecht) values (p_mandant_id, p_geschlecht);
+    exception
+        when unique_violation then
+            raise notice 'Geschlecht bereits vorhanden';
+    
+    set role postgres;
 
 end;
 $$
@@ -755,6 +756,8 @@ end;
 $$
 language plpgsql;
 
+
+
 /*
  * Diese Funktion nimmt eine SELECT-Anfrage (z.B. zwecks Abfrage für eine Datenanalyse) 
  * entgegen. Sie soll sicherstellen, dass dabei nur die Daten berücksichtigt werden,
@@ -780,4 +783,3 @@ begin
 end;
 $$
 language plpgsql;
-

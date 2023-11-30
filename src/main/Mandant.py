@@ -20,8 +20,14 @@ class Mandant:
 
         self.mandantenname = mandantenname
         self.mandant_id = self._in_datenbank_anlegen(conn)
-        #print("Mandant_ID:", self.mandant_id)
         self.liste_nutzer = []
+
+    def get_mandant_id(self):
+        """
+        Standard-Getter-Methode für die Objektvariable 'mandant_id'
+        :return: mandant_id
+        """
+        return self.mandant_id
 
     def _in_datenbank_anlegen(self, conn):
         """
@@ -97,8 +103,6 @@ class Mandant:
 
                 # Cursor schließen
                 cur.close()
-
-                #conn.close()
 
                 # Nutzer aus Liste 'liste_nutzer' des Mandant-Objekt entfernen
                 self.liste_nutzer.remove(self.liste_nutzer[i])
