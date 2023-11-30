@@ -1,11 +1,13 @@
 """
 Für jede Tabelle wird eine py-Testdatei erzeugt. Folgende Tests müssen mindestens für jede Tabelle durchgeführt werden:
 - insert-Befehl wird erfolgreich ausgeführt, sofern übergegebener Datensatz noch nicht existiert
-- insert-Befehl fügt keine neuen Daten ein, wenn die einzufügenden Daten bereits existieren
+- insert-Befehl fügt keine Daten ein, wenn die einzufügenden Daten bereits existieren
 - delete-Befehl wird erfolgreich ausgeführt
 - RLS funktioniert --> Mandant A sieht keine Daten von Mandant B
 
 Bei Assoziationen kommen noch hinzu:
+- insert Fehlermeldung soll erscheinen, wenn zwei datensätze denselben primary key (zusammengesetzt aus 'Mitarbeiter_ID'
+    und 'Datum_Bis') haben
 - update-Befehl wird ausgeführt
     - "Datum_bis" wird von '9999-12-31' auf das letzte Datum umgestellt, wo der Eintrag gültig ist
     - die Änderung (=neuer Datensatz) wird erfolgreich eingefügt
@@ -13,7 +15,6 @@ Bei Assoziationen kommen noch hinzu:
 """
 
 import unittest
-from datetime import datetime
 
 from src.main.test_SetUp import test_set_up
 from src.main.Mandant import Mandant
@@ -29,6 +30,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         """
         self.conn, self.cursor = test_set_up()
         self.testfirma = Mandant('Testfirma', self.conn)
+        self.testunternehmen = Mandant('Testunternehmen', self.conn)
 
     def test_insert_neue_Daten(self):
         """
@@ -76,12 +78,25 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         select_query = f"SELECT * FROM geschlechter"
         self.cursor.execute(select_query)
         self.conn.commit()
-        result = self.cursor.fetchall()
+        result = str(self.cursor.fetchall())
 
         # Wenn unique-constraint nicht funktionieren würde, wäre 'result' = '[(1, 1, 'weiblich'), (1, 1, 'weiblich')]'.
         #  Da der unique-constraint aber gelten soll, darf nur '[(1, 1, 'weiblich')]' rauskommen.
-        self.assertNotEqual(str(result), "[(1, 1, 'weiblich'), (1, 1, 'weiblich')]")
-        self.assertEqual(str(result), "[(1, 1, 'weiblich')]")
+        self.assertNotEqual(result, "[(1, 1, 'weiblich'), (1, 1, 'weiblich')]")
+        self.assertEqual(result, "[(1, 1, 'weiblich')]")
+
+    def test_rls_in_tbl_geschlechter(self):
+        """
+        Test prueft, ob Row Level Security in Tabelle 'Geschlechter' funktioniert. Das bedeutet, dass Mandant
+        'testfirma' keine Daten von Mandant 'testunternehmen' sehen kann und umgekehrt.
+        """
+        pass
+
+    def test_alle_daten_entfernt(self):
+        """
+        Test prüft, ob alle Daten eines Mandanten nach Ausführung der entsprechenden Stored Procedures entfernt sind.
+        """
+        pass
 
     def tearDown(self):
         """

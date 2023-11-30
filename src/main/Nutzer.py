@@ -40,7 +40,6 @@ class Nutzer:
             raise (ValueError(f"Der Nachname darf höchstens 64 Zeichen lang sein. "
                               f"'{nachname}' besitzt {len(nachname)} Zeichen!"))
 
-        #self.nutzer_id = self._id_erstellen(conn)
         self.mandant_id = mandant_id
         self.personalnummer = str(personalnummer)
         self.vorname = vorname
@@ -124,6 +123,8 @@ class Nutzer:
         stadt = self._existenz_str_daten_feststellen(liste_ma_daten[17], 'Stadt', 128, True)
         region = self._existenz_str_daten_feststellen(liste_ma_daten[18], 'Region', 128, True)
         land = self._existenz_str_daten_feststellen(liste_ma_daten[19], 'Land', 128, True)
+        geschlecht = self._existenz_str_daten_feststellen(liste_ma_daten[20], 'Geschlecht', 32, False)
+        mitarbeitertyp = self._existenz_str_daten_feststellen(liste_ma_daten[21], 'Mitarbeitertyp', 32, False)
 
         # Ein Cursor-Objekt erstellen
         cur = conn.cursor()
@@ -149,7 +150,9 @@ class Nutzer:
                                                  postleitzahl,
                                                  stadt,
                                                  region,
-                                                 land])
+                                                 land,
+                                                 geschlecht,
+                                                 mitarbeitertyp])
 
         # Commit der Änderungen
         conn.commit()

@@ -36,8 +36,7 @@ class TestNeuerMandant(unittest.TestCase):
 
     def test_weiterer_mandant_angelegt(self):
         """
-        Test prüft ab, ob ein neuer Mandant angelegt wird, sofern alle Bedingungen erfüllt sind, und ob der Zähler
-        für die Erstellung der Mandanten_ID, der in der Stored Procedure 'erstelle_neue_id' implementiert ist, läuft.
+        Test prüft ab, ob ein weiterer neuer Mandant angelegt werden kann, sofern alle Bedingungen erfüllt sind.
         """
         testfirma = Mandant('beispielbetrieb', self.conn)
         testunternehmen = Mandant('testunternehmen', self.conn)

@@ -15,13 +15,13 @@ revoke usage on schema temp_test_schema from tenant_user;
 -- 'tenant-user' wird quasi enterbt
 revoke tenant_user from postgres;
 -- Rolle 'tenant_user' entfernen
---drop role if exists tenant_user;
+drop role if exists tenant_user;
 
 -- Erstellung der Rolle 'tenant-user' mit diversen Zugriffsrechten
 -- Rolle für die user erstellen, welcher RLS unterliegt
---create role tenant_user;
+create role tenant_user;
 -- tenant-user erbt Berechtigungen von postgres (=Admin)
---grant tenant_user to postgres;
+grant tenant_user to postgres;
 -- Rolle 'tenant-user' darf im Schema 'public' operieren
 grant usage on schema temp_test_schema to tenant_user;
 -- 'tenant-user' hat Lese- und Schreibberechtigung auf alle Tabellen im Schema 'public'
@@ -33,7 +33,6 @@ alter default privileges in schema temp_test_schema grant select, insert, update
 -- 'tenant-user' kann zukünftig erstellte Sequenzen (bspw. Serial) benutzen 
 alter default privileges in schema temp_test_schema grant usage on sequences to tenant_user;
 
-drop table if exists Nutzer;
 drop table if exists wohnt_in;
 drop table if exists Strassenbezeichnungen;
 drop table if exists Postleitzahlen;
@@ -42,16 +41,20 @@ drop table if exists Regionen;
 drop table if exists Laender;
 drop table if exists hat_Geschlecht;
 drop table if exists Geschlechter;
-drop table if exists Mandanten;
+drop table if exists ist_mitarbeitertyp;
+drop table if exists Mitarbeitertypen;
 drop table if exists mitarbeiter;
-drop function if exists bekomme_aktuelle_Mitarbeiter_ID();
-drop function if exists erstelle_neue_id(varchar(64), varchar(64));
+drop table if exists Austrittsgruende;
+drop table if exists Kategorien_Austrittsgruende;
+drop table if exists Nutzer;
+drop table if exists Mandanten;
+
 drop function if exists mandant_anlegen(varchar(128));
 drop function if exists nutzer_anlegen(integer, varchar(32), varchar(64), varchar(64));
 drop function if exists nutzer_entfernen(integer, varchar(32));
 drop function if exists select_ausfuehren(varchar(64), integer);
 drop function if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), varchar(32),
-varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), varchar(32));
+varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), varchar(32), varchar(32));
 drop function if exists pruefe_einmaligkeit_personalnummer(integer, varchar(64), varchar(32));
 drop function if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date,  varchar(32), varchar(32), varchar(32), 
 varchar(16), varchar(64), varchar(16), varchar(64), date);
@@ -63,16 +66,14 @@ drop function if exists insert_tbl_strassenbezeichnungen(integer, varchar(64), v
 drop function if exists insert_tbl_wohnt_in(integer, varchar(32), varchar(64), varchar(8), date);
 drop function if exists insert_tbl_geschlechter(integer, varchar(32));
 drop function if exists insert_tbl_hat_geschlecht(integer, varchar(32), varchar(32), date);
-	
+drop function if exists insert_tbl_ist_mitarbeitertyp(integer, varchar(32), varchar(32), date);
+drop function if exists insert_tbl_mitarbeitertypen(integer,varchar(32));
 
 create table Mandanten(
 	Mandant_ID serial primary key,
 	Firma varchar(128) unique not null
 );
-
 alter table Mandanten enable row level security;
-
--- Erstellung der RLS-Policy mit anschließender Aktivieriung der RLS-Fähigkeit der Tabelle "Mitarbeiter"
 create policy FilterMandant_Mandanten
     on Mandanten
     using (Mandant_ID = current_setting('app.current_tenant')::int);
@@ -87,14 +88,44 @@ create table Nutzer(
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
-
 alter table Nutzer enable row level security;
-
--- Erstellung der RLS-Policy mit anschließender Aktivieriung der RLS-Fähigkeit der Tabelle "Mitarbeiter"
 create policy FilterMandant_Nutzer
     on Nutzer
     using (Mandant_ID = current_setting('app.current_tenant')::int);
-   
+
+-- Tabellen, die den Bereich "Austrittsgruende" behandeln, erstellen
+create table Kategorien_Austrittsgruende (
+	Kategorie_Austrittsgruende_ID serial primary key,
+	Mandant_ID integer not null,
+	Austrittsgrundkategorie varchar(16) not null,
+	unique(Mandant_ID, Austrittsgrundkategorie),
+	constraint fk_austrittsgrundkategorien_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table Kategorien_Austrittsgruende enable row level security;
+create policy FilterMandant_kategorien_austrittsgruende
+    on Kategorien_Austrittsgruende
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+create table Austrittsgruende (
+	Austrittsgrund_ID serial primary key,
+	Mandant_ID integer not null,
+	Austrittsgrund varchar(64) not null,
+	Kategorie_Austrittsgruende_ID integer not null,
+	unique(Mandant_ID, Austrittsgrund),
+	constraint fk_Austrittsgruende_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID),
+	constraint fk_austrittsgruende_austrittsgrundkategorien 
+		foreign key (Kategorie_Austrittsgruende_ID) 
+			references Kategorien_Austrittsgruende(Kategorie_Austrittsgruende_ID)
+);
+alter table Austrittsgruende enable row level security;
+create policy FilterMandant_austrittsgruende
+    on Austrittsgruende
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
 create table Mitarbeiter (
     Mitarbeiter_ID serial primary key,
     Mandant_ID integer not null,
@@ -113,10 +144,7 @@ create table Mitarbeiter (
     Dienstliche_Emailadresse varchar(64),
     Austrittsdatum date
 );
-
 alter table Mitarbeiter enable row level security;
-
--- Erstellung der RLS-Policy mit anschließender Aktivieriung der RLS-Fähigkeit der Tabelle "Mitarbeiter"
 create policy FilterMandant_Mitarbeiter
     on Mitarbeiter
     using (Mandant_ID = current_setting('app.current_tenant')::int);
@@ -126,6 +154,7 @@ create table Laender (
 	Land_ID serial primary key,
 	Mandant_ID integer not null,
 	Land varchar(128) not null,
+	unique(Mandant_ID, Land),
     constraint fk_laender_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
@@ -140,6 +169,7 @@ create table Regionen (
 	Mandant_ID integer not null,
 	Region varchar(128) not null,
 	Land_ID integer not null,
+	unique(Mandant_ID, Region),
     constraint fk_regionen_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID),
@@ -157,6 +187,7 @@ create table Staedte (
 	Mandant_ID integer not null,
 	Stadt varchar(128) not null,
 	Region_ID integer not null,
+	unique(Mandant_ID, Stadt),
 	constraint fk_staedte_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID),
@@ -174,6 +205,7 @@ create table Postleitzahlen (
 	Mandant_ID integer not null,
 	Postleitzahl varchar(16) not null,
 	Stadt_ID integer not null,
+	unique(Mandant_ID, Postleitzahl),
 	constraint fk_postleitzahlen_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID),
@@ -192,6 +224,7 @@ create table Strassenbezeichnungen (
 	Strasse varchar(64) not null,
 	Hausnummer varchar(8) not null,
 	Postleitzahl_ID integer not null,
+	unique(Mandant_ID, Strasse, Hausnummer),
 	constraint fk_erstwohnsitze_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID),
@@ -263,6 +296,41 @@ alter table hat_Geschlecht enable row level security;
 create policy FilterMandant_hat_geschlecht
     on hat_Geschlecht
     using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+-- Tabellen, die den Bereich "Mitarbeitertyp" (Angestellter, Arbeiter, Praktikant, Werkstudent etc.) behandeln, erstellen
+create table Mitarbeitertypen (
+	Mitarbeitertyp_ID serial primary key,
+	Mandant_ID integer not null,
+	Mitarbeitertyp varchar(32),
+	unique(Mandant_ID, Mitarbeitertyp),
+	constraint fk_mitarbeitertypen_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+
+-- Assoziationstabelle zwischen Mitarbeiter und Mitarbeitertyp
+create table ist_Mitarbeitertyp (
+	Mitarbeiter_ID integer not null,
+	Mitarbeitertyp_ID integer not null,
+	Mandant_ID integer not null,
+	Datum_Von date not null,
+    Datum_Bis date not null,
+    primary key (Mitarbeiter_ID, Datum_Bis),
+    constraint fk_istmitarbeitertyp_mitarbeiter
+    	foreign key (Mitarbeiter_ID) 
+    		references Mitarbeiter(Mitarbeiter_ID),
+    constraint fk_istmitarbeitertyp_mitarbeitertypen
+    	foreign key (Mitarbeitertyp_ID) 
+    		references Mitarbeitertypen(Mitarbeitertyp_ID),
+	constraint fk_istmitarbeitertyp_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+
+
+
+----------------------------------------------------------------------------------------------------------------
+-- Erstellung der Stored Procedures
 
 /*
  * Funktion legt neuen Mandanten in der Datenbank an.
@@ -429,6 +497,12 @@ begin
 			   p_dienstliche_emailadresse,
 			   p_austrittsdatum);
 	
+	exception
+        when unique_violation then
+            raise exception 'Personalnummer ''%'' bereits vorhanden!', p_personalnummer;      
+           
+	set role postgres;
+	
 end;
 $$
 language plpgsql;
@@ -441,21 +515,22 @@ create or replace function insert_tbl_laender(
 	p_land varchar(128)
 ) returns void as
 $$
-declare
-	v_land_vorhanden varchar(128);
 begin
-	
+
 	set session role tenant_user;
-	execute 'SET app.current_tenant=' || p_mandant_id;
+    execute 'SET app.current_tenant=' || p_mandant_id;
 
-	execute 'SELECT land FROM laender WHERE land = $1' INTO v_land_vorhanden USING p_land;
-    
-    if v_land_vorhanden is null then
-    	insert into Laender(Mandant_ID, Land) values (p_mandant_id, p_land);
-	else
-		raise notice 'Land % ist bereits vorhanden!', v_land_vorhanden;
-	end if;
+    insert into 
+   		Laender(Mandant_ID, Land) 
+   	values 
+   		(p_mandant_id, p_land);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Land ''%'' bereits vorhanden!', p_land;
 
+    set role postgres;
+   
 end;
 $$
 language plpgsql;
@@ -470,21 +545,24 @@ create or replace function insert_tbl_regionen(
 ) returns void as
 $$
 declare
-	v_region_vorhanden varchar(128);
 	v_land_id integer;
 begin
-	
-	set session role tenant_user;
-	execute 'SET app.current_tenant=' || p_mandant_id;
 
-	execute 'SELECT region FROM regionen WHERE region = $1' INTO v_region_vorhanden USING p_region;
+	set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    execute 'SELECT land_id FROM laender WHERE land = $1' into v_land_id using p_land;
     
-    if v_region_vorhanden is null then
-    	execute 'SELECT land_id FROM laender WHERE land = $1' into v_land_id using p_land;
-    	insert into Regionen(Mandant_ID, Region, Land_ID) values (p_mandant_id, p_region, v_land_id);
-	else
-		raise notice 'Region % ist bereits vorhanden!', v_region_vorhanden;
-	end if;
+   	insert into 
+   		Regionen(Mandant_ID, Region, Land_ID) 
+   	values 
+   		(p_mandant_id, p_region, v_land_id);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Region ''%'' bereits vorhanden!', p_region;
+
+    set role postgres;
 
 end;
 $$
@@ -500,21 +578,24 @@ create or replace function insert_tbl_staedte(
 ) returns void as
 $$
 declare
-	v_stadt_vorhanden varchar(128);
 	v_region_id integer;
 begin
 	
 	set session role tenant_user;
-	execute 'SET app.current_tenant=' || p_mandant_id;
+    execute 'SET app.current_tenant=' || p_mandant_id;
 
-	execute 'SELECT stadt FROM staedte WHERE stadt = $1' INTO v_stadt_vorhanden USING p_stadt;
+    execute 'SELECT region_id FROM regionen WHERE region = $1' into v_region_id using p_region;
     
-    if v_stadt_vorhanden is null then
-    	execute 'SELECT region_id FROM regionen WHERE region = $1' into v_region_id using p_region;
-    	insert into Staedte(Mandant_ID, Stadt, Region_ID) values (p_mandant_id, p_stadt, v_region_id);
-	else
-		raise notice 'Stadt % ist bereits vorhanden!', v_stadt_vorhanden;
-	end if;
+   	insert into 
+   		Staedte(Mandant_ID, Stadt, Region_ID) 
+   	values 
+   		(p_mandant_id, p_stadt, v_region_id);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Stadt ''%'' bereits vorhanden!', p_stadt;
+    
+    set role postgres;
 
 end;
 $$
@@ -530,21 +611,23 @@ create or replace function insert_tbl_postleitzahlen(
 ) returns void as
 $$
 declare
-	v_postleitzahl_vorhanden varchar(16);
 	v_stadt_id integer;
 begin
-	
 	set session role tenant_user;
-	execute 'SET app.current_tenant=' || p_mandant_id;
+    execute 'SET app.current_tenant=' || p_mandant_id;
 
-	execute 'SELECT postleitzahl FROM postleitzahlen WHERE postleitzahl = $1' INTO v_postleitzahl_vorhanden USING p_postleitzahl;
+    execute 'SELECT stadt_id FROM staedte WHERE stadt = $1' into v_stadt_id using p_stadt;
     
-    if v_postleitzahl_vorhanden is null then
-    	execute 'SELECT stadt_id FROM staedte WHERE stadt = $1' into v_stadt_id using p_stadt;
-    	insert into Postleitzahlen(Mandant_ID, Postleitzahl, Stadt_ID) values (p_mandant_id, p_postleitzahl, v_stadt_id);
-	else
-		raise notice 'Postleitzahl % ist bereits vorhanden!', v_postleitzahl_vorhanden;
-	end if;
+   	insert into 
+   		Postleitzahlen(Mandant_ID, Postleitzahl, Stadt_ID) 
+   	values 
+   		(p_mandant_id, p_postleitzahl, v_stadt_id);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Postleitzahl ''%'' bereits vorhanden!', p_postleitzahl;
+    
+    set role postgres;
 
 end;
 $$
@@ -561,26 +644,26 @@ create or replace function insert_tbl_strassenbezeichnungen(
 ) returns void as
 $$
 declare
-	v_strasse_vorhanden varchar(64);
-	v_hausnummer_vorhanden varchar(8);
 	v_strassenbezeichnung varchar(128);
 	v_postleitzahlen_id integer;
 begin
-	
-	set session role tenant_user;
-	execute 'SET app.current_tenant=' || p_mandant_id;
 
-	execute 'SELECT strasse FROM strassenbezeichnungen WHERE strasse = $1' into v_strasse_vorhanden using p_strasse;
-	execute 'SELECT hausnummer FROM strassenbezeichnungen WHERE hausnummer = $1' into v_hausnummer_vorhanden using p_hausnummer;
+	set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    execute 'SELECT postleitzahl_id FROM postleitzahlen WHERE Postleitzahl = $1' into v_postleitzahlen_id using p_postleitzahl;
+	
+   	insert into 
+		strassenbezeichnungen(Mandant_ID, Strasse, Hausnummer, Postleitzahl_ID) 
+	values 
+		(p_mandant_id, p_strasse, p_hausnummer, v_postleitzahlen_id);
+   	
+    exception
+        when unique_violation then
+        	v_strassenbezeichnung := p_strasse || p_hausnummer;
+            raise notice 'Strassenbezeichnung ''%'' bereits vorhanden!', v_strassenbezeichnung;
     
-	-- Neuer Eintrag, wenn Strassenbezeichnung nicht oder nur unvollständig vorhanden 
-    if (v_strasse_vorhanden is null and v_hausnummer_vorhanden is null) or (v_strasse_vorhanden is null and v_hausnummer_vorhanden is not null) or (v_strasse_vorhanden is not null and v_hausnummer_vorhanden is null) then
-    	execute 'SELECT postleitzahl_id FROM postleitzahlen WHERE Postleitzahl = $1' into v_postleitzahlen_id using p_postleitzahl;
-		insert into strassenbezeichnungen(Mandant_ID, Strasse, Hausnummer, Postleitzahl_ID) values (p_mandant_id, p_strasse, p_hausnummer, v_postleitzahlen_id);
-	else
-		v_strassenbezeichnung := v_strasse_vorhanden || v_hausnummer_vorhanden;
-		raise notice 'Strassenbezeichnung % ist bereits vorhanden!', v_strassenbezeichnung;
-	end if;
+    set role postgres;
 
 end;
 $$
@@ -608,9 +691,12 @@ begin
 	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
 	execute 'SELECT strassenbezeichnung_ID FROM strassenbezeichnungen WHERE strasse = $1 AND hausnummer = $2' into v_strassenbezeichnung_id using p_strasse, p_hausnummer;
     
-    insert into wohnt_in(Mitarbeiter_ID, Strassenbezeichnung_ID, Mandant_ID, Datum_Von, Datum_Bis) 
-   		values (v_mitarbeiter_ID, v_strassenbezeichnung_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-
+    insert into 
+    	wohnt_in(Mitarbeiter_ID, Strassenbezeichnung_ID, Mandant_ID, Datum_Von, Datum_Bis) 
+   	values 
+   		(v_mitarbeiter_ID, v_strassenbezeichnung_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+	
+   	set role postgres;
 end;
 $$
 language plpgsql;
@@ -624,17 +710,19 @@ create or replace function insert_tbl_geschlechter(
     p_geschlecht varchar(32)
 ) returns void as
 $$
-declare
-    v_geschlecht_vorhanden VARCHAR(32);
 begin
     
     set session role tenant_user;
     execute 'SET app.current_tenant=' || p_mandant_id;
 
-    insert into Geschlechter(Mandant_ID, Geschlecht) values (p_mandant_id, p_geschlecht);
+    insert into 
+   		Geschlechter(Mandant_ID, Geschlecht) 
+   	values 
+   		(p_mandant_id, p_geschlecht);
+   	
     exception
         when unique_violation then
-            raise notice 'Geschlecht bereits vorhanden';
+            raise notice 'Geschlecht ''%'' bereits vorhanden!', p_geschlecht;
     
     set role postgres;
 
@@ -665,7 +753,71 @@ begin
     
     insert into hat_Geschlecht(Mitarbeiter_ID, Geschlecht_ID, Mandant_ID, Datum_Von, Datum_Bis) 
    		values (v_mitarbeiter_id, v_geschlecht_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+	
+   	set role postgres;
+   
+end;
+$$
+language plpgsql;
 
+/*
+ * Funktion trägt neue Daten in Tabelle 'Mitarbeitertypen' ein.
+ */
+create or replace function insert_tbl_mitarbeitertypen(
+    p_mandant_id integer,
+    p_mitarbeitertyp varchar(32)
+) returns void as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Mitarbeitertypen(Mandant_ID, Mitarbeitertyp) 
+   	values 
+   		(p_mandant_id, p_mitarbeitertyp);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Mitarbeitertyp ''%'' bereits vorhanden!', p_mitarbeitertyp;
+    
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt die Daten in die Assoziation "ist_Mitarbeitertyp" ein
+ */
+create or replace function insert_tbl_ist_mitarbeitertyp(
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
+	p_mitarbeitertyp varchar(32),
+	p_eintrittsdatum date
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+	v_mitarbeitertyp_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
+	execute 'SELECT mitarbeitertyp_ID FROM mitarbeitertypen WHERE mitarbeitertyp = $1' into v_mitarbeitertyp_id using p_mitarbeitertyp;
+    
+    insert into ist_Mitarbeitertyp(Mitarbeiter_ID, Mitarbeitertyp_ID, Mandant_ID, Datum_Von, Datum_Bis) 
+   		values (v_mitarbeiter_id, v_mitarbeitertyp_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+   	
+   	exception
+        when unique_violation then
+            raise notice 'Mitarbeiter ist bereits ''%'' Mitarbeitertyp!', p_mitarbeitertyp;
+	
+   	set role postgres;
+   	
 end;
 $$
 language plpgsql;
@@ -695,7 +847,8 @@ create or replace function insert_mitarbeiterdaten(
 	p_stadt varchar(128),
 	p_region varchar(128),
 	p_land varchar(128),
-	p_geschlecht varchar(32)
+	p_geschlecht varchar(32),
+	p_mitarbeitertyp varchar(32)
 ) returns void as
 $$
 begin
@@ -735,6 +888,11 @@ begin
 	if p_geschlecht is not null then
 		perform insert_tbl_geschlechter(p_mandant_id, p_geschlecht);
 		perform insert_tbl_hat_geschlecht(p_mandant_id, p_personalnummer, p_geschlecht, p_eintrittsdatum);
+	end if;
+	
+	if p_mitarbeitertyp is not null then
+		perform insert_tbl_mitarbeitertypen(p_mandant_id, p_mitarbeitertyp);
+		perform insert_tbl_ist_mitarbeitertyp(p_mandant_id, p_personalnummer, p_mitarbeitertyp, p_eintrittsdatum);
 	end if;
 	
 	-- Pseudocode Tarif oder AT
