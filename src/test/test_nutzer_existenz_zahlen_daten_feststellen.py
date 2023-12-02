@@ -1,6 +1,5 @@
 import decimal
 import unittest
-from datetime import datetime
 
 from src.main.test_SetUp import test_set_up
 from src.main.Mandant import Mandant
@@ -43,7 +42,7 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
 
         self.assertEqual(str(context.exception), "'Zahlenwert' ist nicht vorhanden.")
 
-    def test_konvertierung_scheitert(self):
+    def test_str_konvertierung_scheitert(self):
         """
         Test prüft, ob eine TypeError-Exeption geworfen wird, weil der Methode '_existenz_zahlen_daten_feststellen'
         ein String übergeben wird, der nicht in eine Dezimal-Zahl konvertiert werden kann

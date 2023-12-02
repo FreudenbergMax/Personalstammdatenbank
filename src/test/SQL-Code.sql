@@ -15,7 +15,7 @@ revoke usage on schema temp_test_schema from tenant_user;
 -- 'tenant-user' wird quasi enterbt
 revoke tenant_user from postgres;
 -- Rolle 'tenant_user' entfernen
-drop role if exists tenant_user;
+drop role tenant_user;
 
 -- Erstellung der Rolle 'tenant-user' mit diversen Zugriffsrechten
 -- Rolle für die user erstellen, welcher RLS unterliegt
@@ -50,6 +50,9 @@ drop table if exists Steuerklassen;
 drop table if exists arbeitet_x_Wochenstunden;
 drop table if exists Wochenarbeitsstunden;
 
+drop table if exists eingesetzt_in;
+drop table if exists Abteilungen;
+
 drop table if exists mitarbeiter;
 drop table if exists Austrittsgruende;
 drop table if exists Kategorien_Austrittsgruende;
@@ -62,7 +65,7 @@ drop function if exists nutzer_entfernen(integer, varchar(32));
 drop function if exists select_ausfuehren(varchar(64), integer);
 drop function if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), varchar(32),
 varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), varchar(32), varchar(32),
-char(1), decimal(4, 2));
+char(1), decimal(4, 2), varchar(64), varchar(16), boolean);
 drop function if exists pruefe_einmaligkeit_personalnummer(integer, varchar(64), varchar(32));
 drop function if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date,  varchar(32), varchar(32), varchar(32), 
 varchar(16), varchar(64), varchar(16), varchar(64), date);
@@ -80,6 +83,8 @@ drop function if exists insert_tbl_steuerklassen(integer, char(1));
 drop function if exists insert_tbl_in_steuerklasse(integer, varchar(32), char(1), date);
 drop function if exists insert_tbl_wochenarbeitsstunden(integer, decimal(4, 2));
 drop function if exists insert_tbl_arbeitet_x_wochenarbeitsstunden(integer, varchar(32), decimal(4, 2), date);
+drop function if exists insert_tbl_abteilungen(integer, varchar(64), varchar(16));
+drop function if exists insert_tbl_eingesetzt_in(integer, varchar(32), varchar(64), varchar(16), boolean, date);
 
 
 
@@ -429,6 +434,50 @@ create table arbeitet_x_Wochenstunden (
 alter table arbeitet_x_Wochenstunden enable row level security;
 create policy FilterMandant_arbeitet_x_wochenstunden
     on arbeitet_x_Wochenstunden
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+   
+-- Tabellen, die den Bereich "Abteilung" behandeln, erstellen
+create table Abteilungen (
+	Abteilung_ID serial primary key,
+	Mandant_ID integer not null,
+	Bezeichnung varchar(64) not null,
+	Abkuerzung varchar(16),
+	untersteht_Abteilung integer,
+	unique (Mandant_ID, Bezeichnung, Abkuerzung),
+	constraint fk_abteilungen_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID),
+	constraint fk_abteilungen_abteilungen
+		foreign key (untersteht_Abteilung)
+			references Abteilungen(Abteilung_ID)
+);
+alter table Abteilungen enable row level security;
+create policy FilterMandant_abteilungen
+    on Abteilungen
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+-- Assoziationstabelle zwischen Mitarbeiter und Geschäftsbereich
+create table eingesetzt_in (
+	Mitarbeiter_ID integer not null,
+	Abteilung_ID integer not null,
+	Mandant_ID integer not null,
+	Fuehrungskraft boolean not null,
+	Datum_Von date not null,
+    Datum_Bis date not null,
+    primary key (Mitarbeiter_ID, Abteilung_ID, Datum_Bis),
+    constraint fk_eingesetztin_mitarbeiter
+    	foreign key (Mitarbeiter_ID) 
+    		references Mitarbeiter(Mitarbeiter_ID),
+    constraint fk_eingesetztin_abteilungen
+    	foreign key (Abteilung_ID) 
+    		references Abteilungen(Abteilung_ID),
+	constraint fk_eingesetztin_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table eingesetzt_in enable row level security;
+create policy FilterMandant_eingesetzt_in
+    on eingesetzt_in
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
 ----------------------------------------------------------------------------------------------------------------
@@ -1057,6 +1106,71 @@ $$
 language plpgsql;
 
 /*
+ * Funktion trägt neue Daten in Tabelle 'Abteilungen' ein.
+ */
+create or replace function insert_tbl_abteilungen(
+    p_mandant_id integer,
+    p_abteilung varchar(64),
+	p_abkuerzung varchar(16)
+) returns void as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Abteilungen(Mandant_ID, Bezeichnung, Abkuerzung, untersteht_Abteilung)
+   	values 
+   		(p_mandant_id, p_abteilung, p_abkuerzung, null);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Abteilung ''%'' bereits vorhanden!', p_abteilung;
+    
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt die Daten in die Assoziation "eingesetzt_in" ein
+ */
+create or replace function insert_tbl_eingesetzt_in(
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
+	p_abteilung varchar(64),
+	p_abkuerzung varchar(16),
+	p_fuehrungskraft boolean,
+	p_eintrittsdatum date
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+	v_abteilung_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
+	execute 'SELECT abteilung_ID FROM abteilungen WHERE bezeichnung = $1 AND abkuerzung = $2' into v_abteilung_id using p_abteilung, p_abkuerzung;
+    
+    insert into eingesetzt_in(Mitarbeiter_ID, Abteilung_ID, Mandant_ID, Fuehrungskraft, Datum_Von, Datum_Bis) 
+   		values (v_mitarbeiter_id, v_abteilung_id, p_mandant_id, p_fuehrungskraft, p_eintrittsdatum, '9999-12-31');
+   	
+   	exception
+        when unique_violation then
+            raise notice 'Mitarbeiter ist bereits in der aktuellen Abteilung ''%'' vermerkt!', p_abteilung;
+	
+   	set role postgres;
+   	
+end;
+$$
+language plpgsql;
+
+/*
  * Mit dieser Funktion sollen die Daten eines neuen Mitarbeiters in die Tabelle eingetragen werden
  */
 create or replace function insert_mitarbeiterdaten(
@@ -1084,7 +1198,10 @@ create or replace function insert_mitarbeiterdaten(
 	p_geschlecht varchar(32),
 	p_mitarbeitertyp varchar(32),
 	p_steuerklasse char(1),
-	p_wochenarbeitsstunden decimal(4, 2)
+	p_wochenarbeitsstunden decimal(4, 2),
+	p_abteilung varchar(64),
+	p_abkuerzung varchar(16),
+	p_fuehrungskraft boolean
 ) returns void as
 $$
 begin
@@ -1142,6 +1259,12 @@ begin
 	if p_wochenarbeitsstunden is not null then
 		perform insert_tbl_wochenarbeitsstunden(p_mandant_id, p_wochenarbeitsstunden);
 		perform insert_tbl_arbeitet_x_wochenarbeitsstunden(p_mandant_id, p_personalnummer, p_wochenarbeitsstunden, p_eintrittsdatum);
+	end if;
+
+	-- Sofern p_abteilung nicht 'null' ist, den Bereich 'Abteilung' mit Daten befüllen
+	if p_abteilung is not null and p_fuehrungskraft is not null then
+		perform insert_tbl_abteilungen(p_mandant_id, p_abteilung, p_abkuerzung);
+		perform insert_tbl_eingesetzt_in(p_mandant_id, p_personalnummer, p_abteilung, p_abkuerzung, p_fuehrungskraft, p_eintrittsdatum);
 	end if;
 	
 	-- Pseudocode Tarif oder AT

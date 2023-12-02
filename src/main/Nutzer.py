@@ -127,7 +127,11 @@ class Nutzer:
         geschlecht = self._existenz_str_daten_feststellen(liste_ma_daten[20], 'Geschlecht', 32, False)
         mitarbeitertyp = self._existenz_str_daten_feststellen(liste_ma_daten[21], 'Mitarbeitertyp', 32, False)
         steuerklasse = self._existenz_str_daten_feststellen(liste_ma_daten[22], 'Steuerklasse', 1, False)
-        wochenarbeitsstunden = self._existenz_zahlen_daten_feststellen(liste_ma_daten[23], 'Wochenarbeitsstunden', False)
+        wochenarbeitsstunden = self._existenz_zahlen_daten_feststellen(liste_ma_daten[23], 'Wochenarbeitsstunden',
+                                                                       False)
+        abteilung = self._existenz_str_daten_feststellen(liste_ma_daten[24], 'Abteilung', 64, False)
+        abteilungskuerzel = self._existenz_str_daten_feststellen(liste_ma_daten[25], 'Abteilungskuerzel', 16, False)
+        fuehrungskraft = self._existenz_boolean_daten_feststellen(liste_ma_daten[26], 'Fuehrungskraft', False)
 
         # Ein Cursor-Objekt erstellen
         cur = conn.cursor()
@@ -157,7 +161,10 @@ class Nutzer:
                                                  geschlecht,
                                                  mitarbeitertyp,
                                                  steuerklasse,
-                                                 wochenarbeitsstunden])
+                                                 wochenarbeitsstunden,
+                                                 abteilung,
+                                                 abteilungskuerzel,
+                                                 fuehrungskraft])
 
         # Commit der Änderungen
         conn.commit()
@@ -211,7 +218,7 @@ class Nutzer:
         try:
             date_daten = datetime.strptime(date_daten, '%d.%m.%Y').date()
         except ValueError:
-            raise(ValueError(f"'{date_daten}' ist nicht möglich!"))
+            raise (ValueError(f"'{date_daten}' ist nicht möglich!"))
 
         return date_daten
 
@@ -223,7 +230,7 @@ class Nutzer:
         werden können.
         :param zahlen_daten: wird untersucht, ob Daten darin enthalten sind
         :param art: gibt an, um was für Daten es sich handeln soll
-        :param pflicht: boolean, der bei 'True' angibt, dass 'date_daten' kein leerer String sein darf
+        :param pflicht: boolean, der bei 'True' angibt, dass 'zahlen_daten' kein leerer String sein darf
         :return: Falls Parameter 'daten' keine Daten enthält, wird None zurückgegeben, sonst Daten
         """
         if zahlen_daten == '' and not pflicht:
@@ -234,9 +241,34 @@ class Nutzer:
         else:
             try:
                 zahlen_daten = round(decimal.Decimal(zahlen_daten), 2)
-                print(type(zahlen_daten))
             except decimal.InvalidOperation:
                 raise (TypeError(f"Der übergebene Wert '{zahlen_daten}' konnte nicht in eine Gleitkommazahl "
-                                  f"konvertiert werden!"))
+                                 f"konvertiert werden!"))
 
         return zahlen_daten
+
+    def _existenz_boolean_daten_feststellen(self, boolean_daten, art, pflicht):
+        """
+            Methode stellt fest, ob optionale Daten vorliegen oder nicht und wenn ja, so sollen diese auf jeden Fall
+            als boolean-Datentyp mit zwei Nachkommastellen zurückgegeben werden. So soll sichergestellt werden, dass dem
+            Datenbanksystem die Daten in dem Datentyp übergeben werden, in der sie in der Personalstammdatenbank gespeichert
+            werden können.
+            :param boolean_daten: wird untersucht, ob Daten darin enthalten sind
+            :param art: gibt an, um was für Daten es sich handeln soll
+            :param pflicht: boolean, der bei 'True' angibt, dass 'boolean_daten' kein leerer String sein darf
+            :return: Falls Parameter 'daten' keine Daten enthält, wird None zurückgegeben, sonst Daten
+            """
+        if boolean_daten == '' and not pflicht:
+            boolean_daten = None
+            return boolean_daten
+        elif boolean_daten == '' and pflicht:
+            raise (ValueError(f"'{art}' ist nicht vorhanden."))
+        elif str.lower(boolean_daten) == 'ja':
+            boolean_daten = True
+            return boolean_daten
+        elif str.lower(boolean_daten) == 'nein':
+            boolean_daten = False
+            return boolean_daten
+        else:
+            raise TypeError(f"Der übergebene Wert '{boolean_daten}' konnte nicht verarbeitet werden. Bitte geben "
+                            f"Sie ausschließlich 'ja' oder 'nein' ein.")
