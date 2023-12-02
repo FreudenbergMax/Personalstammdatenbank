@@ -57,6 +57,9 @@ drop table if exists hat_Jobtitel;
 drop table if exists Jobtitel;
 drop table if exists Erfahrungsstufen;
 
+drop table if exists in_Gesellschaft;
+drop table if exists Gesellschaften;
+
 drop table if exists mitarbeiter;
 drop table if exists Austrittsgruende;
 drop table if exists Kategorien_Austrittsgruende;
@@ -69,7 +72,7 @@ drop function if exists nutzer_entfernen(integer, varchar(32));
 drop function if exists select_ausfuehren(varchar(64), integer);
 drop function if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), varchar(32),
 varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), varchar(32), varchar(32),
-char(1), decimal(4, 2), varchar(64), varchar(16), boolean, varchar(32), varchar(32));
+char(1), decimal(4, 2), varchar(64), varchar(16), boolean, varchar(32), varchar(32), varchar(128), varchar(16));
 drop function if exists pruefe_einmaligkeit_personalnummer(integer, varchar(64), varchar(32));
 drop function if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date,  varchar(32), varchar(32), varchar(32), 
 varchar(16), varchar(64), varchar(16), varchar(64), date);
@@ -92,6 +95,8 @@ drop function if exists insert_tbl_eingesetzt_in(integer, varchar(32), varchar(6
 drop function if exists insert_tbl_jobtitel(integer, varchar(32));
 drop function if exists insert_tbl_erfahrungsstufen(integer, varchar(32));
 drop function if exists insert_tbl_hat_jobtitel(integer, varchar(32), varchar(32), varchar(32), date);
+drop function if exists insert_tbl_gesellschaften(integer, varchar(128), varchar (16));
+drop function if exists insert_tbl_in_gesellschaft(integer, varchar(32), varchar(128), varchar (16), date);
 
 
 
@@ -447,10 +452,10 @@ create policy FilterMandant_arbeitet_x_wochenstunden
 create table Abteilungen (
 	Abteilung_ID serial primary key,
 	Mandant_ID integer not null,
-	Bezeichnung varchar(64) not null,
+	Abteilung varchar(64) not null,
 	Abkuerzung varchar(16),
 	untersteht_Abteilung integer,
-	unique (Mandant_ID, Bezeichnung, Abkuerzung),
+	unique (Mandant_ID, Abteilung, Abkuerzung),
 	constraint fk_abteilungen_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID),
@@ -544,10 +549,53 @@ create policy FilterMandant_hat_jobtitel
     on hat_Jobtitel
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
-   
- 
+-- Tabellen, die den Bereich "Gesellschaft" behandeln, erstellen
+create table Gesellschaften (
+	Gesellschaft_ID serial primary key,
+	Mandant_ID integer not null,
+	Gesellschaft varchar(128) not null,
+	Abkuerzung varchar (16),
+	untersteht_Gesellschaft integer,
+	unique (Mandant_ID, Gesellschaft, Abkuerzung),
+	constraint fk_gesellschaften_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID),
+	constraint fk_gesellschaften_gesellschaften
+		foreign key (untersteht_Gesellschaft)
+			references Gesellschaften(Gesellschaft_ID)
+);
+alter table Gesellschaften enable row level security;
+create policy FilterMandant_gesellschaften
+    on Gesellschaften
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+-- Assoziationstabelle zwischen Mitarbeiter und Gesellschaft
+create table in_Gesellschaft (
+	Mitarbeiter_ID integer not null,
+	Gesellschaft_ID integer not null,
+	Mandant_ID integer not null,
+	Datum_Von date not null,
+    Datum_Bis date not null,
+    primary key (Mitarbeiter_ID, Gesellschaft_ID, Datum_Bis),
+    constraint fk_ingesellschaft_mitarbeiter
+    	foreign key (Mitarbeiter_ID) 
+    		references Mitarbeiter(Mitarbeiter_ID),
+    constraint fk_ingesellschaft_gesellschaften
+    	foreign key (Gesellschaft_ID) 
+    		references Gesellschaften(Gesellschaft_ID),
+	constraint fk_ingesellschaft_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+); 
+alter table in_Gesellschaft enable row level security;
+create policy FilterMandant_in_gesellschaft
+    on in_Gesellschaft
+    using (Mandant_ID = current_setting('app.current_tenant')::int); 
    
 
+   
+   
+   
 ----------------------------------------------------------------------------------------------------------------
 -- Erstellung der Stored Procedures
 
@@ -1188,7 +1236,7 @@ begin
     execute 'SET app.current_tenant=' || p_mandant_id;
 
     insert into 
-   		Abteilungen(Mandant_ID, Bezeichnung, Abkuerzung, untersteht_Abteilung)
+   		Abteilungen(Mandant_ID, Abteilung, Abkuerzung, untersteht_Abteilung)
    	values 
    		(p_mandant_id, p_abteilung, p_abkuerzung, null);
    	
@@ -1223,7 +1271,7 @@ begin
 	execute 'SET app.current_tenant=' || p_mandant_id;
 	
 	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
-	execute 'SELECT abteilung_ID FROM abteilungen WHERE bezeichnung = $1 AND abkuerzung = $2' into v_abteilung_id using p_abteilung, p_abkuerzung;
+	execute 'SELECT abteilung_ID FROM abteilungen WHERE abteilung = $1 AND abkuerzung = $2' into v_abteilung_id using p_abteilung, p_abkuerzung;
     
     insert into eingesetzt_in(Mitarbeiter_ID, Abteilung_ID, Mandant_ID, Fuehrungskraft, Datum_Von, Datum_Bis) 
    		values (v_mitarbeiter_id, v_abteilung_id, p_mandant_id, p_fuehrungskraft, p_eintrittsdatum, '9999-12-31');
@@ -1332,6 +1380,70 @@ $$
 language plpgsql;
 
 /*
+ * Funktion trägt neue Daten in Tabelle 'Gesellschaften' ein.
+ */
+create or replace function insert_tbl_gesellschaften (
+	p_mandant_id integer,
+	p_gesellschaft varchar(128),
+	p_abkuerzung varchar (16)
+) returns void as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Gesellschaften(Mandant_ID, Gesellschaft, Abkuerzung, untersteht_Gesellschaft)
+   	values 
+   		(p_mandant_id, p_gesellschaft, p_abkuerzung, null);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Gesellschaft ''%'' bereits vorhanden!', p_gesellschaft;
+    
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt die Daten in die Assoziation "in_Gesellschaft" ein
+ */
+create or replace function insert_tbl_in_gesellschaft(
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
+	p_gesellschaft varchar(128),
+	p_abkuerzung varchar (16),
+	p_eintrittsdatum date
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+	v_gesellschaft_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
+	execute 'SELECT gesellschaft_ID FROM gesellschaften WHERE gesellschaft = $1 AND abkuerzung = $2' into v_gesellschaft_id using p_gesellschaft, p_abkuerzung;
+    
+    insert into in_Gesellschaft (Mitarbeiter_ID, Gesellschaft_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_mitarbeiter_ID, v_gesellschaft_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+   	
+   	exception
+        when unique_violation then
+            raise notice 'Mitarbeiter ist bereits in dieser Gesellschaft!';
+	
+   	set role postgres;
+   	
+end;
+$$
+language plpgsql;
+
+/*
  * Mit dieser Funktion sollen die Daten eines neuen Mitarbeiters in die Tabelle eingetragen werden
  */
 create or replace function insert_mitarbeiterdaten(
@@ -1361,10 +1473,12 @@ create or replace function insert_mitarbeiterdaten(
 	p_steuerklasse char(1),
 	p_wochenarbeitsstunden decimal(4, 2),
 	p_abteilung varchar(64),
-	p_abkuerzung varchar(16),
+	p_abk_abteilung varchar(16),
 	p_fuehrungskraft boolean,
 	p_jobtitel varchar(32),
-	p_erfahrungsstufe varchar(32)
+	p_erfahrungsstufe varchar(32),
+	p_gesellschaft varchar(128),
+	p_abk_gesellschaft varchar(16)
 ) returns void as
 $$
 begin
@@ -1426,8 +1540,8 @@ begin
 
 	-- Sofern p_abteilung und p_fuehrungskraft nicht 'null' sind, den Bereich 'Abteilung' mit Daten befüllen
 	if p_abteilung is not null and p_fuehrungskraft is not null then
-		perform insert_tbl_abteilungen(p_mandant_id, p_abteilung, p_abkuerzung);
-		perform insert_tbl_eingesetzt_in(p_mandant_id, p_personalnummer, p_abteilung, p_abkuerzung, p_fuehrungskraft, p_eintrittsdatum);
+		perform insert_tbl_abteilungen(p_mandant_id, p_abteilung, p_abk_abteilung);
+		perform insert_tbl_eingesetzt_in(p_mandant_id, p_personalnummer, p_abteilung, p_abk_abteilung, p_fuehrungskraft, p_eintrittsdatum);
 	end if;
 
 	-- Sofern p_jobtitel und p_erfahrungsstufe nicht 'null' sind, den Bereich 'Jobtitel' mit Daten befüllen
@@ -1435,6 +1549,12 @@ begin
 		perform insert_tbl_jobtitel (p_mandant_ID, p_jobtitel);
 		perform insert_tbl_erfahrungsstufen (p_Mandant_ID, p_erfahrungsstufe);
 		perform insert_tbl_hat_jobtitel(p_mandant_id, p_personalnummer, p_jobtitel, p_erfahrungsstufe, p_eintrittsdatum);
+	end if;
+	
+	-- Sofern p_gesellschaft nicht 'null' ist, den Bereich 'Gesellschaft' mit Daten befüllen
+	if p_gesellschaft is not null then
+		perform insert_tbl_gesellschaften(p_mandant_id, p_gesellschaft, p_abk_gesellschaft);
+		perform insert_tbl_in_gesellschaft(p_mandant_id, p_personalnummer, p_gesellschaft, p_abk_gesellschaft, p_eintrittsdatum);
 	end if;
 	
 	-- Pseudocode Tarif oder AT
@@ -1451,6 +1571,8 @@ begin
 		-- befülle Tabellen im Bereich "Unfallversicherung", falls notwendig
 	-- else:
 		-- befülle alle Tabellen im Bereich "Sozialversicherungen"
+	
+	set role postgres;
 
 end;
 $$

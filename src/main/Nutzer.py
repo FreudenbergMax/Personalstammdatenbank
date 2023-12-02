@@ -65,7 +65,8 @@ class Nutzer:
         Personalstammdatenbank speichert.
         :param conn: Connection zur Personalstammdatenbank
         """
-        nutzer_insert_query = f"SELECT nutzer_anlegen('{self.mandant_id}', '{self.personalnummer}', '{self.vorname}', '{self.nachname}')"
+        nutzer_insert_query = f"SELECT nutzer_anlegen('{self.mandant_id}', '{self.personalnummer}', " \
+                              f"'{self.vorname}', '{self.nachname}')"
         cur = conn.cursor()
         nutzer_id = cur.execute(nutzer_insert_query)
 
@@ -114,8 +115,8 @@ class Nutzer:
         private_telefonnummer = self._existenz_str_daten_feststellen(liste_ma_daten[9], 'private Telefonnummer',
                                                                      16, False)
         private_email = self._existenz_str_daten_feststellen(liste_ma_daten[10], 'private E-Mail', 64, True)
-        dienstliche_telefonnummer = self._existenz_str_daten_feststellen(liste_ma_daten[11], 'dienstliche Telefonnummer'
-                                                                         , 16, False)
+        dienstliche_telefonnummer = self._existenz_str_daten_feststellen(liste_ma_daten[11], 'dienstliche '
+                                                                                             'Telefonnummer', 16, False)
         dienstliche_email = self._existenz_str_daten_feststellen(liste_ma_daten[12], 'dienstliche E-Mail', 64, False)
         austrittsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[13], 'Austrittsdatum', False)
         strasse = self._existenz_str_daten_feststellen(liste_ma_daten[14], 'Strasse', 64, True)
@@ -134,6 +135,8 @@ class Nutzer:
         fuehrungskraft = self._existenz_boolean_daten_feststellen(liste_ma_daten[26], 'Fuehrungskraft', False)
         jobtitel = self._existenz_str_daten_feststellen(liste_ma_daten[27], 'Jobtitel', 32, False)
         erfahrungsstufe = self._existenz_str_daten_feststellen(liste_ma_daten[28], 'Erfahrungsstufe', 32, False)
+        gesellschaft = self._existenz_str_daten_feststellen(liste_ma_daten[29], 'Gesellschaft', 128, False)
+        abk_gesellschaft = self._existenz_str_daten_feststellen(liste_ma_daten[30], 'Abk. Gesellschaft', 16, False)
 
         # Ein Cursor-Objekt erstellen
         cur = conn.cursor()
@@ -168,7 +171,9 @@ class Nutzer:
                                                  abteilungskuerzel,
                                                  fuehrungskraft,
                                                  jobtitel,
-                                                 erfahrungsstufe])
+                                                 erfahrungsstufe,
+                                                 gesellschaft,
+                                                 abk_gesellschaft])
 
         # Commit der Änderungen
         conn.commit()
