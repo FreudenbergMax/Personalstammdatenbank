@@ -53,6 +53,10 @@ drop table if exists Wochenarbeitsstunden;
 drop table if exists eingesetzt_in;
 drop table if exists Abteilungen;
 
+drop table if exists hat_Jobtitel;
+drop table if exists Jobtitel;
+drop table if exists Erfahrungsstufen;
+
 drop table if exists mitarbeiter;
 drop table if exists Austrittsgruende;
 drop table if exists Kategorien_Austrittsgruende;
@@ -65,7 +69,7 @@ drop function if exists nutzer_entfernen(integer, varchar(32));
 drop function if exists select_ausfuehren(varchar(64), integer);
 drop function if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), varchar(32),
 varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), varchar(32), varchar(32),
-char(1), decimal(4, 2), varchar(64), varchar(16), boolean);
+char(1), decimal(4, 2), varchar(64), varchar(16), boolean, varchar(32), varchar(32));
 drop function if exists pruefe_einmaligkeit_personalnummer(integer, varchar(64), varchar(32));
 drop function if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date,  varchar(32), varchar(32), varchar(32), 
 varchar(16), varchar(64), varchar(16), varchar(64), date);
@@ -85,6 +89,9 @@ drop function if exists insert_tbl_wochenarbeitsstunden(integer, decimal(4, 2));
 drop function if exists insert_tbl_arbeitet_x_wochenarbeitsstunden(integer, varchar(32), decimal(4, 2), date);
 drop function if exists insert_tbl_abteilungen(integer, varchar(64), varchar(16));
 drop function if exists insert_tbl_eingesetzt_in(integer, varchar(32), varchar(64), varchar(16), boolean, date);
+drop function if exists insert_tbl_jobtitel(integer, varchar(32));
+drop function if exists insert_tbl_erfahrungsstufen(integer, varchar(32));
+drop function if exists insert_tbl_hat_jobtitel(integer, varchar(32), varchar(32), varchar(32), date);
 
 
 
@@ -464,7 +471,7 @@ create table eingesetzt_in (
 	Fuehrungskraft boolean not null,
 	Datum_Von date not null,
     Datum_Bis date not null,
-    primary key (Mitarbeiter_ID, Abteilung_ID, Datum_Bis),
+    primary key (Mitarbeiter_ID, Datum_Bis),
     constraint fk_eingesetztin_mitarbeiter
     	foreign key (Mitarbeiter_ID) 
     		references Mitarbeiter(Mitarbeiter_ID),
@@ -479,6 +486,67 @@ alter table eingesetzt_in enable row level security;
 create policy FilterMandant_eingesetzt_in
     on eingesetzt_in
     using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+   
+-- Tabellen, die den Bereich "Jobtitel" behandeln, erstellen
+create table Jobtitel (
+	Jobtitel_ID serial primary key,
+	Mandant_ID integer not null,
+	Jobtitel varchar(32) not null,
+	unique(Mandant_ID, Jobtitel),
+    constraint fk_jobtitel_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table Jobtitel enable row level security;
+create policy FilterMandant_jobtitel
+    on Jobtitel
+    using (Mandant_ID = current_setting('app.current_tenant')::int);   
+   
+create table Erfahrungsstufen (
+	Erfahrungsstufe_ID serial primary key,
+	Mandant_ID integer not null,
+	Erfahrungsstufe varchar(32) not null,
+	unique(Mandant_ID, Erfahrungsstufe),
+    constraint fk_erfahrungsstufen_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table Erfahrungsstufen enable row level security;
+create policy FilterMandant_erfahrungsstufen
+    on Erfahrungsstufen
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+-- Assoziationstabelle zwischen Mitarbeiter und Jobtitel + Erfahrungsstufen
+create table hat_Jobtitel (
+	Mitarbeiter_ID integer not null,
+	Jobtitel_ID integer not null,
+	Erfahrungsstufe_ID integer not null,
+	Mandant_ID integer not null,
+	Datum_Von date not null,
+    Datum_Bis date not null,
+    primary key (Mitarbeiter_ID, Datum_Bis),
+    constraint fk_hatjobtitel_mitarbeiter
+    	foreign key (Mitarbeiter_ID) 
+    		references Mitarbeiter(Mitarbeiter_ID),
+    constraint fk_hatjobtitel_jobtitel
+    	foreign key (Jobtitel_ID) 
+    		references Jobtitel(Jobtitel_ID),
+    constraint fk_hatjobtitel_erfahrungsstufen
+		foreign key (Erfahrungsstufe_ID)
+			references Erfahrungsstufen(Erfahrungsstufe_ID),
+	constraint fk_hatjobtitel_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table hat_Jobtitel enable row level security;
+create policy FilterMandant_hat_jobtitel
+    on hat_Jobtitel
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+   
+ 
+   
 
 ----------------------------------------------------------------------------------------------------------------
 -- Erstellung der Stored Procedures
@@ -1171,6 +1239,99 @@ $$
 language plpgsql;
 
 /*
+ * Funktion trägt neue Daten in Tabelle 'Jobtitel' ein.
+ */
+create or replace function insert_tbl_jobtitel (
+	p_mandant_ID integer,
+	p_jobtitel varchar(32)
+) returns void as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Jobtitel(Mandant_ID, Jobtitel)
+   	values 
+   		(p_mandant_id, p_jobtitel);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Jobtitel ''%'' bereits vorhanden!', p_jobtitel;
+    
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt neue Daten in Tabelle 'Erfahrungsstufen' ein.
+ */
+create or replace function insert_tbl_erfahrungsstufen (
+	p_Mandant_ID integer,
+	p_erfahrungsstufe varchar(32) 
+) returns void as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Erfahrungsstufen(Mandant_ID, Erfahrungsstufe)
+   	values 
+   		(p_mandant_id, p_erfahrungsstufe);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Erfahrungsstufe ''%'' bereits vorhanden!', p_erfahrungsstufe;
+    
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt die Daten in die Assoziation "hat_Jobtitel" ein
+ */
+create or replace function insert_tbl_hat_jobtitel(
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
+	p_jobtitel varchar(32),
+	p_erfahrungsstufe varchar(32),
+	p_eintrittsdatum date
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+	v_jobtitel_id integer;
+	v_erfahrungsstufe_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
+	execute 'SELECT jobtitel_ID FROM jobtitel WHERE jobtitel = $1' into v_jobtitel_id using p_jobtitel;
+	execute 'SELECT erfahrungsstufe_ID FROM erfahrungsstufen WHERE erfahrungsstufe = $1' into v_erfahrungsstufe_id using p_erfahrungsstufe;
+    
+    insert into hat_Jobtitel (Mitarbeiter_ID, Jobtitel_ID, Erfahrungsstufe_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_mitarbeiter_ID, v_jobtitel_id, v_erfahrungsstufe_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+   	
+   	exception
+        when unique_violation then
+            raise notice 'Mitarbeiter hat bereits diesen Jobtitel und Erfahrungsstufe vermerkt!';
+	
+   	set role postgres;
+   	
+end;
+$$
+language plpgsql;
+
+/*
  * Mit dieser Funktion sollen die Daten eines neuen Mitarbeiters in die Tabelle eingetragen werden
  */
 create or replace function insert_mitarbeiterdaten(
@@ -1201,7 +1362,9 @@ create or replace function insert_mitarbeiterdaten(
 	p_wochenarbeitsstunden decimal(4, 2),
 	p_abteilung varchar(64),
 	p_abkuerzung varchar(16),
-	p_fuehrungskraft boolean
+	p_fuehrungskraft boolean,
+	p_jobtitel varchar(32),
+	p_erfahrungsstufe varchar(32)
 ) returns void as
 $$
 begin
@@ -1261,10 +1424,17 @@ begin
 		perform insert_tbl_arbeitet_x_wochenarbeitsstunden(p_mandant_id, p_personalnummer, p_wochenarbeitsstunden, p_eintrittsdatum);
 	end if;
 
-	-- Sofern p_abteilung nicht 'null' ist, den Bereich 'Abteilung' mit Daten befüllen
+	-- Sofern p_abteilung und p_fuehrungskraft nicht 'null' sind, den Bereich 'Abteilung' mit Daten befüllen
 	if p_abteilung is not null and p_fuehrungskraft is not null then
 		perform insert_tbl_abteilungen(p_mandant_id, p_abteilung, p_abkuerzung);
 		perform insert_tbl_eingesetzt_in(p_mandant_id, p_personalnummer, p_abteilung, p_abkuerzung, p_fuehrungskraft, p_eintrittsdatum);
+	end if;
+
+	-- Sofern p_jobtitel und p_erfahrungsstufe nicht 'null' sind, den Bereich 'Jobtitel' mit Daten befüllen
+	if p_jobtitel is not null and p_erfahrungsstufe is not null then
+		perform insert_tbl_jobtitel (p_mandant_ID, p_jobtitel);
+		perform insert_tbl_erfahrungsstufen (p_Mandant_ID, p_erfahrungsstufe);
+		perform insert_tbl_hat_jobtitel(p_mandant_id, p_personalnummer, p_jobtitel, p_erfahrungsstufe, p_eintrittsdatum);
 	end if;
 	
 	-- Pseudocode Tarif oder AT

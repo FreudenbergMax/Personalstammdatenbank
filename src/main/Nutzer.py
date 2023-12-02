@@ -132,6 +132,8 @@ class Nutzer:
         abteilung = self._existenz_str_daten_feststellen(liste_ma_daten[24], 'Abteilung', 64, False)
         abteilungskuerzel = self._existenz_str_daten_feststellen(liste_ma_daten[25], 'Abteilungskuerzel', 16, False)
         fuehrungskraft = self._existenz_boolean_daten_feststellen(liste_ma_daten[26], 'Fuehrungskraft', False)
+        jobtitel = self._existenz_str_daten_feststellen(liste_ma_daten[27], 'Jobtitel', 32, False)
+        erfahrungsstufe = self._existenz_str_daten_feststellen(liste_ma_daten[28], 'Erfahrungsstufe', 32, False)
 
         # Ein Cursor-Objekt erstellen
         cur = conn.cursor()
@@ -164,7 +166,9 @@ class Nutzer:
                                                  wochenarbeitsstunden,
                                                  abteilung,
                                                  abteilungskuerzel,
-                                                 fuehrungskraft])
+                                                 fuehrungskraft,
+                                                 jobtitel,
+                                                 erfahrungsstufe])
 
         # Commit der Änderungen
         conn.commit()
