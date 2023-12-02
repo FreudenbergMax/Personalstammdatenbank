@@ -43,6 +43,13 @@ drop table if exists hat_Geschlecht;
 drop table if exists Geschlechter;
 drop table if exists ist_mitarbeitertyp;
 drop table if exists Mitarbeitertypen;
+
+drop table if exists in_Steuerklasse;
+drop table if exists Steuerklassen;
+
+drop table if exists arbeitet_x_Wochenstunden;
+drop table if exists Wochenarbeitsstunden;
+
 drop table if exists mitarbeiter;
 drop table if exists Austrittsgruende;
 drop table if exists Kategorien_Austrittsgruende;
@@ -54,7 +61,8 @@ drop function if exists nutzer_anlegen(integer, varchar(32), varchar(64), varcha
 drop function if exists nutzer_entfernen(integer, varchar(32));
 drop function if exists select_ausfuehren(varchar(64), integer);
 drop function if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), varchar(32),
-varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), varchar(32), varchar(32));
+varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), varchar(32), varchar(32),
+char(1), decimal(4, 2));
 drop function if exists pruefe_einmaligkeit_personalnummer(integer, varchar(64), varchar(32));
 drop function if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date,  varchar(32), varchar(32), varchar(32), 
 varchar(16), varchar(64), varchar(16), varchar(64), date);
@@ -68,6 +76,17 @@ drop function if exists insert_tbl_geschlechter(integer, varchar(32));
 drop function if exists insert_tbl_hat_geschlecht(integer, varchar(32), varchar(32), date);
 drop function if exists insert_tbl_ist_mitarbeitertyp(integer, varchar(32), varchar(32), date);
 drop function if exists insert_tbl_mitarbeitertypen(integer,varchar(32));
+drop function if exists insert_tbl_steuerklassen(integer, char(1));
+drop function if exists insert_tbl_in_steuerklasse(integer, varchar(32), char(1), date);
+drop function if exists insert_tbl_wochenarbeitsstunden(integer, decimal(4, 2));
+drop function if exists insert_tbl_arbeitet_x_wochenarbeitsstunden(integer, varchar(32), decimal(4, 2), date);
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------
+-- Erstellung der Tabellen einschließlich von Row-Level-Security (RLS)
 
 create table Mandanten(
 	Mandant_ID serial primary key,
@@ -126,6 +145,7 @@ create policy FilterMandant_austrittsgruende
     on Austrittsgruende
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
+-- Zentrale Tabelle 'Mitarbeiter' erstellen  
 create table Mitarbeiter (
     Mitarbeiter_ID serial primary key,
     Mandant_ID integer not null,
@@ -260,7 +280,7 @@ create policy FilterMandant_wohnt_in
     on wohnt_in
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- Bereich "Geschlechter" erstellen
+-- Tabellen, die den Bereich "Geschlechter" behandeln, erstellen
 create table Geschlechter(
 	Geschlecht_ID serial primary key,
 	Mandant_ID integer not null,
@@ -307,6 +327,10 @@ create table Mitarbeitertypen (
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
+alter table Mitarbeitertypen enable row level security;
+create policy FilterMandant_mitarbeitertypen
+    on Mitarbeitertypen
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
 
 -- Assoziationstabelle zwischen Mitarbeiter und Mitarbeitertyp
 create table ist_Mitarbeitertyp (
@@ -326,8 +350,86 @@ create table ist_Mitarbeitertyp (
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
+alter table ist_Mitarbeitertyp enable row level security;
+create policy FilterMandant_ist_mitarbeitertyp
+    on ist_Mitarbeitertyp
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
 
+-- Tabellen, die den Bereich "Steuerklasse" behandeln, erstellen
+create table Steuerklassen (
+    Steuerklasse_ID serial primary key,
+    Mandant_ID integer not null,
+    Steuerklasse char(1) not null,
+    unique(Mandant_ID, Steuerklasse),
+    constraint fk_steuerklassen_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table Steuerklassen enable row level security;
+create policy FilterMandant_steuerklassen
+    on Steuerklassen
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
 
+-- Assoziationstabelle zwischen Mitarbeiter und Steuerklasse
+create table in_Steuerklasse (
+    Mitarbeiter_ID integer not null,
+    Steuerklasse_ID integer not null,
+    Mandant_ID integer not null,
+    Datum_Von date not null,
+    Datum_Bis date not null,
+    primary key (Mitarbeiter_ID, Datum_Bis),
+    constraint fk_insteuerklasse_mitarbeiter
+    	foreign key (Mitarbeiter_ID) 
+    		references Mitarbeiter(Mitarbeiter_ID),
+    constraint fk_insteuerklasse_steuerklassen
+    	foreign key (Steuerklasse_ID) 
+    		references Steuerklassen(Steuerklasse_ID),
+    constraint fk_insteuerklasse_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table in_Steuerklasse enable row level security;
+create policy FilterMandant_in_steuerklasse
+    on in_Steuerklasse
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+-- Tabellen, die den Bereich "Wochenstunden" behandeln, erstellen
+create table Wochenarbeitsstunden(
+	Wochenarbeitsstunden_ID serial primary key,
+	Mandant_ID integer not null,
+	Anzahl_Wochenstunden decimal(4, 2) not null,
+	unique(Mandant_ID, Anzahl_Wochenstunden),
+    constraint fk_wochenarbeitsstunden_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table Wochenarbeitsstunden enable row level security;
+create policy FilterMandant_wochenarbeitsstunden
+    on Wochenarbeitsstunden
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+-- Assoziationstabelle zwischen Mitarbeiter und Wochenstunden
+create table arbeitet_x_Wochenstunden (
+    Mitarbeiter_ID integer not null,
+    Wochenarbeitsstunden_ID integer not null,
+    Mandant_ID integer not null,
+    Datum_Von date not null,
+    Datum_Bis date not null,
+    primary key (Mitarbeiter_ID, Datum_Bis),
+    constraint fk_arbeitetxwochenstunden_mitarbeiter
+    	foreign key (Mitarbeiter_ID) 
+    		references Mitarbeiter(Mitarbeiter_ID),
+    constraint fk_arbeitetxwochenstunden_wochenarbeitsstunden
+    	foreign key (Wochenarbeitsstunden_ID) 
+    		references Wochenarbeitsstunden(Wochenarbeitsstunden_ID),
+    constraint fk_arbeitetxwochenstunden_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table arbeitet_x_Wochenstunden enable row level security;
+create policy FilterMandant_arbeitet_x_wochenstunden
+    on arbeitet_x_Wochenstunden
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
 
 ----------------------------------------------------------------------------------------------------------------
 -- Erstellung der Stored Procedures
@@ -695,6 +797,10 @@ begin
     	wohnt_in(Mitarbeiter_ID, Strassenbezeichnung_ID, Mandant_ID, Datum_Von, Datum_Bis) 
    	values 
    		(v_mitarbeiter_ID, v_strassenbezeichnung_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+   	
+   	exception
+        when unique_violation then
+            raise notice 'Mitarbeiter ist bereits mit diesem aktuellen Wohnort vermerkt!';
 	
    	set role postgres;
 end;
@@ -753,6 +859,10 @@ begin
     
     insert into hat_Geschlecht(Mitarbeiter_ID, Geschlecht_ID, Mandant_ID, Datum_Von, Datum_Bis) 
    		values (v_mitarbeiter_id, v_geschlecht_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+   	
+   	exception
+        when unique_violation then
+            raise notice 'Mitarbeiter ist bereits aktuell Geschlecht ''%''!', p_geschlecht;
 	
    	set role postgres;
    
@@ -814,7 +924,7 @@ begin
    	
    	exception
         when unique_violation then
-            raise notice 'Mitarbeiter ist bereits ''%'' Mitarbeitertyp!', p_mitarbeitertyp;
+            raise notice 'Mitarbeiter ist bereits aktuell Mitarbeitertyp''%''!', p_mitarbeitertyp;
 	
    	set role postgres;
    	
@@ -823,7 +933,131 @@ $$
 language plpgsql;
 
 /*
- * Zentrale Funktion, mit der die Daten eines neuen Mitarbeiters in die Datenbank eingetragen werden soll.
+ * Funktion trägt neue Daten in Tabelle 'Mitarbeitertypen' ein.
+ */
+create or replace function insert_tbl_steuerklassen(
+    p_mandant_id integer,
+    p_steuerklasse char(1)
+) returns void as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Steuerklassen(Mandant_ID, Steuerklasse) 
+   	values 
+   		(p_mandant_id, p_steuerklasse);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Steuerklasse ''%'' bereits vorhanden!', p_steuerklasse;
+    
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt die Daten in die Assoziation "in_Steuerklasse" ein
+ */
+create or replace function insert_tbl_in_steuerklasse(
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
+	p_steuerklasse char(1),
+	p_eintrittsdatum date
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+	v_steuerklasse_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
+	execute 'SELECT steuerklasse_ID FROM steuerklassen WHERE steuerklasse = $1' into v_steuerklasse_id using p_steuerklasse;
+    
+    insert into in_Steuerklasse(Mitarbeiter_ID, Steuerklasse_ID, Mandant_ID, Datum_Von, Datum_Bis) 
+   		values (v_mitarbeiter_id, v_steuerklasse_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+   	
+   	exception
+        when unique_violation then
+            raise notice 'Mitarbeiter ist bereits aktuell in Steuerklasse ''%''!', p_steuerklasse;
+	
+   	set role postgres;
+   	
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt neue Daten in Tabelle 'Wochenarbeitsstunden' ein.
+ */
+create or replace function insert_tbl_wochenarbeitsstunden(
+    p_mandant_id integer,
+    p_wochenarbeitsstunden decimal(4, 2)
+) returns void as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Wochenarbeitsstunden(Mandant_ID, Anzahl_Wochenstunden) 
+   	values 
+   		(p_mandant_id, p_wochenarbeitsstunden);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Wochenarbeitsstunden ''%'' bereits vorhanden!', p_wochenarbeitsstunden;
+    
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt die Daten in die Assoziation "arbeitet_x_Wochenarbeitsstunden" ein
+ */
+create or replace function insert_tbl_arbeitet_x_wochenarbeitsstunden(
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
+	p_wochenarbeitsstunden decimal(4, 2),
+	p_eintrittsdatum date
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+	v_wochenarbeitsstunden_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
+	execute 'SELECT wochenarbeitsstunden_ID FROM wochenarbeitsstunden WHERE anzahl_wochenstunden = $1' into v_wochenarbeitsstunden_id using p_wochenarbeitsstunden;
+    
+    insert into arbeitet_x_Wochenstunden(Mitarbeiter_ID, Wochenarbeitsstunden_ID, Mandant_ID, Datum_Von, Datum_Bis) 
+   		values (v_mitarbeiter_id, v_wochenarbeitsstunden_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+   	
+   	exception
+        when unique_violation then
+            raise notice 'Wochenarbeitsstunden von aktuell ''%'' für diesen Mitarbeiter ist bereits vermerkt!', p_steuerklasse;
+	
+   	set role postgres;
+   	
+end;
+$$
+language plpgsql;
+
+/*
+ * Mit dieser Funktion sollen die Daten eines neuen Mitarbeiters in die Tabelle eingetragen werden
  */
 create or replace function insert_mitarbeiterdaten(
 	p_mandant_id integer,
@@ -848,7 +1082,9 @@ create or replace function insert_mitarbeiterdaten(
 	p_region varchar(128),
 	p_land varchar(128),
 	p_geschlecht varchar(32),
-	p_mitarbeitertyp varchar(32)
+	p_mitarbeitertyp varchar(32),
+	p_steuerklasse char(1),
+	p_wochenarbeitsstunden decimal(4, 2)
 ) returns void as
 $$
 begin
@@ -874,7 +1110,7 @@ begin
 								   p_dienstliche_emailadresse, 
 								   p_austrittsdatum);
 	
-	-- wenn einer dieser Werte 'null' ist, dann dürfen die Adress-Tabellen nicht befüllt werden!
+	-- Sofern keines der Adress-Parameter 'null' ist, den Bereich 'Adresse' mit Daten befüllen
 	if p_land is not null and p_region is not null and p_stadt is not null and p_postleitzahl is not null and p_strasse is not null and p_hausnummer is not null then
 		perform insert_tbl_laender(p_mandant_id, p_land);
 		perform insert_tbl_regionen(p_mandant_id, p_region, p_land);
@@ -884,15 +1120,28 @@ begin
 		perform insert_tbl_wohnt_in(p_mandant_id, p_personalnummer, p_strasse, p_hausnummer, p_eintrittsdatum);
 	end if;
 	
-	-- Sofern p_geschlecht nicht 'null' ist, den Bereich 'Geschlecht mit Daten befüllen'
+	-- Sofern p_geschlecht nicht 'null' ist, den Bereich 'Geschlecht' mit Daten befüllen
 	if p_geschlecht is not null then
 		perform insert_tbl_geschlechter(p_mandant_id, p_geschlecht);
 		perform insert_tbl_hat_geschlecht(p_mandant_id, p_personalnummer, p_geschlecht, p_eintrittsdatum);
 	end if;
 	
+	-- Sofern p_mitarbeitertyp nicht 'null' ist, den Bereich 'Mitarbeitertyp' mit Daten befüllen
 	if p_mitarbeitertyp is not null then
 		perform insert_tbl_mitarbeitertypen(p_mandant_id, p_mitarbeitertyp);
 		perform insert_tbl_ist_mitarbeitertyp(p_mandant_id, p_personalnummer, p_mitarbeitertyp, p_eintrittsdatum);
+	end if;
+
+	-- Sofern p_steuerklasse nicht 'null' ist, den Bereich 'Steuerklasse' mit Daten befüllen
+	if p_steuerklasse is not null then
+		perform insert_tbl_steuerklassen(p_mandant_id, p_steuerklasse);
+		perform insert_tbl_in_steuerklasse(p_mandant_id, p_personalnummer, p_steuerklasse, p_eintrittsdatum);
+	end if;
+	
+	-- Sofern p_wochenarbeitsstunden nicht 'null' ist, den Bereich 'Wochenarbeitsstunden' mit Daten befüllen
+	if p_wochenarbeitsstunden is not null then
+		perform insert_tbl_wochenarbeitsstunden(p_mandant_id, p_wochenarbeitsstunden);
+		perform insert_tbl_arbeitet_x_wochenarbeitsstunden(p_mandant_id, p_personalnummer, p_wochenarbeitsstunden, p_eintrittsdatum);
 	end if;
 	
 	-- Pseudocode Tarif oder AT

@@ -1,3 +1,4 @@
+import decimal
 import pandas as pd
 import re
 from datetime import datetime
@@ -125,6 +126,8 @@ class Nutzer:
         land = self._existenz_str_daten_feststellen(liste_ma_daten[19], 'Land', 128, True)
         geschlecht = self._existenz_str_daten_feststellen(liste_ma_daten[20], 'Geschlecht', 32, False)
         mitarbeitertyp = self._existenz_str_daten_feststellen(liste_ma_daten[21], 'Mitarbeitertyp', 32, False)
+        steuerklasse = self._existenz_str_daten_feststellen(liste_ma_daten[22], 'Steuerklasse', 1, False)
+        wochenarbeitsstunden = self._existenz_zahlen_daten_feststellen(liste_ma_daten[23], 'Wochenarbeitsstunden', False)
 
         # Ein Cursor-Objekt erstellen
         cur = conn.cursor()
@@ -152,7 +155,9 @@ class Nutzer:
                                                  region,
                                                  land,
                                                  geschlecht,
-                                                 mitarbeitertyp])
+                                                 mitarbeitertyp,
+                                                 steuerklasse,
+                                                 wochenarbeitsstunden])
 
         # Commit der Änderungen
         conn.commit()
@@ -202,15 +207,36 @@ class Nutzer:
 
         if not re.compile(r'\d{2}\.\d{2}\.\d{4}').fullmatch(date_daten):
             raise (ValueError(f"'{date_daten}' hat nicht das Muster 'TT.MM.JJJJ'!"))
-        '''
-        elif not re.compile(r'^(0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[0-2])\.\d{4}$').fullmatch(date_daten):
-            raise (ValueError('day is out of range for month'))
-        else:
-            date_daten = datetime.strptime(date_daten, '%d.%m.%Y').date()
-        '''
+
         try:
             date_daten = datetime.strptime(date_daten, '%d.%m.%Y').date()
         except ValueError:
             raise(ValueError(f"'{date_daten}' ist nicht möglich!"))
 
         return date_daten
+
+    def _existenz_zahlen_daten_feststellen(self, zahlen_daten, art, pflicht):
+        """
+        Methode stellt fest, ob optionale Daten vorliegen oder nicht und wenn ja, so sollen diese auf jeden Fall
+        als Decimal-Datentyp mit zwei Nachkommastellen zurückgegeben werden. So soll sichergestellt werden, dass dem
+        Datenbanksystem die Daten in dem Datentyp übergeben werden, in der sie in der Personalstammdatenbank gespeichert
+        werden können.
+        :param zahlen_daten: wird untersucht, ob Daten darin enthalten sind
+        :param art: gibt an, um was für Daten es sich handeln soll
+        :param pflicht: boolean, der bei 'True' angibt, dass 'date_daten' kein leerer String sein darf
+        :return: Falls Parameter 'daten' keine Daten enthält, wird None zurückgegeben, sonst Daten
+        """
+        if zahlen_daten == '' and not pflicht:
+            zahlen_daten = None
+            return zahlen_daten
+        elif zahlen_daten == '' and pflicht:
+            raise (ValueError(f"'{art}' ist nicht vorhanden."))
+        else:
+            try:
+                zahlen_daten = round(decimal.Decimal(zahlen_daten), 2)
+                print(type(zahlen_daten))
+            except decimal.InvalidOperation:
+                raise (TypeError(f"Der übergebene Wert '{zahlen_daten}' konnte nicht in eine Gleitkommazahl "
+                                  f"konvertiert werden!"))
+
+        return zahlen_daten
