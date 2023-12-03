@@ -181,6 +181,22 @@ class Nutzer:
         gesellschaft = self._existenz_str_daten_feststellen(liste_ma_daten[29], 'Gesellschaft', 128, False)
         abk_gesellschaft = self._existenz_str_daten_feststellen(liste_ma_daten[30], 'Abk. Gesellschaft', 16, False)
 
+        tarifbeschaeftigt = self._existenz_boolean_daten_feststellen(liste_ma_daten[31], 'tarifbeschaeftigt', False)
+        if tarifbeschaeftigt:
+            gewerkschaft = self._existenz_str_daten_feststellen(liste_ma_daten[32], 'Gewerkschaft', 64, False)
+            tarif = self._existenz_str_daten_feststellen(liste_ma_daten[33], 'Tarif', 16, False)
+            grundgehalt_monat = self._existenz_zahlen_daten_feststellen(liste_ma_daten[34], 'Grundgehalt monatlich',
+                                                                        False)
+            weihnachtsgeld = self._existenz_zahlen_daten_feststellen(liste_ma_daten[35], 'Weihnachtsgeld', False)
+            urlaubsgeld = self._existenz_zahlen_daten_feststellen(liste_ma_daten[36], 'Urlaubsgeld', False)
+        else:
+            gewerkschaft = None
+            tarif = None
+            grundgehalt_monat = self._existenz_zahlen_daten_feststellen(liste_ma_daten[34], 'Grundgehalt monatlich',
+                                                                        False)
+            weihnachtsgeld = self._existenz_zahlen_daten_feststellen(liste_ma_daten[35], 'Weihnachtsgeld', False)
+            urlaubsgeld = self._existenz_zahlen_daten_feststellen(liste_ma_daten[36], 'Urlaubsgeld', False)
+
         # Ein Cursor-Objekt erstellen
         cur = conn.cursor()
 
@@ -216,7 +232,13 @@ class Nutzer:
                                                  jobtitel,
                                                  erfahrungsstufe,
                                                  gesellschaft,
-                                                 abk_gesellschaft])
+                                                 abk_gesellschaft,
+                                                 tarifbeschaeftigt,
+                                                 gewerkschaft,
+                                                 tarif,
+                                                 grundgehalt_monat,
+                                                 weihnachtsgeld,
+                                                 urlaubsgeld])
 
         # Commit der Änderungen
         conn.commit()

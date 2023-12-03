@@ -3,6 +3,8 @@ from src.main.Mandant import Mandant
 testfirma = Mandant("testfirma")
 testfirma.nutzer_anlegen("M100001", "Max", "Mustermann")
 testfirma.get_nutzer("M100001").insert_neuer_mitarbeiter('Max Mustermann.xlsx')
+
+'''
 testfirma.get_nutzer("M100001").insert_neuer_mitarbeiter('Erika Musterfrau.xlsx')
 
 testu = Mandant("testu")
@@ -32,7 +34,7 @@ print(testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT "
                                                    "mitarbeiter "
                                                    "INNER JOIN in_gesellschaft ON mitarbeiter.mitarbeiter_id = in_gesellschaft.mitarbeiter_id "
                                                    "INNER JOIN gesellschaften ON gesellschaften.gesellschaft_id = in_gesellschaft.gesellschaft_id;"))
-
+'''
 
 
 

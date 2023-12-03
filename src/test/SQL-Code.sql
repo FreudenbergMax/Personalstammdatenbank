@@ -592,10 +592,121 @@ create policy FilterMandant_in_gesellschaft
     on in_Gesellschaft
     using (Mandant_ID = current_setting('app.current_tenant')::int); 
    
+-- Tabellen, die den Bereich "Tarifentgelt" behandeln, erstellen
+create table Gewerkschaften (
+	Gewerkschaft_ID serial primary key,
+	Mandant_ID integer not null,
+	Gewerkschaft varchar(64) not null,
+	unique (Mandant_ID, Gewerkschaft),
+	constraint fk_gewerkschaften_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table Gewerkschaften enable row level security;
+create policy FilterMandant_gewerkschaften
+    on Gewerkschaften
+    using (Mandant_ID = current_setting('app.current_tenant')::int);  
 
-   
-   
-   
+create table Tarife (
+	Tarif_ID serial primary key,
+	Mandant_ID integer not null,
+	Tarifbezeichnung varchar(16) not null,
+	Gewerkschaft_ID integer not null,
+	unique (Mandant_ID, Tarifbezeichnung),
+	constraint fk_tarife_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID),
+	constraint fk_tarife_gewerkschaften
+		foreign key (Gewerkschaft_ID)
+			references Gewerkschaften(Gewerkschaft_ID)
+);
+alter table Tarife enable row level security;
+create policy FilterMandant_tarife
+    on Tarife
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+create table hat_Tarif (
+    Mitarbeiter_ID integer not null,
+    Tarif_ID integer not null,
+    Mandant_ID integer not null,
+    Datum_Von date not null,
+    Datum_Bis date not null,
+	primary key (Mitarbeiter_ID, Datum_Bis),
+	constraint fk_hattarif_mitarbeiter
+    	foreign key (Mitarbeiter_ID) 
+    		references Mitarbeiter(Mitarbeiter_ID),
+    constraint fk_hattarif_tarif
+		foreign key (Tarif_ID) 
+			references Tarife(Tarif_ID),
+	constraint fk_hattarif_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table hat_Tarif enable row level security;
+create policy FilterMandant_hat_tarif
+    on hat_Tarif
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+create table Verguetungen (
+	Verguetung_ID serial primary key,
+	Mandant_ID integer not null,
+	Grundgehalt_monat decimal(10, 2) not null,
+	Weihnachtsgeld decimal(10,2),
+	Urlaubsgeld decimal (10, 2),
+	unique(Mandant_ID, Grundgehalt_monat, Weihnachtsgeld, Urlaubsgeld),
+	constraint fk_verguetungen_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table Verguetungen enable row level security;
+create policy FilterMandant_verguetungen
+    on Verguetungen
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+create table hat_Verguetung(
+	Tarif_ID integer not null,
+	Verguetung_ID integer not null,
+	Mandant_ID integer not null,
+	Datum_Von date not null,
+	Datum_Bis date not null,
+	primary key (Tarif_ID, Datum_Bis),
+	constraint fk_hatverguetung_tarife
+		foreign key (Tarif_ID)
+			references Tarife(Tarif_ID),
+	constraint fk_hatverguetung_verguetungen
+		foreign key (Verguetung_ID)
+			references Verguetungen(Verguetung_ID),
+	constraint fk_hatverguetung_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table hat_Verguetung enable row level security;
+create policy FilterMandant_hat_verguetung
+    on hat_Verguetung
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+create table Aussertarifliche (
+	Aussertarif_ID serial primary key,
+	Mitarbeiter_ID integer not null,
+	Mandant_ID integer not null,
+	Datum_Von date not null,
+	Datum_Bis date not null,
+	Grundgehalt_monat decimal(10, 2) not null,
+	Weihnachtsgeld decimal(10,2),
+	Urlaubsgeld decimal (10, 2),
+	unique(Mitarbeiter_ID, Datum_Bis),
+	constraint fk_aussertarifliche_mitarbeiter
+		foreign key (Mitarbeiter_ID)
+			references Mitarbeiter(Mitarbeiter_ID),
+	constraint fk_aussertarifliche_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)		
+);
+alter table Aussertarifliche enable row level security;
+create policy FilterMandant_aussertarifliche
+    on Aussertarifliche
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
 ----------------------------------------------------------------------------------------------------------------
 -- Erstellung der Stored Procedures
 
@@ -680,11 +791,11 @@ begin
 	
     execute 'SELECT personalnummer FROM '|| p_tabelle ||' WHERE personalnummer = $1' INTO v_vorhandene_personalnummer USING p_personalnummer;
 
+	set role postgres;
+
     if v_vorhandene_personalnummer is not null then
     	raise exception 'Diese Personalnummer wird bereits verwendet!';
 	end if;
-
-	set role postgres;
 
 end;
 $$
@@ -884,6 +995,7 @@ $$
 declare
 	v_stadt_id integer;
 begin
+	
 	set session role tenant_user;
     execute 'SET app.current_tenant=' || p_mandant_id;
 
@@ -995,13 +1107,11 @@ begin
    	values 
    		(p_mandant_id, p_geschlecht);
    	
-	set role postgres;
-
     exception
         when unique_violation then
             raise notice 'Geschlecht ''%'' bereits vorhanden!', p_geschlecht;
     
-    
+    set role postgres;
 
 end;
 $$
@@ -1449,6 +1559,212 @@ $$
 language plpgsql;
 
 /*
+ * Funktion trägt neue Daten in Tabelle 'Gewerkschaften' ein.
+ */
+create or replace function insert_tbl_gewerkschaften (
+	p_mandant_id integer,
+	p_gewerkschaft varchar(64)
+) returns void as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Gewerkschaften(Mandant_ID, Gewerkschaft)
+   	values 
+   		(p_mandant_id, p_gewerkschaft);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Gewerkschaft ''%'' bereits vorhanden!', p_gesellschaft;
+    
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt neue Daten in Tabelle 'Tarife' ein.
+ */
+create or replace function insert_tbl_tarife (
+	p_mandant_id integer,
+	p_tarifbezeichnung varchar(16),
+	p_gewerkschaft varchar(64)
+) returns void as
+$$
+declare
+	v_gewerkschaft_id integer;
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+   
+    execute 'SELECT gewerkschaft_ID FROM gewerkschaften WHERE gewerkschaft = $1' into v_gewerkschaft_id using p_gewerkschaft;
+
+    insert into 
+   		Tarife(Mandant_ID, Tarifbezeichnung, Gewerkschaft_ID)
+   	values 
+   		(p_mandant_id, p_tarifbezeichnung, v_gewerkschaft_id);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Gewerkschaft ''%'' bereits vorhanden!', p_gesellschaft;
+    
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt die Daten in die Assoziation "hat_Tarif" ein
+ */
+create or replace function insert_tbl_hat_tarif(
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
+	p_tarifbezeichnung varchar(16),
+	p_eintrittsdatum date
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+	v_tarif_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
+	execute 'SELECT tarif_ID FROM tarife WHERE tarifbezeichnung = $1' into v_tarif_id using p_tarifbezeichnung;
+    
+    insert into hat_Tarif(Mitarbeiter_ID, Tarif_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_mitarbeiter_ID, v_tarif_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+   	
+   	exception
+        when unique_violation then
+            raise notice 'Mitarbeiter ist bereits in dieser Gesellschaft!';
+	
+   	set role postgres;
+   	
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt neue Daten in Tabelle 'Verguetungen' ein.
+ */
+create or replace function insert_tbl_verguetungen (
+	p_mandant_id integer,
+	p_grundgehalt_monat decimal(10, 2),
+	p_weihnachtsgeld decimal(10,2),
+	p_urlaubsgeld decimal(10, 2)
+) returns void as
+$$
+begin
+	
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+	
+    insert into 
+   		Verguetungen(Mandant_ID, Grundgehalt_monat, Weihnachtsgeld, Urlaubsgeld)
+   	values 
+   		(p_mandant_id, p_grundgehalt_monat, p_weihnachtsgeld, p_urlaubsgeld);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Diese Verguetungszahlen sind bereits vorhanden!';
+    
+    set role postgres;
+	
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt die Daten in die Assoziation "hat_Verguetung" ein
+ */
+create or replace function insert_tbl_hat_verguetung(
+	p_mandant_id integer,
+	p_tarifbezeichnung varchar(16),
+	p_grundgehalt_monat decimal(10, 2),
+	p_weihnachtsgeld decimal(10,2),
+	p_urlaubsgeld decimal(10, 2),
+	p_eintrittsdatum date
+) returns void as
+$$
+declare
+	v_tarif_id integer;
+	v_verguetung_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+	execute 'SELECT tarif_ID FROM tarife WHERE tarifbezeichnung = $1' into v_tarif_id using p_tarifbezeichnung;
+
+	if p_weihnachtsgeld is null and p_urlaubsgeld is null then
+		execute 'SELECT verguetung_id FROM verguetungen WHERE grundgehalt_monat = $1' into v_verguetung_id using p_grundgehalt_monat;
+	elseif p_weihnachtsgeld is null and p_urlaubsgeld is not null then
+		execute 'SELECT verguetung_id FROM verguetungen WHERE grundgehalt_monat = $1 and urlaubsgeld = $2' into v_verguetung_id using p_grundgehalt_monat, p_urlaubsgeld;
+	elseif p_weihnachtsgeld is not null and p_urlaubsgeld is null then
+		execute 'SELECT verguetung_id FROM verguetungen WHERE grundgehalt_monat = $1 and weihnachtsgeld = $2' into v_verguetung_id using p_grundgehalt_monat, p_weihnachtsgeld;
+	else 
+		execute 'SELECT verguetung_id FROM verguetungen WHERE grundgehalt_monat = $1 and weihnachtsgeld = $2 and urlaubsgeld = $3' into v_verguetung_id using p_grundgehalt_monat, p_weihnachtsgeld, p_urlaubsgeld;
+	end if;
+
+    insert into hat_Verguetung(Tarif_ID, Verguetung_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_tarif_id, v_verguetung_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+   	
+   	exception
+        when unique_violation then
+            raise notice 'Mitarbeiter ist bereits in dieser Gesellschaft!';
+	
+   	set role postgres;
+   	
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt neue Daten in Tabelle 'Aussertarifliche' ein.
+ */
+create or replace function insert_tbl_aussertarifliche (
+	p_personalnummer varchar(32),
+	p_mandant_id integer,
+	p_eintrittsdatum date, 
+	p_grundgehalt_monat decimal(10, 2),
+	p_weihnachtsgeld decimal(10,2),
+	p_urlaubsgeld decimal(10, 2)
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+   
+    execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
+
+    insert into 
+   		Aussertarifliche(Mitarbeiter_ID, Mandant_ID, Datum_Von, Datum_Bis, Grundgehalt_monat, Weihnachtsgeld, Urlaubsgeld)
+   	values 
+   		(v_mitarbeiter_ID, p_mandant_id, p_eintrittsdatum, '9999-12-31', p_grundgehalt_monat, p_weihnachtsgeld, p_urlaubsgeld);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Diese Verguetungszahlen sind bereits vorhanden!';
+    
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
  * Mit dieser Funktion sollen die Daten eines neuen Mitarbeiters in die Tabelle eingetragen werden
  */
 create or replace function insert_mitarbeiterdaten(
@@ -1483,7 +1799,13 @@ create or replace function insert_mitarbeiterdaten(
 	p_jobtitel varchar(32),
 	p_erfahrungsstufe varchar(32),
 	p_gesellschaft varchar(128),
-	p_abk_gesellschaft varchar(16)
+	p_abk_gesellschaft varchar(16),
+	p_tarifbeschaeftigt boolean,
+	p_gewerkschaft varchar(64),
+	p_tarifbezeichnung varchar(16),
+	p_grundgehalt_monat decimal(10, 2),
+	p_weihnachtsgeld decimal(10,2),
+	p_urlaubsgeld decimal(10, 2)
 ) returns void as
 $$
 begin
@@ -1562,11 +1884,22 @@ begin
 		perform insert_tbl_in_gesellschaft(p_mandant_id, p_personalnummer, p_gesellschaft, p_eintrittsdatum);
 	end if;
 	
-	-- Pseudocode Tarif oder AT
-	-- if Tarifbezeichnung not null:
-		-- Tabellen des Bereichs "Tarif" bearbeiten
-	-- else:
-		-- Tabelle "Aussertarifliche" bearbeiten
+	-- sofern neuer Mitarbeiter tariflich bezahlt wird und die Parameter 'p_gewerkschaft', 'p_tarifbezeichnung' und 'p_grundgehalt_monat'
+	-- nicht null sind, den Bereich 'tarifbeschaeftigt' befüllen
+	if p_tarifbeschaeftigt is true then
+		if p_gewerkschaft is not null and p_tarifbezeichnung is not null and p_grundgehalt_monat is not null then
+			perform insert_tbl_gewerkschaften(p_mandant_id, p_gewerkschaft);
+			perform insert_tbl_tarife(p_mandant_id, p_tarifbezeichnung, p_gewerkschaft);
+			perform insert_tbl_hat_tarif(p_mandant_id, p_personalnummer, p_tarifbezeichnung, p_eintrittsdatum);
+			perform insert_tbl_verguetungen(p_mandant_id, p_grundgehalt_monat, p_weihnachtsgeld, p_urlaubsgeld);
+			perform insert_tbl_hat_verguetung(p_mandant_id, p_tarifbezeichnung, p_grundgehalt_monat, p_weihnachtsgeld, p_urlaubsgeld, p_eintrittsdatum);
+		end if;
+	else
+		if p_grundgehalt_monat is not null then
+			perform insert_tbl_Aussertarifliche(p_personalnummer, p_mandant_id, p_eintrittsdatum, p_grundgehalt_monat, p_weihnachtsgeld, p_urlaubsgeld);
+		end if;
+	end if;
+	
 
 	-- Pseudocode gesetzlich oder privat versichert
 	-- if privat versichert:

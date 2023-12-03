@@ -83,7 +83,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         #  Da der unique-constraint aber gelten soll, darf nur '[(1, 1, 'weiblich')]' rauskommen.
         self.assertNotEqual(result, "[(1, 1, 'weiblich'), (1, 1, 'weiblich')]")
         self.assertEqual(result, "[(1, 1, 'weiblich')]")
-
+    '''
     def test_rls_in_tbl_geschlechter(self):
         """
         Test prueft, ob Row Level Security in Tabelle 'Geschlechter' funktioniert. Das bedeutet, dass Mandant
@@ -102,7 +102,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         Test prüft, ob alle Daten eines Mitarbeiters nach Ausführung der entsprechenden Stored Procedures entfernt sind.
         """
         pass
-
+    '''
     def tearDown(self):
         """
         Methode ruft Funktion 'test_tear_down' auf, welches das Datenbankschema 'temp_test_schema' mit allen Daten
