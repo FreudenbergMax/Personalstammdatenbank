@@ -1,25 +1,23 @@
 import unittest
 from src.main.Mandant import Mandant
-from src.main.test_SetUp import test_set_up
+from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
 
 class TestGetNutzer(unittest.TestCase):
 
     def setUp(self):
         """
-        Methode erstellt ein Testschema 'temp_test_schema' und darin die Personalstammdatenbank
-        mit allen Tabellen und Stored Procedures. So können alle Tests ausgeführt werden, ohne die
-        originale Datenbank zu manipulieren.
-        :return:
+        Methode ruft Funktion 'test_set_up' der Klasse 'test_SetUp_TearDown' (siehe Ordner 'main') auf, welches das
+        Datenbankschema 'temp_test_schema' erstellt.
         """
-        self.conn, self.cursor = test_set_up()
+        self.conn, self.cur, self.testschema = test_set_up()
 
     def test_nutzer_objekt_vorhanden(self):
         """
         Test prüft, ob ein tatsächlich angelegter Nutzer mithilfe der Methode 'get_nutzer' gefunden und übergeben wird
         """
-        testfirma = Mandant('Testfirma', self.conn)
-        testfirma.nutzer_anlegen('M10001', 'Max', 'Mustermann', self.conn)
+        testfirma = Mandant('Testfirma', self.testschema)
+        testfirma.nutzer_anlegen('M10001', 'Max', 'Mustermann', self.testschema)
 
         gesuchter_nutzer = testfirma.get_nutzer('M10001')
 
@@ -30,7 +28,7 @@ class TestGetNutzer(unittest.TestCase):
         """
         Test prüft, ob bei der Eingabe eines nicht vorhandenen Nutzers eine Fehlermeldung kommt.
         """
-        testfirma = Mandant('Testfirma', self.conn)
+        testfirma = Mandant('Testfirma', self.testschema)
 
         with self.assertRaises(ValueError) as context:
             testfirma.get_nutzer('M10001')
@@ -40,11 +38,11 @@ class TestGetNutzer(unittest.TestCase):
         """
         Test prüft, ob Mandant A keinen Zugriff auf Nutzer des Mandanten B hat und umgekehrt.
         """
-        A = Mandant('A', self.conn)
-        A.nutzer_anlegen('M10001', 'Max', 'Mustermann', self.conn)
+        A = Mandant('A', self.testschema)
+        A.nutzer_anlegen('M10001', 'Max', 'Mustermann', self.testschema)
 
-        B = Mandant('B', self.conn)
-        B.nutzer_anlegen('111111', 'Erika', 'Musterfrau', self.conn)
+        B = Mandant('B', self.testschema)
+        B.nutzer_anlegen('111111', 'Erika', 'Musterfrau', self.testschema)
 
         with self.assertRaises(ValueError) as context:
             gesuchter_nutzer = A.get_nutzer('111111')
@@ -56,9 +54,7 @@ class TestGetNutzer(unittest.TestCase):
 
     def tearDown(self):
         """
-        Methode entfernt das Test-Schema 'temp_test_schema' inkl. der darin enthaltenen Test-
-        Personalstammdatenbank mit allen ihren Tabellen, Stored Procedures und Daten, die während
-        der Testfälle erzeugt wurden.
+        Methode ruft Funktion 'test_tear_down' auf, welches das Datenbankschema 'temp_test_schema' mit allen Daten
+        entfernt.
         """
-        self.cursor.execute(f"DROP SCHEMA temp_test_schema CASCADE")
-        self.conn.commit()
+        test_tear_down(self.conn, self.cur)

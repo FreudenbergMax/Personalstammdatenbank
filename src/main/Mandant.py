@@ -1,9 +1,10 @@
+import psycopg2
 from src.main.Nutzer import Nutzer
 
 
 class Mandant:
 
-    def __init__(self, mandantenname, conn):
+    def __init__(self, mandantenname, schema='public'):
 
         if not isinstance(mandantenname, str):
             raise(TypeError("Der Name des Mandanten muss ein String sein."))
@@ -18,8 +19,12 @@ class Mandant:
             raise(ValueError(f"Der Name des Mandanten darf höchstens 128 Zeichen lang sein."
                              f"'{mandantenname}' besitzt {len(mandantenname)} Zeichen!"))
 
+        if schema != 'public' and schema != 'temp_test_schema':
+            raise (ValueError("Diese Bezeichnung für ein Schema ist nicht erlaubt!"))
+
         self.mandantenname = mandantenname
-        self.mandant_id = self._in_datenbank_anlegen(conn)
+        self.schema = schema
+        self.mandant_id = self._in_datenbank_anlegen()
         self.liste_nutzer = []
 
     def get_mandant_id(self):
@@ -29,36 +34,54 @@ class Mandant:
         """
         return self.mandant_id
 
-    def _in_datenbank_anlegen(self, conn):
+    def _datenbankbverbindung_aufbauen(self):
+        """
+        Baut eine Connection zur Datenbank auf. Diese Methode wird jedes Mal aufgerufen, bevor mit der Datenbank
+        interagiert werden soll.
+        :return: conn-Variable, die die Verbindung zur Datenbank enthält
+        """
+        conn = psycopg2.connect(
+            host="localhost",
+            database="Personalstammdatenbank",
+            user="postgres",
+            password="@Postgres123",
+            port=5432
+        )
+
+        return conn
+
+    def _in_datenbank_anlegen(self):
         """
         Methode ruft die Stored Procedure 'mandant_anlegen' auf, welche die Daten des Mandanten in der
         Personalstammdatenbank speichert.
-        :param conn: Connection zur Personalstammdatenbank
         """
-        mandant_insert_query = f"SELECT mandant_anlegen('{self.mandantenname}')"
+        conn = self._datenbankbverbindung_aufbauen()
+
+        mandant_insert_query = f"set search_path to {self.schema};SELECT mandant_anlegen('{self.mandantenname}')"
         cur = conn.cursor()
         cur.execute(mandant_insert_query)
-
-        mandant_id = cur.fetchone()[0]
 
         # Commit der Änderungen
         conn.commit()
 
-        # Cursor schließen
+        mandant_id = cur.fetchone()[0]
+
+        # Cursor und Konnektor zu Datenbank schließen
         cur.close()
+        conn.close()
 
         return mandant_id
 
-    def nutzer_anlegen(self, personalnummer, vorname, nachname, conn):
+    def nutzer_anlegen(self, personalnummer, vorname, nachname, schema='public'):
         """
         Da jeder Mandant mehrere Nutzer haben kann, werden alle Nutzer eines Mandanten hier erzeugt und in einer
         klasseneigenen Liste "liste_nutzer" gespeichert.
         :param personalnummer: des Nutzers
         :param vorname: Vorname des Nutzers
         :param nachname: Nachname des Nutzers
-        :param conn: Connection zur Datenbank
+        :param schema: Datenbankschema, das verwendet werden soll
         """
-        nutzer = Nutzer(self.mandant_id, personalnummer, vorname, nachname, conn)
+        nutzer = Nutzer(self.mandant_id, personalnummer, vorname, nachname, schema)
         self.liste_nutzer.append(nutzer)
         print("Nutzer", self.liste_nutzer[len(self.liste_nutzer)-1].get_vorname(),
               self.liste_nutzer[len(self.liste_nutzer)-1].get_nachname(), "angelegt.")
@@ -81,19 +104,21 @@ class Mandant:
         else:
             return gesuchter_nutzer
 
-    def nutzer_entfernen(self, personalnummer, conn):
+    def nutzer_entfernen(self, personalnummer):
         """
         Funktion entfernt einen Nutzer.
         :param personalnummer: des Nutzers, der entfernt werden soll
-        :param conn: Connection zur Datenbank
         """
+        conn = self._datenbankbverbindung_aufbauen()
+
         nutzer_entfernt = False
 
         for i in range(len(self.liste_nutzer)):
             if self.liste_nutzer[i].get_personalnummer() == personalnummer:
 
                 # Nutzer aus Datenbank entfernen
-                nutzer_delete_query = f"SELECT nutzer_entfernen({self.mandant_id}, '{personalnummer}')"
+                nutzer_delete_query = f"set search_path to {self.schema};" \
+                                      f"SELECT nutzer_entfernen({self.mandant_id}, '{personalnummer}')"
 
                 cur = conn.cursor()
                 cur.execute(nutzer_delete_query)
@@ -101,8 +126,9 @@ class Mandant:
                 # Commit der Änderungen
                 conn.commit()
 
-                # Cursor schließen
+                # Cursor und Konnektor zu Datenbank schließen
                 cur.close()
+                conn.close()
 
                 # Nutzer aus Liste 'liste_nutzer' des Mandant-Objekt entfernen
                 self.liste_nutzer.remove(self.liste_nutzer[i])

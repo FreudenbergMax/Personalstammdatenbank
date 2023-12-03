@@ -1,43 +1,28 @@
-from datetime import datetime
 import pandas as pd
+
+data = {'mandant_id_1': [1, 2, 3],
+        'mandant_id_2': [4, 5, 6],
+        'nicht_mandant_id': [7, 8, 9]}
+df = pd.DataFrame(data)
+
+mandant_column = next((col for col in df.columns if "mandant_id" in col), None)
+
+# Liste aller Spalten, die 'mandant_id' enthalten, außer 'mandant_column'
+mandant_columns_to_remove = [col for col in df.columns if "mandant_id" in col and col != mandant_column]
+
+# DataFrame bereinigen
+df_result = df.drop(columns=mandant_columns_to_remove)
+
+# DataFrame anzeigen
+print(df_result)
+
+print(f"Mandantenspalte: {mandant_column}")
+
 '''
-def datenexistenz_feststellen(daten):
-    """
-    Funktion stellt fest, ob Daten vorliegen oder nicht
-    :param daten: wird untersucht, ob Daten darin enthalten sind
-    :return: Falls Parameter 'daten' keine Daten enthält, wird None zurückgegeben, sonst Daten
-    """
-    if daten == '':
-        daten = None
+# Behalte die erste Spalte und lösche die anderen
+columns_to_keep = [df.columns[0]] + [col for col in df.columns if col not in mandant_columns]
+df_result = df[columns_to_keep]
 
-    return daten
-
-
-daten = ''
-daten = datenexistenz_feststellen(daten)
-
-print(daten)
-print(type(daten))
-
-daten = 'hallo'
-daten = str(datenexistenz_feststellen(daten))
-
-print(daten)
-print(type(daten))
-
-daten = 5
-daten = str(datenexistenz_feststellen(daten))
-
-print(daten)
-print(type(daten))
-
-daten = '12.12.1992'
-daten = datetime.strptime(datenexistenz_feststellen(daten), '%d.%m.%Y').date()
-
-print(daten)
-print(type(daten))
+# DataFrame anzeigen
+print(df_result)
 '''
-
-df_ma_daten = pd.read_excel(f"Mitarbeiterdaten/Max Mustermann.xlsx", index_col='Daten', na_filter=False)
-liste_ma_daten = list(df_ma_daten.iloc[:, 0])
-print(liste_ma_daten)

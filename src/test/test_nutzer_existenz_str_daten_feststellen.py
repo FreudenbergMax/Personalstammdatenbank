@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime
 
-from src.main.test_SetUp import test_set_up
+from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 from src.main.Mandant import Mandant
 
 
@@ -9,13 +9,12 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
 
     def setUp(self):
         """
-        Methode erstellt ein Testschema 'temp_test_schema' und darin die Personalstammdatenbank
-        mit allen Tabellen und Stored Procedures. So können alle Tests ausgeführt werden, ohne die
-        originale Datenbank zu manipulieren.
+        Methode ruft Funktion 'test_set_up' der Klasse 'test_SetUp_TearDown' (siehe Ordner 'main') auf, welches das
+        Datenbankschema 'temp_test_schema' erstellt.
         """
-        self.conn, self.cursor = test_set_up()
-        self.testfirma = Mandant('Testfirma', self.conn)
-        self.testfirma.nutzer_anlegen('M10001', 'Max', 'Mustermann', self.conn)
+        self.conn, self.cur, self.testschema = test_set_up()
+        self.testfirma = Mandant('Testfirma', self.testschema)
+        self.testfirma.nutzer_anlegen('M10001', 'Max', 'Mustermann', self.testschema)
 
     def test_optionale_zeichenkette_ist_leer(self):
         """
@@ -94,9 +93,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
 
     def tearDown(self):
         """
-        Methode entfernt das Test-Schema 'temp_test_schema' inkl. der darin enthaltenen Test-
-        Personalstammdatenbank mit allen ihren Tabellen, Stored Procedures und Daten, die während
-        der Testfälle erzeugt wurden.
+        Methode ruft Funktion 'test_tear_down' auf, welches das Datenbankschema 'temp_test_schema' mit allen Daten
+        entfernt.
         """
-        self.cursor.execute(f"DROP SCHEMA temp_test_schema CASCADE")
-        self.conn.commit()
+        test_tear_down(self.conn, self.cur)

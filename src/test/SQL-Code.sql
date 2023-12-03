@@ -1,5 +1,5 @@
 set role postgres;
-
+--create role tenant_user;
 -- Quelle: https://adityamattos.com/multi-tenancy-in-python-fastapi-and-sqlalchemy-using-postgres-row-level-security
 -- Abschaffung der Rolle 'tenant-user' und dessen Privilegien
 -- 'tenant-user' kann zukünftig erstellte Sequenzen (bspw. Serial) NICHT mehr nutzen benutzen 
@@ -98,8 +98,8 @@ drop function if exists insert_tbl_hat_jobtitel(integer, varchar(32), varchar(32
 drop function if exists insert_tbl_gesellschaften(integer, varchar(128), varchar (16));
 drop function if exists insert_tbl_in_gesellschaft(integer, varchar(32), varchar(128), varchar (16), date);
 
-
-
+drop function if exists select_ausfuehren(p_mandant_id INTEGER, p_abfrage TEXT);
+drop function if exists execute_select_query(integer, text);
 
 
 ----------------------------------------------------------------------------------------------------------------
@@ -554,7 +554,7 @@ create table Gesellschaften (
 	Gesellschaft_ID serial primary key,
 	Mandant_ID integer not null,
 	Gesellschaft varchar(128) not null,
-	Abkuerzung varchar (16),
+	Abkuerzung varchar(16),
 	untersteht_Gesellschaft integer,
 	unique (Mandant_ID, Gesellschaft, Abkuerzung),
 	constraint fk_gesellschaften_mandanten
@@ -610,6 +610,8 @@ declare
 	v_mandant varchar(128);
 	v_mandant_id integer;
 begin
+	
+	set role postgres;
 
 	-- Prüfung, ob der Name des Mandanten (bzw. der Firma) bereits existiert. Falls ja, so soll eine Exception geworfen werden. Andernfalls soll der Mandant angelegt werden
 	execute 'SELECT firma FROM mandanten WHERE firma = $1' INTO v_mandant USING p_firma;
@@ -641,6 +643,10 @@ declare
 	v_nutzer_id integer;
 begin
 	
+	set role postgres;
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+
 	perform pruefe_einmaligkeit_personalnummer(p_mandant_id, 'nutzer', p_personalnummer);
 
     insert into Nutzer(Mandant_ID, Personalnummer, Vorname, Nachname)
@@ -648,8 +654,6 @@ begin
 	
 	-- Mandant_ID des soeben angelegten Mandanten abfragen, damit diese im Mandant-Objekt auf der Python-Seite gespeichert werden kann.
 	execute 'SELECT nutzer_id FROM nutzer WHERE personalnummer = $1' INTO v_nutzer_id USING p_personalnummer;
-	
-	set role postgres;
 	
 	return v_nutzer_id;
 	
@@ -991,11 +995,13 @@ begin
    	values 
    		(p_mandant_id, p_geschlecht);
    	
+	set role postgres;
+
     exception
         when unique_violation then
             raise notice 'Geschlecht ''%'' bereits vorhanden!', p_geschlecht;
     
-    set role postgres;
+    
 
 end;
 $$
@@ -1415,7 +1421,6 @@ create or replace function insert_tbl_in_gesellschaft(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_gesellschaft varchar(128),
-	p_abkuerzung varchar (16),
 	p_eintrittsdatum date
 ) returns void as
 $$
@@ -1428,7 +1433,7 @@ begin
 	execute 'SET app.current_tenant=' || p_mandant_id;
 	
 	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
-	execute 'SELECT gesellschaft_ID FROM gesellschaften WHERE gesellschaft = $1 AND abkuerzung = $2' into v_gesellschaft_id using p_gesellschaft, p_abkuerzung;
+	execute 'SELECT gesellschaft_ID FROM gesellschaften WHERE gesellschaft = $1' into v_gesellschaft_id using p_gesellschaft;
     
     insert into in_Gesellschaft (Mitarbeiter_ID, Gesellschaft_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_ID, v_gesellschaft_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
@@ -1554,7 +1559,7 @@ begin
 	-- Sofern p_gesellschaft nicht 'null' ist, den Bereich 'Gesellschaft' mit Daten befüllen
 	if p_gesellschaft is not null then
 		perform insert_tbl_gesellschaften(p_mandant_id, p_gesellschaft, p_abk_gesellschaft);
-		perform insert_tbl_in_gesellschaft(p_mandant_id, p_personalnummer, p_gesellschaft, p_abk_gesellschaft, p_eintrittsdatum);
+		perform insert_tbl_in_gesellschaft(p_mandant_id, p_personalnummer, p_gesellschaft, p_eintrittsdatum);
 	end if;
 	
 	-- Pseudocode Tarif oder AT
@@ -1573,34 +1578,6 @@ begin
 		-- befülle alle Tabellen im Bereich "Sozialversicherungen"
 	
 	set role postgres;
-
-end;
-$$
-language plpgsql;
-
-
-
-/*
- * Diese Funktion nimmt eine SELECT-Anfrage (z.B. zwecks Abfrage für eine Datenanalyse) 
- * entgegen. Sie soll sicherstellen, dass dabei nur die Daten berücksichtigt werden,
- * die die entsprechende Mandant_ID des Nutzers hat.
- * 
- * Quelle: https://www.sqlines.com/postgresql/how-to/return_result_set_from_stored_procedure
- */
-create or replace function select_ausfuehren(
-	p_tabelle varchar(64),
-	p_mandant_id integer
-) returns text as
-$$
-declare 
-	resultset text;
-begin
-	
-	set session role tenant_user;
-	execute 'SET app.current_tenant=' || p_mandant_id;
-    execute 'SELECT firma FROM ' || p_tabelle into resultset;
-
-    return resultset;
 
 end;
 $$

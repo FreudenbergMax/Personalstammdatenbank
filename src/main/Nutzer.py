@@ -3,10 +3,19 @@ import pandas as pd
 import re
 from datetime import datetime
 
+import psycopg2
+
 
 class Nutzer:
 
-    def __init__(self, mandant_id, personalnummer, vorname, nachname, conn):
+    def __init__(self, mandant_id, personalnummer, vorname, nachname, schema='public'):
+
+        if personalnummer == "":
+            raise (ValueError(f"Die Personalnummer des Nutzers muss aus mindestens einem Zeichen bestehen."))
+
+        if len(personalnummer) > 32:
+            raise (ValueError(f"Die Personalnummer darf höchstens 32 Zeichen lang sein. "
+                              f"'{personalnummer}' besitzt {len(personalnummer)} Zeichen!"))
 
         if not isinstance(vorname, str):
             raise (TypeError("Der Vorname des Nutzers muss ein String sein."))
@@ -21,13 +30,6 @@ class Nutzer:
             raise (ValueError(f"Der Vorname darf höchstens 64 Zeichen lang sein. "
                               f"'{vorname}' besitzt {len(vorname)} Zeichen!"))
 
-        if personalnummer == "":
-            raise (ValueError(f"Die Personalnummer des Nutzers muss aus mindestens einem Zeichen bestehen."))
-
-        if len(personalnummer) > 32:
-            raise (ValueError(f"Die Personalnummer darf höchstens 32 Zeichen lang sein. "
-                              f"'{personalnummer}' besitzt {len(personalnummer)} Zeichen!"))
-
         if not isinstance(nachname, str):
             raise (TypeError("Der Nachname des Nutzers muss ein String sein."))
 
@@ -41,11 +43,15 @@ class Nutzer:
             raise (ValueError(f"Der Nachname darf höchstens 64 Zeichen lang sein. "
                               f"'{nachname}' besitzt {len(nachname)} Zeichen!"))
 
+        if schema != 'public' and schema != 'temp_test_schema':
+            raise (ValueError("Diese Bezeichnung für ein Schema ist nicht erlaubt!"))
+
+        self.schema = schema
         self.mandant_id = mandant_id
         self.personalnummer = str(personalnummer)
         self.vorname = vorname
         self.nachname = nachname
-        self.nutzer_id = self._in_datenbank_anlegen(conn)
+        self.nutzer_id = self._in_datenbank_anlegen()
 
     def get_nutzer_id(self):
         return self.nutzer_id
@@ -59,13 +65,33 @@ class Nutzer:
     def get_nachname(self):
         return self.nachname
 
-    def _in_datenbank_anlegen(self, conn):
+    def _datenbankbverbindung_aufbauen(self):
+        """
+        Baut eine Connection zur Datenbank auf. Diese Methode wird jedes Mal aufgerufen, bevor mit der Datenbank
+        interagiert werden soll.
+        :return: conn-Variable, die die Verbindung zur Datenbank enthält
+        """
+        conn = psycopg2.connect(
+            host="localhost",
+            database="Personalstammdatenbank",
+            user="postgres",
+            password="@Postgres123",
+            port=5432
+        )
+
+        return conn
+
+    def _in_datenbank_anlegen(self):
         """
         Methode ruft die Stored Procedure 'nutzer_anlegen' auf, welche die Daten des Nutzers in der
         Personalstammdatenbank speichert.
-        :param conn: Connection zur Personalstammdatenbank
+        :return: Nutzer_ID, welche als Objekt-Variable gespeichert wird
         """
-        nutzer_insert_query = f"SELECT nutzer_anlegen('{self.mandant_id}', '{self.personalnummer}', " \
+
+        conn = self._datenbankbverbindung_aufbauen()
+
+        nutzer_insert_query = f"set search_path to {self.schema};" \
+                              f"SELECT nutzer_anlegen('{self.mandant_id}', '{self.personalnummer}', " \
                               f"'{self.vorname}', '{self.nachname}')"
         cur = conn.cursor()
         nutzer_id = cur.execute(nutzer_insert_query)
@@ -73,31 +99,48 @@ class Nutzer:
         # Commit der Änderungen
         conn.commit()
 
-        # Cursor schließen
+        # Cursor und Konnektor zu Datenbank schließen
         cur.close()
+        conn.close()
 
         return nutzer_id
 
-    def abfrage_ausfuehren(self, tabelle, conn):
+    def abfrage_ausfuehren(self, abfrage):
         """
-
-        :param tabelle:
-        :param conn: Connection zur Personalstammdatenbank
-        :return:
+        Methode übermittelt ein SQL-Befehl an die Datenbank, wo sie ausgeführt und das Ergebnis zurückgegeben wird.
+        :param abfrage: enthaelt den SQL-SELECT-Befehl, der an die Stored Procedure 'select_ausfuehren' uebergeben wird.
+        :return: Ergebnis der Datenbankabfrage
         """
-        cur = conn.cursor()
-        cur.execute(f"SELECT select_ausfuehren('{tabelle}', {self.mandant_id})")
+        conn = self._datenbankbverbindung_aufbauen()
 
-    def insert_neuer_mitarbeiter(self, mitarbeiterdaten, conn):
+        with conn.cursor() as cur:
+            cur.execute(f"SET role postgres;"
+                        f"SET session role tenant_user;"
+                        #f"SET app.current_user_id='{self.mandant_id}';"
+                        f"SET app.current_tenant='{self.mandant_id}';"
+                        f"{abfrage}")
+            ergebnis = cur.fetchall()
+
+        # Commit der Änderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+        return ergebnis
+
+    def insert_neuer_mitarbeiter(self, mitarbeiterdaten):
         """
         Diese Methode überträgt die eingetragenen Mitarbeiterdaten (im Rahmen der Bachelorarbeit
         dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
         'insert_neuer_mitarbeiter' aufgerufen wird.
         :param mitarbeiterdaten: Name der Excel-Datei, dessen Mitarbeiterdaten in die Datenbank
         eingetragen werden sollen.
-        :param conn: Connection zur Personalstammdatenbank
         :return:
         """
+        conn = self._datenbankbverbindung_aufbauen()
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Übertrag in Liste "liste_ma_daten"
         df_ma_daten = pd.read_excel(f"Mitarbeiterdaten/{mitarbeiterdaten}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
@@ -178,8 +221,9 @@ class Nutzer:
         # Commit der Änderungen
         conn.commit()
 
-        # Cursor schließen
+        # Cursor und Konnektor zu Datenbank schließen
         cur.close()
+        conn.close()
 
     def _existenz_str_daten_feststellen(self, str_daten, art, anzahl_zeichen, pflicht):
         """
