@@ -38,7 +38,7 @@ def test_tear_down(conn, cur):
     :param conn: Verbindung zur Datenbank
     :param cur: Cursor, mit der Daten abgerufen wurden
     """
-    cur.execute(f"DROP SCHEMA temp_test_schema CASCADE")
+    cur.execute(f"set role postgres;DROP SCHEMA temp_test_schema CASCADE")
     conn.commit()
     cur.close()
     conn.close()
