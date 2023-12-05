@@ -1,7 +1,7 @@
 from src.main.Mandant import Mandant
 
-testfirma = Mandant("testfirma")
-testfirma.nutzer_anlegen("M100001", "Max", "Mustermann")
+testfirma = Mandant("testu")
+testfirma.nutzer_anlegen("M100001", "Erika", "Musterfrau")
 testfirma.get_nutzer("M100001").insert_neuer_mitarbeiter('Max Mustermann.xlsx')
 
 '''
