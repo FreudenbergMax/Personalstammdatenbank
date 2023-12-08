@@ -60,11 +60,14 @@ drop table if exists Verguetungen;
 drop table if exists Tarife;
 drop table if exists Gewerkschaften;
 drop table if exists Aussertarifliche;
-
 drop table if exists Privat_Krankenversicherte;
-
 drop table if exists hat_KVBeitraege;
 drop table if exists Krankenversicherungsbeitraege_gesetzlich;
+
+drop table if exists ist_in_GKV;
+drop table if exists hat_GKV_Zusatzbeitrag;
+drop table if exists GKV_Zusatzbeitraege;
+drop table if exists Krankenkassen;
 
 drop table if exists mitarbeiter;
 drop table if exists Austrittsgruende;
@@ -77,14 +80,14 @@ drop function if exists mandant_anlegen(varchar(128));
 drop function if exists nutzer_anlegen(integer, varchar(32), varchar(64), varchar(64));
 drop function if exists nutzer_entfernen(integer, varchar(32));
 drop function if exists select_ausfuehren(varchar(64), integer);
-drop function if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), varchar(32),
-varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), varchar(32), varchar(32),
-char(1), decimal(4, 2), varchar(64), varchar(16), boolean, varchar(32), varchar(32), varchar(128), varchar(16), boolean, varchar(64), varchar(16), decimal(10, 2), 
-decimal(10,2), decimal(10, 2), boolean, decimal(10, 2), decimal(10,2), decimal(10, 2), boolean, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2));
-
+drop function if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), 
+varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), 
+varchar(32), varchar(32), char(1), decimal(4, 2), varchar(64), varchar(16), boolean, varchar(32), varchar(32), varchar(128), varchar(16), boolean, 
+varchar(64), varchar(16), decimal(10, 2), decimal(10,2), decimal(10, 2), boolean, decimal(10, 2), decimal(10,2), decimal(10, 2), boolean, decimal(5, 3), 
+decimal(5, 3), decimal(10, 2), decimal(10, 2), varchar(128), varchar(16), decimal(5, 3));
 drop function if exists pruefe_einmaligkeit_personalnummer(integer, varchar(64), varchar(32));
-drop function if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date,  varchar(32), varchar(32), varchar(32), 
-varchar(16), varchar(64), varchar(16), varchar(64), date);
+drop function if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date,  varchar(32), varchar(32), 
+varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date);
 drop function if exists insert_tbl_laender(integer, varchar(128));
 drop function if exists insert_tbl_regionen(integer, varchar(128), varchar(128));
 drop function if exists insert_tbl_staedte(integer, varchar(128), varchar(128));
@@ -115,6 +118,10 @@ drop function if exists insert_tbl_aussertarifliche (varchar(32), integer, date,
 drop function if exists insert_tbl_privatkrankenversicherte (varchar(32), integer, date, decimal(10, 2), decimal(10,2), decimal(10, 2));
 drop function if exists insert_tbl_krankenversicherungsbeitraege_gesetzlich(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2));
 drop function if exists insert_tbl_hat_kvbeitraege(integer, varchar(32), decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
+drop function if exists insert_tbl_Krankenkassen(integer, varchar(128), varchar(16));
+drop function if exists insert_tbl_istingkv(integer, varchar(32), varchar(128), varchar(16), date);
+drop function if exists insert_tbl_gkvzusatzbeitraege (integer, decimal(5, 3));
+drop function if exists insert_tbl_hatgkvzusatzbeitrag(integer, varchar(128), varchar(16), decimal(5, 3), date);
 
 
 
@@ -788,7 +795,80 @@ create policy FilterMandant_hat_kvbeitraege
     on hat_KVBeitraege
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
+create table Krankenkassen (
+	Krankenkasse_ID serial primary key,
+	Mandant_ID integer not null,
+	Krankenkasse varchar(128) not null,
+	Krankenkassenkuerzel varchar(16) not null,
+	unique(Mandant_ID, Krankenkasse, Krankenkassenkuerzel),
+	constraint fk_krankenkassen_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table Krankenkassen enable row level security;
+create policy FilterMandant_krankenkassen
+    on Krankenkassen
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
 
+-- GKV = gesetzliche Krankenversicherung
+create table ist_in_GKV(
+	Mitarbeiter_ID integer not null,
+	Krankenkasse_ID integer not null,
+	Mandant_ID integer not null,
+	Datum_Von date not null,
+	Datum_Bis date not null,
+	primary key (Mitarbeiter_ID, Datum_Bis),
+	constraint fk_istingkv_mitarbeiter
+		foreign key (Mitarbeiter_ID)
+			references Mitarbeiter(Mitarbeiter_ID),
+	constraint fk_istingkv_krankenkassen
+		foreign key (Krankenkasse_ID)
+			references Krankenkassen(Krankenkasse_ID),
+	constraint fk_istingkv_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table ist_in_GKV enable row level security;
+create policy FilterMandant_istingkv
+    on ist_in_GKV
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+create table GKV_Zusatzbeitraege (
+	GKV_Zusatzbeitrag_ID serial primary key,
+	Mandant_ID integer not null,
+	GKV_Zusatzbeitrag_in_Prozent decimal(5, 3) not null,
+	unique(Mandant_ID, GKV_Zusatzbeitrag_in_Prozent),
+	constraint fk_gkvzusatzbeitraege_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table GKV_Zusatzbeitraege enable row level security;
+create policy FilterMandant_gkvzusatzbeitraege
+    on GKV_Zusatzbeitraege
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+create table hat_GKV_Zusatzbeitrag (
+	Krankenkasse_ID integer not null,
+	GKV_Zusatzbeitrag_ID integer not null,
+	Mandant_ID integer not null,
+	Datum_Von date not null,
+	Datum_Bis date not null,
+	primary key (Krankenkasse_ID, Datum_Bis),
+	constraint fk_hatgkvzusatzbeitrag_krankenkassen
+		foreign key (Krankenkasse_ID)
+			references Krankenkassen(Krankenkasse_ID),
+	constraint fk_hatgkvzusatzbeitrag_gkvzusatzbeitraege
+		foreign key (GKV_Zusatzbeitrag_ID)
+			references GKV_Zusatzbeitraege(GKV_Zusatzbeitrag_ID),
+	constraint fk_hatgkvzusatzbeitrag_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table hat_GKV_Zusatzbeitrag enable row level security;
+create policy FilterMandant_hatgkvzusatzbeitrag
+    on hat_GKV_Zusatzbeitrag
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+   
 ----------------------------------------------------------------------------------------------------------------
 -- Erstellung der Stored Procedures
 
@@ -1963,7 +2043,139 @@ begin
    	
    	exception
         when unique_violation then
-            raise notice 'Krankenversicherungsbeitraege und BEitragsbemessungsgrenzen für Mitarbeiter ''%'' bereits vermerkt!', p_personalnummer;
+            raise notice 'Krankenversicherungsbeitraege und Beitragsbemessungsgrenzen für Mitarbeiter ''%'' bereits vermerkt!', p_personalnummer;
+	
+   	set role postgres;
+   	
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt neue Daten in Tabelle 'Krankenkassen' ein.
+ */
+create or replace function insert_tbl_Krankenkassen (
+	p_mandant_id integer,
+	p_krankenkasse varchar(128),
+	p_krankenkassenkuerzel varchar(16)
+) returns void as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Krankenkassen(Mandant_ID, Krankenkasse, Krankenkassenkuerzel)
+   	values 
+   		(p_mandant_id, p_krankenkasse, p_krankenkassenkuerzel);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Krankenkasse ''%'' bereits vorhanden!', p_krankenkasse;
+    
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt die Daten in die Assoziation "ist_in_GKV" ein
+ */
+create or replace function insert_tbl_istingkv(
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
+	p_krankenkasse varchar(128),
+	p_krankenkassenkuerzel varchar(16),
+	p_eintrittsdatum date
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+	v_krankenkasse_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
+	
+	execute 'SELECT krankenkasse_id FROM krankenkassen WHERE krankenkasse = $1 AND krankenkassenkuerzel = $2'
+			into v_krankenkasse_id using p_krankenkasse, p_krankenkassenkuerzel;
+    
+    insert into ist_in_GKV(Mitarbeiter_ID, Krankenkasse_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_mitarbeiter_id, v_Krankenkasse_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+   	
+   	exception
+        when unique_violation then
+            raise notice 'Mitarbeiter ist bereits aktuell in Krankenkasse ''%'' vermerkt!', p_krankenkasse;
+	
+   	set role postgres;
+   	
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt neue Daten in Tabelle 'GKV_Zusatzbeitraege' ein.
+ */
+create or replace function insert_tbl_gkvzusatzbeitraege (
+	p_mandant_id integer,
+	p_gkv_zusatzbeitrag_in_prozent decimal(5, 3)
+) returns void as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		GKV_Zusatzbeitraege(Mandant_ID, GKV_Zusatzbeitrag_in_Prozent)
+   	values 
+   		(p_mandant_id, p_gkv_zusatzbeitrag_in_prozent);
+   	
+    exception
+        when unique_violation then
+            raise notice 'GKV-Zusatzbeitrag ''%'' bereits vorhanden!', p_gkv_zusatzbeitrag_in_prozent;
+    
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt die Daten in die Assoziation "hat_GKV_Zusatzbeitrag" ein
+ */
+create or replace function insert_tbl_hatgkvzusatzbeitrag(
+	p_mandant_id integer,
+	p_krankenkasse varchar(128),
+	p_krankenkassenkuerzel varchar(16),
+	p_gkv_zusatzbeitrag_in_prozent decimal(5, 3),
+	p_eintrittsdatum date
+) returns void as
+$$
+declare
+	v_krankenkasse_id integer;
+	v_gkvzusatzbeitrag_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+	execute 'SELECT krankenkasse_id FROM krankenkassen WHERE krankenkasse = $1 AND krankenkassenkuerzel = $2'
+			into v_krankenkasse_id using p_krankenkasse, p_krankenkassenkuerzel;
+	
+	execute 'SELECT gkv_zusatzbeitrag_id FROM gkv_zusatzbeitraege WHERE gkv_zusatzbeitrag_in_prozent = $1'
+			into v_gkvzusatzbeitrag_id using p_gkv_zusatzbeitrag_in_prozent;
+    
+    insert into hat_GKV_Zusatzbeitrag(Krankenkasse_ID, GKV_Zusatzbeitrag_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_krankenkasse_id, v_gkvzusatzbeitrag_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+   	
+   	exception
+        when unique_violation then
+            raise notice 'Krankenkasse ist aktuell mit diesem Zusatzbeitrag versehen!';
 	
    	set role postgres;
    	
@@ -2021,7 +2233,10 @@ create or replace function insert_mitarbeiterdaten(
 	p_ag_krankenversicherungsbeitrag_in_prozent decimal(5, 3),
 	p_an_krankenversicherungsbeitrag_in_prozent decimal(5, 3),
 	p_beitragsbemessungsgrenze_kv_ost decimal(10, 2),
-	p_beitragsbemessungsgrenze_kv_west decimal(10, 2)
+	p_beitragsbemessungsgrenze_kv_west decimal(10, 2),
+	p_krankenkasse varchar(128),
+	p_krankenkassenkuerzel varchar(16),
+	p_gkv_zusatzbeitrag_in_prozent decimal(5, 3)
 ) returns void as
 $$
 begin
@@ -2135,6 +2350,10 @@ begin
 						p_beitragsbemessungsgrenze_kv_ost,
 						p_beitragsbemessungsgrenze_kv_west,
 						p_eintrittsdatum);
+		perform insert_tbl_Krankenkassen(p_mandant_id, p_krankenkasse, p_krankenkassenkuerzel);
+		perform insert_tbl_istingkv(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
+		perform insert_tbl_gkvzusatzbeitraege (p_mandant_id, p_gkv_zusatzbeitrag_in_prozent);
+		perform insert_tbl_hatgkvzusatzbeitrag(p_mandant_id, p_krankenkasse, p_krankenkassenkuerzel, p_gkv_zusatzbeitrag_in_prozent, p_eintrittsdatum);
 		-- befülle Tabellen im Bereich 'gesetzlich pflegeversichert'
 	end if;
 
@@ -2153,4 +2372,3 @@ begin
 end;
 $$
 language plpgsql;
-

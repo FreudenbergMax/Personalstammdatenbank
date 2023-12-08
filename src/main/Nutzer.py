@@ -247,6 +247,18 @@ class Nutzer:
                                                                                    99999999,
                                                                                    'Beitragsbemessungsgrenze GKV West',
                                                                                    False)
+        bezeichnung_gesetzliche_krankenkasse = self._existenz_str_daten_feststellen(liste_ma_daten[46],
+                                                                                    'Bezeichnung ges. Krankenkasse',
+                                                                                    128,
+                                                                                    False)
+        abkuerzung_gesetzliche_krankenkasse = self._existenz_str_daten_feststellen(liste_ma_daten[47],
+                                                                                    'Abkuerzung ges. Krankenkasse',
+                                                                                    16,
+                                                                                    False)
+        gkv_zusatzbeitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[48],
+                                                                                            99,
+                                                                                            'GKV Zusatzbeitrag in %',
+                                                                                            False)
 
         # Ein Cursor-Objekt erstellen
         cur = conn.cursor()
@@ -298,7 +310,10 @@ class Nutzer:
                                                  ag_krankenversicherungsbeitrag_in_prozent,
                                                  an_krankenversicherungsbeitrag_in_prozent,
                                                  beitragsbemessungsgrenze_kv_ost,
-                                                 beitragsbemessungsgrenze_kv_west])
+                                                 beitragsbemessungsgrenze_kv_west,
+                                                 bezeichnung_gesetzliche_krankenkasse,
+                                                 abkuerzung_gesetzliche_krankenkasse,
+                                                 gkv_zusatzbeitrag_in_prozent])
 
         # Commit der Änderungen
         conn.commit()
