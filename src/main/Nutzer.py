@@ -171,7 +171,7 @@ class Nutzer:
         geschlecht = self._existenz_str_daten_feststellen(liste_ma_daten[20], 'Geschlecht', 32, False)
         mitarbeitertyp = self._existenz_str_daten_feststellen(liste_ma_daten[21], 'Mitarbeitertyp', 32, False)
         steuerklasse = self._existenz_str_daten_feststellen(liste_ma_daten[22], 'Steuerklasse', 1, False)
-        wochenarbeitsstunden = self._existenz_zahlen_daten_feststellen(liste_ma_daten[23], 'Wochenarbeitsstunden',
+        wochenarbeitsstunden = self._existenz_zahlen_daten_feststellen(liste_ma_daten[23], 50, 'Wochenarbeitsstunden',
                                                                        False)
         abteilung = self._existenz_str_daten_feststellen(liste_ma_daten[24], 'Abteilung', 64, False)
         abteilungskuerzel = self._existenz_str_daten_feststellen(liste_ma_daten[25], 'Abteilungskuerzel', 16, False)
@@ -185,34 +185,68 @@ class Nutzer:
         if tarifbeschaeftigt:
             gewerkschaft = self._existenz_str_daten_feststellen(liste_ma_daten[32], 'Gewerkschaft', 64, False)
             tarif = self._existenz_str_daten_feststellen(liste_ma_daten[33], 'Tarif', 16, False)
-            grundgehalt_monat = self._existenz_zahlen_daten_feststellen(liste_ma_daten[34], 'Grundgehalt monatlich',
-                                                                        False)
-            weihnachtsgeld = self._existenz_zahlen_daten_feststellen(liste_ma_daten[35], 'Weihnachtsgeld', False)
-            urlaubsgeld = self._existenz_zahlen_daten_feststellen(liste_ma_daten[36], 'Urlaubsgeld', False)
         else:
             gewerkschaft = None
             tarif = None
-            grundgehalt_monat = self._existenz_zahlen_daten_feststellen(liste_ma_daten[34], 'Grundgehalt monatlich',
-                                                                        False)
-            weihnachtsgeld = self._existenz_zahlen_daten_feststellen(liste_ma_daten[35], 'Weihnachtsgeld', False)
-            urlaubsgeld = self._existenz_zahlen_daten_feststellen(liste_ma_daten[36], 'Urlaubsgeld', False)
+
+        grundgehalt_monat = self._existenz_zahlen_daten_feststellen(liste_ma_daten[34],
+                                                                    99999999,
+                                                                    'Grundgehalt monatlich',
+                                                                    False)
+        weihnachtsgeld = self._existenz_zahlen_daten_feststellen(liste_ma_daten[35],
+                                                                 99999999,
+                                                                 'Weihnachtsgeld',
+                                                                 False)
+        urlaubsgeld = self._existenz_zahlen_daten_feststellen(liste_ma_daten[36],
+                                                              99999999,
+                                                              'Urlaubsgeld',
+                                                              False)
 
         privat_krankenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[37],
-                                                                            'privat Krankenversichert?', False)
-        if privat_krankenversichert:
-            ag_zuschuss_krankenversicherung = self._existenz_zahlen_daten_feststellen(liste_ma_daten[38],
-                                                                                      'AG-Zuschuss Krankenversicherung',
-                                                                                      False)
-            ag_zuschuss_zusatzbeitrag = self._existenz_zahlen_daten_feststellen(liste_ma_daten[39],
-                                                                                'AG-Zuschuss Zusatzbeitrag',
-                                                                                False)
-            ag_zuschuss_pflegeversicherung = self._existenz_zahlen_daten_feststellen(liste_ma_daten[40],
-                                                                                     'AG-Zuschuss Pflegeversicherung',
-                                                                                     False)
-        else:
-            ag_zuschuss_krankenversicherung = None
-            ag_zuschuss_zusatzbeitrag = None
-            ag_zuschuss_pflegeversicherung = None
+                                                                            'privat Krankenversichert?',
+                                                                            False)
+
+        # Arbeitgeberbeitraege fuer privat Versicherte
+        ag_zuschuss_krankenversicherung = self._existenz_zahlen_daten_feststellen(liste_ma_daten[38],
+                                                                                  99999999,
+                                                                                  'AG-Zuschuss Krankenversicherung',
+                                                                                  False)
+        ag_zuschuss_zusatzbeitrag = self._existenz_zahlen_daten_feststellen(liste_ma_daten[39],
+                                                                            99999999,
+                                                                            'AG-Zuschuss Zusatzbeitrag',
+                                                                            False)
+        ag_zuschuss_pflegeversicherung = self._existenz_zahlen_daten_feststellen(liste_ma_daten[40],
+                                                                                 99999999,
+                                                                                 'AG-Zuschuss Pflegeversicherung',
+                                                                                 False)
+
+        gesetzlich_krankenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[41],
+                                                                            'gesetzlich Krankenversichert?',
+                                                                            False)
+
+        # Ein Mitarbeiter kann zur selben Zeit entweder gesetzlich oder privat krankenversichert sein, niemals
+        # beides gleichzeitig!
+        if privat_krankenversichert and gesetzlich_krankenversichert:
+            raise (ValueError(f"Der Mitarbeiter '{personalnummer}' kann nicht gleichzeitig gesetzlich und"
+                              f"privat versichert sein!"))
+
+        # Beitraege fuer gesetzliche Versicherungen
+        ag_krankenversicherungsbeitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[42],
+                                                                                            99,
+                                                                                            'AG-Beitrag GKV',
+                                                                                            False)
+        an_krankenversicherungsbeitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[43],
+                                                                                            99,
+                                                                                            'AN-Beitrag GKV',
+                                                                                            False)
+        beitragsbemessungsgrenze_kv_ost = self._existenz_zahlen_daten_feststellen(liste_ma_daten[44],
+                                                                                  99999999,
+                                                                                  'Beitragsbemessungsgrenze GKV Ost',
+                                                                                  False)
+        beitragsbemessungsgrenze_kv_west = self._existenz_zahlen_daten_feststellen(liste_ma_daten[45],
+                                                                                   99999999,
+                                                                                   'Beitragsbemessungsgrenze GKV West',
+                                                                                   False)
 
         # Ein Cursor-Objekt erstellen
         cur = conn.cursor()
@@ -259,7 +293,12 @@ class Nutzer:
                                                  privat_krankenversichert,
                                                  ag_zuschuss_krankenversicherung,
                                                  ag_zuschuss_zusatzbeitrag,
-                                                 ag_zuschuss_pflegeversicherung])
+                                                 ag_zuschuss_pflegeversicherung,
+                                                 gesetzlich_krankenversichert,
+                                                 ag_krankenversicherungsbeitrag_in_prozent,
+                                                 an_krankenversicherungsbeitrag_in_prozent,
+                                                 beitragsbemessungsgrenze_kv_ost,
+                                                 beitragsbemessungsgrenze_kv_west])
 
         # Commit der Änderungen
         conn.commit()
@@ -318,13 +357,14 @@ class Nutzer:
 
         return date_daten
 
-    def _existenz_zahlen_daten_feststellen(self, zahlen_daten, art, pflicht):
+    def _existenz_zahlen_daten_feststellen(self, zahlen_daten, hoechstbetrag, art, pflicht):
         """
         Methode stellt fest, ob optionale Daten vorliegen oder nicht und wenn ja, so sollen diese auf jeden Fall
         als Decimal-Datentyp mit zwei Nachkommastellen zurückgegeben werden. So soll sichergestellt werden, dass dem
         Datenbanksystem die Daten in dem Datentyp übergeben werden, in der sie in der Personalstammdatenbank gespeichert
         werden können.
         :param zahlen_daten: wird untersucht, ob Daten darin enthalten sind
+        :param hoechstbetrag: der Wert der Variablen 'zahlen_daten' darf nicht höher sein
         :param art: gibt an, um was für Daten es sich handeln soll
         :param pflicht: boolean, der bei 'True' angibt, dass 'zahlen_daten' kein leerer String sein darf
         :return: Falls Parameter 'daten' keine Daten enthält, wird None zurückgegeben, sonst Daten

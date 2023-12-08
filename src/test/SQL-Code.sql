@@ -63,6 +63,9 @@ drop table if exists Aussertarifliche;
 
 drop table if exists Privat_Krankenversicherte;
 
+drop table if exists hat_KVBeitraege;
+drop table if exists Krankenversicherungsbeitraege_gesetzlich;
+
 drop table if exists mitarbeiter;
 drop table if exists Austrittsgruende;
 drop table if exists Kategorien_Austrittsgruende;
@@ -77,7 +80,8 @@ drop function if exists select_ausfuehren(varchar(64), integer);
 drop function if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), varchar(32),
 varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), varchar(32), varchar(32),
 char(1), decimal(4, 2), varchar(64), varchar(16), boolean, varchar(32), varchar(32), varchar(128), varchar(16), boolean, varchar(64), varchar(16), decimal(10, 2), 
-decimal(10,2), decimal(10, 2), boolean, decimal(10, 2), decimal(10,2), decimal(10, 2));
+decimal(10,2), decimal(10, 2), boolean, decimal(10, 2), decimal(10,2), decimal(10, 2), boolean, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2));
+
 drop function if exists pruefe_einmaligkeit_personalnummer(integer, varchar(64), varchar(32));
 drop function if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date,  varchar(32), varchar(32), varchar(32), 
 varchar(16), varchar(64), varchar(16), varchar(64), date);
@@ -109,6 +113,8 @@ drop function if exists insert_tbl_verguetungen(integer, decimal(10, 2), decimal
 drop function if exists insert_tbl_hat_verguetung(integer, varchar(16), decimal(10, 2), decimal(10,2), decimal(10, 2), date);
 drop function if exists insert_tbl_aussertarifliche (varchar(32), integer, date, decimal(10, 2), decimal(10,2), decimal(10, 2));
 drop function if exists insert_tbl_privatkrankenversicherte (varchar(32), integer, date, decimal(10, 2), decimal(10,2), decimal(10, 2));
+drop function if exists insert_tbl_krankenversicherungsbeitraege_gesetzlich(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2));
+drop function if exists insert_tbl_hat_kvbeitraege(integer, varchar(32), decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
 
 
@@ -718,7 +724,8 @@ alter table Aussertarifliche enable row level security;
 create policy FilterMandant_aussertarifliche
     on Aussertarifliche
     using (Mandant_ID = current_setting('app.current_tenant')::int);
-   
+
+-- Tabellen, die den Bereich "Privat Krankenversicherte" behandeln, erstellen
 create table Privat_Krankenversicherte (
 	Privat_Krankenversichert_ID serial primary key,
 	Mitarbeiter_ID integer not null,
@@ -737,9 +744,50 @@ create table Privat_Krankenversicherte (
 			references Mandanten(Mandant_ID)	
 );
 alter table Privat_Krankenversicherte enable row level security;
-create policy FilterMandant_privatkrankenversicherte
+create policy FilterMandant_privat_krankenversicherte
     on Privat_Krankenversicherte
     using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+-- Tabellen, die den Bereich "Gesetzlich Krankenversicherte" behandeln, erstellen
+create table Krankenversicherungsbeitraege_gesetzlich (
+	Krankenversicherungsbeitrag_ID serial primary key,
+	Mandant_ID integer not null,
+	AG_Krankenversicherungsbeitrag_in_Prozent decimal(5, 3) not null,
+	AN_Krankenversicherungsbeitrag_in_Prozent decimal(5, 3) not null,
+	Beitragsbemessungsgrenze_KV_Ost decimal(10, 2) not null,
+	Beitragsbemessungsgrenze_KV_West decimal(10, 2) not null,
+	unique(Mandant_ID, AG_Krankenversicherungsbeitrag_in_Prozent, AN_Krankenversicherungsbeitrag_in_Prozent, Beitragsbemessungsgrenze_KV_Ost, Beitragsbemessungsgrenze_KV_West),
+	constraint fk_Krankenversicherungsbeitraegegesetzlich_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table Krankenversicherungsbeitraege_gesetzlich enable row level security;
+create policy FilterMandant_krankenversicherungsbeitraege_gesetzlich
+    on Krankenversicherungsbeitraege_gesetzlich
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+create table hat_KVBeitraege(
+	Mitarbeiter_ID integer not null,
+	Krankenversicherungsbeitrag_ID integer not null,
+	Mandant_ID integer not null,
+	Datum_Von date not null,
+	Datum_Bis date not null,
+	primary key (Mitarbeiter_ID, Datum_Bis),
+	constraint fk_hatkvbeitraege_mitarbeiter
+		foreign key (Mitarbeiter_ID)
+			references Mitarbeiter(Mitarbeiter_ID),
+	constraint fk_hatkvbeitraege_Krankenversicherungsbeitraegegesetzlich
+		foreign key (Krankenversicherungsbeitrag_ID)
+			references Krankenversicherungsbeitraege_gesetzlich(Krankenversicherungsbeitrag_ID),
+	constraint fk_hatkvbeitraege_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table hat_KVBeitraege enable row level security;
+create policy FilterMandant_hat_kvbeitraege
+    on hat_KVBeitraege
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
 
 ----------------------------------------------------------------------------------------------------------------
 -- Erstellung der Stored Procedures
@@ -1835,6 +1883,95 @@ $$
 language plpgsql;
 
 /*
+ * Funktion trägt neue Daten in Tabelle 'Krankenversicherungsbeitraege_Gesetzlich' ein.
+ */
+create or replace function insert_tbl_krankenversicherungsbeitraege_gesetzlich(
+    p_mandant_id integer,
+    p_ag_krankenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_an_krankenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_beitragsbemessungsgrenze_kv_ost decimal(10, 2),
+	p_beitragsbemessungsgrenze_kv_west decimal(10, 2)
+) returns void as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Krankenversicherungsbeitraege_gesetzlich (
+   			Mandant_ID, 
+   			AG_Krankenversicherungsbeitrag_in_Prozent, 
+   			AN_Krankenversicherungsbeitrag_in_Prozent,
+			Beitragsbemessungsgrenze_KV_Ost,
+			Beitragsbemessungsgrenze_KV_West)
+   	values 
+   		(p_mandant_id, 
+		 p_ag_krankenversicherungsbeitrag_in_prozent,
+		 p_an_krankenversicherungsbeitrag_in_prozent,
+		 p_beitragsbemessungsgrenze_kv_ost,
+		 p_beitragsbemessungsgrenze_kv_west
+		);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Diese gesetzlichen Krankenversicherungsbeitraege und Beitragsbemessungsgrenzen sind bereits vorhanden!';
+    
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt die Daten in die Assoziation "hat_KVBeitraege" ein
+ */
+create or replace function insert_tbl_hat_kvbeitraege(
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
+	p_ag_krankenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_an_krankenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_beitragsbemessungsgrenze_kv_ost decimal(10, 2),
+	p_beitragsbemessungsgrenze_kv_west decimal(10, 2),
+	p_eintrittsdatum date
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+	v_krankenversicherungsbeitrag_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
+	
+	execute 'SELECT krankenversicherungsbeitrag_id 
+			 FROM krankenversicherungsbeitraege_gesetzlich 
+			 WHERE ag_krankenversicherungsbeitrag_in_prozent = $1 
+				and an_krankenversicherungsbeitrag_in_prozent = $2
+				and beitragsbemessungsgrenze_kv_ost = $3
+				and beitragsbemessungsgrenze_kv_west = $4' 
+			into v_krankenversicherungsbeitrag_id
+			using p_ag_krankenversicherungsbeitrag_in_prozent, 
+				  p_an_krankenversicherungsbeitrag_in_prozent, 
+				  p_beitragsbemessungsgrenze_kv_ost,
+				  p_beitragsbemessungsgrenze_kv_west;
+    
+    insert into hat_KVBeitraege(Mitarbeiter_ID, Krankenversicherungsbeitrag_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_mitarbeiter_id, v_krankenversicherungsbeitrag_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+   	
+   	exception
+        when unique_violation then
+            raise notice 'Krankenversicherungsbeitraege und BEitragsbemessungsgrenzen für Mitarbeiter ''%'' bereits vermerkt!', p_personalnummer;
+	
+   	set role postgres;
+   	
+end;
+$$
+language plpgsql;
+
+/*
  * Mit dieser Funktion sollen die Daten eines neuen Mitarbeiters in die Tabelle eingetragen werden
  */
 create or replace function insert_mitarbeiterdaten(
@@ -1879,7 +2016,12 @@ create or replace function insert_mitarbeiterdaten(
 	p_privat_krankenversichert boolean,
 	p_ag_zuschuss_krankenversicherung decimal(10, 2),
 	p_ag_zuschuss_zusatzbeitrag decimal(10,2),
-	p_ag_zuschuss_pflegeversicherung decimal(10, 2)
+	p_ag_zuschuss_pflegeversicherung decimal(10, 2),
+	p_gesetzlich_krankenversichert boolean,
+	p_ag_krankenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_an_krankenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_beitragsbemessungsgrenze_kv_ost decimal(10, 2),
+	p_beitragsbemessungsgrenze_kv_west decimal(10, 2)
 ) returns void as
 $$
 begin
@@ -1978,10 +2120,25 @@ begin
 		perform insert_tbl_privatkrankenversicherte(p_personalnummer, p_mandant_id, p_eintrittsdatum,  p_ag_zuschuss_krankenversicherung, p_ag_zuschuss_zusatzbeitrag, p_ag_zuschuss_pflegeversicherung);
 	end if;
 
-
-	-- if gesetzlich krankenversichert
-		-- befülle Tabellen im Bereich 'gesetzlich krankenversichert'
+	if p_gesetzlich_krankenversichert then
+		perform insert_tbl_krankenversicherungsbeitraege_gesetzlich(
+						p_mandant_id, 
+						p_ag_krankenversicherungsbeitrag_in_prozent, 
+						p_an_krankenversicherungsbeitrag_in_prozent,
+						p_beitragsbemessungsgrenze_kv_ost,
+						p_beitragsbemessungsgrenze_kv_west);
+		perform insert_tbl_hat_kvbeitraege(
+						p_mandant_id,
+						p_personalnummer,
+						p_ag_krankenversicherungsbeitrag_in_prozent,
+						p_an_krankenversicherungsbeitrag_in_prozent,
+						p_beitragsbemessungsgrenze_kv_ost,
+						p_beitragsbemessungsgrenze_kv_west,
+						p_eintrittsdatum);
 		-- befülle Tabellen im Bereich 'gesetzlich pflegeversichert'
+	end if;
+
+		
 	-- if arbeitslosenversichert
 		-- befülle Tabellen im Bereich 'Arbeitslosenversicherung'
 	-- if rentenversichert
