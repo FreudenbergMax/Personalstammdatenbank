@@ -69,6 +69,11 @@ drop table if exists hat_GKV_Zusatzbeitrag;
 drop table if exists GKV_Zusatzbeitraege;
 drop table if exists Krankenkassen;
 
+drop table if exists hat_x_Kinder_unter25;
+drop table if exists hat_gesetzlichen_AN_PV_Beitragssatz;
+drop table if exists Anzahl_Kinder_unter_25;
+drop table if exists AN_Pflegeversicherungsbeitraege_gesetzlich;
+
 drop table if exists mitarbeiter;
 drop table if exists Austrittsgruende;
 drop table if exists Kategorien_Austrittsgruende;
@@ -84,7 +89,7 @@ drop function if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64
 varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), 
 varchar(32), varchar(32), char(1), decimal(4, 2), varchar(64), varchar(16), boolean, varchar(32), varchar(32), varchar(128), varchar(16), boolean, 
 varchar(64), varchar(16), decimal(10, 2), decimal(10,2), decimal(10, 2), boolean, decimal(10, 2), decimal(10,2), decimal(10, 2), boolean, decimal(5, 3), 
-decimal(5, 3), decimal(10, 2), decimal(10, 2), varchar(128), varchar(16), decimal(5, 3));
+decimal(5, 3), decimal(10, 2), decimal(10, 2), varchar(128), varchar(16), decimal(5, 3), integer, decimal(5, 3), decimal(10, 2), decimal(10, 2));
 drop function if exists pruefe_einmaligkeit_personalnummer(integer, varchar(64), varchar(32));
 drop function if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date,  varchar(32), varchar(32), 
 varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date);
@@ -115,14 +120,17 @@ drop function if exists insert_tbl_hat_tarif(integer, varchar(32), varchar(16), 
 drop function if exists insert_tbl_verguetungen(integer, decimal(10, 2), decimal(10,2), decimal(10, 2));
 drop function if exists insert_tbl_hat_verguetung(integer, varchar(16), decimal(10, 2), decimal(10,2), decimal(10, 2), date);
 drop function if exists insert_tbl_aussertarifliche (varchar(32), integer, date, decimal(10, 2), decimal(10,2), decimal(10, 2));
-drop function if exists insert_tbl_privatkrankenversicherte (varchar(32), integer, date, decimal(10, 2), decimal(10,2), decimal(10, 2));
+drop function if exists insert_tbl_privat_krankenversicherte (varchar(32), integer, date, decimal(10, 2), decimal(10,2), decimal(10, 2));
 drop function if exists insert_tbl_krankenversicherungsbeitraege_gesetzlich(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2));
 drop function if exists insert_tbl_hat_kvbeitraege(integer, varchar(32), decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 drop function if exists insert_tbl_Krankenkassen(integer, varchar(128), varchar(16));
-drop function if exists insert_tbl_istingkv(integer, varchar(32), varchar(128), varchar(16), date);
-drop function if exists insert_tbl_gkvzusatzbeitraege (integer, decimal(5, 3));
-drop function if exists insert_tbl_hatgkvzusatzbeitrag(integer, varchar(128), varchar(16), decimal(5, 3), date);
-
+drop function if exists insert_tbl_ist_in_gkv(integer, varchar(32), varchar(128), varchar(16), date);
+drop function if exists insert_tbl_gkv_zusatzbeitraege (integer, decimal(5, 3));
+drop function if exists insert_tbl_hat_gkv_zusatzbeitrag(integer, varchar(128), varchar(16), decimal(5, 3), date);
+drop function if exists insert_tbl_anzahl_kinder_unter_25 (integer, integer);
+drop function if exists insert_tbl_hat_x_kinder_unter25(integer, varchar(32), integer, date);
+drop function if exists insert_tbl_an_pflegeversicherungsbeitraege_gesetzlich (integer, decimal(5, 3), decimal(10, 2), decimal(10, 2));
+drop function if exists insert_tbl_hat_gesetzlichen_an_pv_beitragssatz(integer, integer, decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
 
 
@@ -868,6 +876,85 @@ alter table hat_GKV_Zusatzbeitrag enable row level security;
 create policy FilterMandant_hatgkvzusatzbeitrag
     on hat_GKV_Zusatzbeitrag
     using (Mandant_ID = current_setting('app.current_tenant')::int);
+   
+create table Anzahl_Kinder_unter_25 (
+	Anzahl_Kinder_unter_25_ID serial primary key,
+	Mandant_ID integer not null,
+	Anzahl_Kinder integer not null,
+	unique(Mandant_ID, Anzahl_Kinder),
+	constraint fk_anzahlkinderunter25_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table Anzahl_Kinder_unter_25 enable row level security;
+create policy FilterMandant_anzahlkinderunter25
+    on Anzahl_Kinder_unter_25
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+create table hat_x_Kinder_unter25(
+	Mitarbeiter_ID integer not null,
+	Anzahl_Kinder_unter_25_ID integer not null,
+	Mandant_ID integer not null,
+	Datum_Von date not null,
+	Datum_Bis date not null,
+	primary key (Mitarbeiter_ID, Datum_Bis),
+	constraint fk_hatxKinderunter25_mitarbeiter
+		foreign key (Mitarbeiter_ID)
+			references Mitarbeiter(Mitarbeiter_ID),
+	constraint fk_hatxKinderunter25_anzahlkinderunter25
+		foreign key (Anzahl_Kinder_unter_25_ID)
+			references Anzahl_Kinder_unter_25(Anzahl_Kinder_unter_25_ID),
+	constraint fk_hatxKinderunter25_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table hat_x_Kinder_unter25 enable row level security;
+create policy FilterMandant_hatxKinderunter25
+    on hat_x_Kinder_unter25
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+-- PV = Pflegeversicherung
+create table AN_Pflegeversicherungsbeitraege_gesetzlich (
+	AN_PV_Beitrag_ID serial primary key,
+	Mandant_ID integer not null,
+	AN_Anteil_PV_Beitrag_in_Prozent decimal(5, 3) not null,
+	Beitragsbemessungsgrenze_PV_Ost decimal(10, 2) not null,
+	Beitragsbemessungsgrenze_PV_West decimal(10, 2) not null,
+	unique(Mandant_ID, AN_Anteil_PV_Beitrag_in_Prozent, Beitragsbemessungsgrenze_PV_Ost, Beitragsbemessungsgrenze_PV_West),
+	constraint fk_anpflegeversicherungsbeitraegegesetzlich_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table AN_Pflegeversicherungsbeitraege_gesetzlich enable row level security;
+create policy FilterMandant_anpflegeversicherungsbeitraegegesetzlich
+    on AN_Pflegeversicherungsbeitraege_gesetzlich
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+   
+create table hat_gesetzlichen_AN_PV_Beitragssatz(
+	Anzahl_Kinder_unter_25_ID integer not null,
+	AN_PV_Beitrag_ID integer not null,
+	Mandant_ID integer not null,
+	Datum_Von date not null,
+	Datum_Bis date not null,
+	primary key (Anzahl_Kinder_unter_25_ID, Datum_Bis),
+	constraint fk_hatgesetzlichenanpvbeitragssatz_anzahlkinderunter25
+		foreign key (Anzahl_Kinder_unter_25_ID)
+			references Anzahl_Kinder_unter_25(Anzahl_Kinder_unter_25_ID),
+	constraint fk_hatgesetzlichenanpvbeitragssatz_anpflegeversicherungsbeitraegegesetzlich
+		foreign key (AN_PV_Beitrag_ID)
+			references AN_Pflegeversicherungsbeitraege_gesetzlich(AN_PV_Beitrag_ID),
+	constraint fk_hatgesetzlichenanpvbeitragssatz_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table hat_gesetzlichen_AN_PV_Beitragssatz enable row level security;
+create policy FilterMandant_hatgesetzlichenanpvbeitragssatz
+    on hat_gesetzlichen_AN_PV_Beitragssatz
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+   
+   
+   
+   
    
 ----------------------------------------------------------------------------------------------------------------
 -- Erstellung der Stored Procedures
@@ -1929,7 +2016,7 @@ language plpgsql;
 /*
  * Funktion trägt neue Daten in Tabelle 'Privat_Krankenversicherte' ein.
  */
-create or replace function insert_tbl_privatkrankenversicherte (
+create or replace function insert_tbl_privat_krankenversicherte (
 	p_personalnummer varchar(32),
 	p_mandant_id integer,
 	p_eintrittsdatum date, 
@@ -2083,7 +2170,7 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Assoziation "ist_in_GKV" ein
  */
-create or replace function insert_tbl_istingkv(
+create or replace function insert_tbl_ist_in_gkv(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_krankenkasse varchar(128),
@@ -2120,7 +2207,7 @@ language plpgsql;
 /*
  * Funktion trägt neue Daten in Tabelle 'GKV_Zusatzbeitraege' ein.
  */
-create or replace function insert_tbl_gkvzusatzbeitraege (
+create or replace function insert_tbl_gkv_zusatzbeitraege (
 	p_mandant_id integer,
 	p_gkv_zusatzbeitrag_in_prozent decimal(5, 3)
 ) returns void as
@@ -2148,7 +2235,7 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Assoziation "hat_GKV_Zusatzbeitrag" ein
  */
-create or replace function insert_tbl_hatgkvzusatzbeitrag(
+create or replace function insert_tbl_hat_gkv_zusatzbeitrag(
 	p_mandant_id integer,
 	p_krankenkasse varchar(128),
 	p_krankenkassenkuerzel varchar(16),
@@ -2182,6 +2269,151 @@ begin
 end;
 $$
 language plpgsql;
+
+/*
+ * Funktion trägt neue Daten in Tabelle 'Anzahl_Kinder_unter_25' ein.
+ */
+create or replace function insert_tbl_anzahl_kinder_unter_25 (
+	p_mandant_id integer,
+	p_anzahl_kinder integer
+) returns void as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Anzahl_Kinder_unter_25(Mandant_ID, Anzahl_Kinder)
+   	values 
+   		(p_mandant_id, p_anzahl_kinder);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Kinderanzahl ''%'' bereits vorhanden!', p_anzahl_kinder;
+    
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt die Daten in die Assoziation "hat_x_Kinder_unter25" ein
+ */
+create or replace function insert_tbl_hat_x_kinder_unter25(
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
+	p_anzahl_kinder integer,
+	p_eintrittsdatum date
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+	v_anzahl_kinder_unter25_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
+	
+	execute 'SELECT anzahl_kinder_unter_25_id FROM anzahl_kinder_unter_25 WHERE anzahl_kinder = $1'
+			into v_anzahl_kinder_unter25_id using p_anzahl_kinder;
+    
+    insert into hat_x_Kinder_unter25(Mitarbeiter_ID, Anzahl_Kinder_unter_25_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_mitarbeiter_id, v_anzahl_kinder_unter25_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+   	
+   	exception
+        when unique_violation then
+            raise notice 'Aktuelle Anzahl der Kinder für Mitarbeiter ''%'' ist bereits vermerkt!', p_personalnummer;
+	
+   	set role postgres;
+   	
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt neue Daten in Tabelle 'AN_Pflegeversicherungsbeitraege_gesetzlich' ein.
+ */
+create or replace function insert_tbl_an_pflegeversicherungsbeitraege_gesetzlich (
+	p_mandant_id integer,
+	p_an_anteil_pv_beitrag_in_prozent decimal(5, 3),
+	p_beitragsbemessungsgrenze_pv_ost decimal(10, 2),
+	p_beitragsbemessungsgrenze_pv_west decimal(10, 2)
+) returns void as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		AN_Pflegeversicherungsbeitraege_gesetzlich(
+   			Mandant_ID, 
+   			AN_Anteil_PV_Beitrag_in_Prozent, 
+   			Beitragsbemessungsgrenze_PV_Ost, 
+   			Beitragsbemessungsgrenze_PV_West)
+   	values 
+   		(p_mandant_id, 
+   		 p_an_anteil_pv_beitrag_in_prozent, 
+   		 p_beitragsbemessungsgrenze_pv_ost, 
+   		 p_beitragsbemessungsgrenze_pv_west);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Diese PV-Beitragssätze und PV-Beitragsbemessungsgrenzen sind bereits vorhanden!';
+    
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt die Daten in die Assoziation "hat_gesetzlichen_AN_PV_Beitragssatz" ein
+ */
+create or replace function insert_tbl_hat_gesetzlichen_an_pv_beitragssatz(
+	p_mandant_id integer,
+	p_anzahl_kinder integer,
+	p_an_anteil_pv_beitrag_in_prozent decimal(5, 3),
+	p_beitragsbemessungsgrenze_pv_ost decimal(10, 2),
+	p_beitragsbemessungsgrenze_pv_west decimal(10, 2),
+	p_eintrittsdatum date
+) returns void as
+$$
+declare
+	v_anzahl_kinder_unter25_id integer;
+	v_an_pv_beitrag_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+	execute 'SELECT anzahl_kinder_unter_25_id FROM anzahl_kinder_unter_25 WHERE anzahl_kinder = $1'
+			into v_anzahl_kinder_unter25_id using p_anzahl_kinder;
+	
+	execute 'SELECT AN_PV_Beitrag_ID FROM an_pflegeversicherungsbeitraege_gesetzlich 
+				WHERE an_anteil_pv_beitrag_in_prozent = $1 AND beitragsbemessungsgrenze_pv_ost = $2 AND beitragsbemessungsgrenze_pv_west = $3'
+				into v_an_pv_beitrag_id using p_an_anteil_pv_beitrag_in_prozent, p_beitragsbemessungsgrenze_pv_ost, p_beitragsbemessungsgrenze_pv_west;
+    
+    insert into hat_gesetzlichen_AN_PV_Beitragssatz(Anzahl_Kinder_unter_25_ID, AN_PV_Beitrag_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_anzahl_kinder_unter25_id, v_an_pv_beitrag_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+   	
+   	exception
+        when unique_violation then
+            raise notice 'Diese Kinderanzahl ist bereits mit diesen AN_PV-Beitragssatz und Beitragsbemessungsgrenzen versehen!';
+	
+   	set role postgres;
+   	
+end;
+$$
+language plpgsql;
+
+
+
+
 
 /*
  * Mit dieser Funktion sollen die Daten eines neuen Mitarbeiters in die Tabelle eingetragen werden
@@ -2236,7 +2468,11 @@ create or replace function insert_mitarbeiterdaten(
 	p_beitragsbemessungsgrenze_kv_west decimal(10, 2),
 	p_krankenkasse varchar(128),
 	p_krankenkassenkuerzel varchar(16),
-	p_gkv_zusatzbeitrag_in_prozent decimal(5, 3)
+	p_gkv_zusatzbeitrag_in_prozent decimal(5, 3),
+	p_anzahl_kinder integer,
+	p_an_anteil_pv_beitrag_in_prozent decimal(5, 3),
+	p_beitragsbemessungsgrenze_pv_ost decimal(10, 2),
+	p_beitragsbemessungsgrenze_pv_west decimal(10, 2)
 ) returns void as
 $$
 begin
@@ -2351,9 +2587,22 @@ begin
 						p_beitragsbemessungsgrenze_kv_west,
 						p_eintrittsdatum);
 		perform insert_tbl_Krankenkassen(p_mandant_id, p_krankenkasse, p_krankenkassenkuerzel);
-		perform insert_tbl_istingkv(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
-		perform insert_tbl_gkvzusatzbeitraege (p_mandant_id, p_gkv_zusatzbeitrag_in_prozent);
-		perform insert_tbl_hatgkvzusatzbeitrag(p_mandant_id, p_krankenkasse, p_krankenkassenkuerzel, p_gkv_zusatzbeitrag_in_prozent, p_eintrittsdatum);
+		perform insert_tbl_ist_in_gkv(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
+		perform insert_tbl_gkv_zusatzbeitraege (p_mandant_id, p_gkv_zusatzbeitrag_in_prozent);
+		perform insert_tbl_hat_gkv_zusatzbeitrag(p_mandant_id, p_krankenkasse, p_krankenkassenkuerzel, p_gkv_zusatzbeitrag_in_prozent, p_eintrittsdatum);
+		perform insert_tbl_anzahl_kinder_unter_25(p_mandant_id, p_anzahl_kinder);
+		perform insert_tbl_hat_x_kinder_unter25(p_mandant_id, p_personalnummer, p_anzahl_kinder, p_eintrittsdatum);
+		perform insert_tbl_an_pflegeversicherungsbeitraege_gesetzlich(p_mandant_id, 
+																	  p_an_anteil_pv_beitrag_in_prozent,
+																	  p_beitragsbemessungsgrenze_pv_ost,
+																	  p_beitragsbemessungsgrenze_pv_west);
+		perform insert_tbl_hat_gesetzlichen_an_pv_beitragssatz(p_mandant_id, 
+															   p_anzahl_kinder,
+															   p_an_anteil_pv_beitrag_in_prozent,
+															   p_beitragsbemessungsgrenze_pv_ost,
+															   p_beitragsbemessungsgrenze_pv_west,
+															   p_eintrittsdatum);
+											
 		-- befülle Tabellen im Bereich 'gesetzlich pflegeversichert'
 	end if;
 

@@ -22,7 +22,7 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
         """
         zahlenwert = ''
         zahlenwert = self.testfirma.get_nutzer('M10001'). \
-            _existenz_zahlen_daten_feststellen(zahlenwert, 'Zahlenwert', False)
+            _existenz_zahlen_daten_feststellen(zahlenwert, 50, 'Zahlenwert', False)
 
         self.assertEqual(zahlenwert, None)
 
@@ -36,7 +36,7 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
         # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
         with self.assertRaises(ValueError) as context:
             zahlenwert = self.testfirma.get_nutzer('M10001'). \
-                _existenz_zahlen_daten_feststellen(zahlenwert, 'Zahlenwert', True)
+                _existenz_zahlen_daten_feststellen(zahlenwert, 50, 'Zahlenwert', True)
 
         self.assertEqual(str(context.exception), "'Zahlenwert' ist nicht vorhanden.")
 
@@ -50,10 +50,65 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
         # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
         with self.assertRaises(TypeError) as context:
             zahlenwert = self.testfirma.get_nutzer('M10001'). \
-                _existenz_zahlen_daten_feststellen(zahlenwert, 'Zahlenwert', True)
+                _existenz_zahlen_daten_feststellen(zahlenwert, 50, 'Zahlenwert', True)
 
         self.assertEqual(str(context.exception), "Der übergebene Wert 'hallo welt' konnte nicht in eine Gleitkommazahl "
                                                  "konvertiert werden!")
+
+    def test_none_konvertierung_scheitert(self):
+        """
+        Test prüft, ob eine TypeError-Exeption geworfen wird, weil der Methode '_existenz_zahlen_daten_feststellen'
+        ein None übergeben wird, der nicht in eine Dezimal-Zahl konvertiert werden kann
+        """
+        none = None
+
+        # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
+        with self.assertRaises(TypeError) as context:
+            none = self.testfirma.get_nutzer('M10001'). \
+                _existenz_zahlen_daten_feststellen(none, 50, 'None', True)
+
+        self.assertEqual(str(context.exception), "Der übergebene Wert 'None' konnte nicht in eine Gleitkommazahl "
+                                                 "konvertiert werden!")
+
+    def test_hoechstbetrag_ueberschritten(self):
+        """
+        Test prüft, ob eine ValueError-Exeption geworfen wird, weil der Methode '_existenz_zahlen_daten_feststellen'
+        ein Wert uebergeben wird, der hoeher ist, als der definierte Hoechstbetrag
+        """
+        testzahl = 6543.21
+        hoechstbetrag = 6000
+
+        # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
+        with self.assertRaises(ValueError) as context:
+            none = self.testfirma.get_nutzer('M10001'). \
+                _existenz_zahlen_daten_feststellen(testzahl, hoechstbetrag, 'Testzahl', True)
+
+        self.assertEqual(str(context.exception), "'Testzahl' ist mit '6543.21' hoeher als der zulaessige Maximalbetrag "
+                                                 "von '6000'!")
+
+    def test_anzahl_kinder_ist_integer(self):
+        """
+        Test prüft, ob die Methode '_existenz_zahlen_daten_feststellen' die Variable 'Anzahl Kinder' bei einer
+        Ganzzahl belaesst, wenn der übergebene Wert bereits ein integer ist
+        """
+        anzahl_kinder = 3
+
+        anzahl_kinder = self.testfirma.get_nutzer('M10001'). \
+            _existenz_zahlen_daten_feststellen(anzahl_kinder, 99, 'Anzahl Kinder', False)
+
+        self.assertEqual(type(anzahl_kinder), int)
+
+    def test_float_zu_dezimalzahl(self):
+        """
+        Test prüft, ob die Methode '_existenz_zahlen_daten_feststellen' einen Float-Wert (was bereits eine Dezimalzahl
+        ist) in einen Wert vom Datentyp 'decimal.Decimal' (welche für SQL benötigt wird) zurückgibt.
+        """
+        dezimalzahl = 1.5
+
+        dezimalzahl = self.testfirma.get_nutzer('M10001'). \
+            _existenz_zahlen_daten_feststellen(dezimalzahl, 50, 'Dezimalzahl', False)
+
+        self.assertEqual(type(dezimalzahl), decimal.Decimal)
 
     def test_ganzzahl_zu_dezimalzahl(self):
         """
@@ -63,7 +118,7 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
         zahlenwert = 35
 
         zahlenwert = self.testfirma.get_nutzer('M10001'). \
-            _existenz_zahlen_daten_feststellen(zahlenwert, 'Zahlenwert', False)
+            _existenz_zahlen_daten_feststellen(zahlenwert, 50, 'Zahlenwert', False)
 
         self.assertEqual(type(zahlenwert), decimal.Decimal)
 

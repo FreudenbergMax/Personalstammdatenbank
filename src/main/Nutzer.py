@@ -221,8 +221,8 @@ class Nutzer:
                                                                                  False)
 
         gesetzlich_krankenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[41],
-                                                                            'gesetzlich Krankenversichert?',
-                                                                            False)
+                                                                                'gesetzlich Krankenversichert?',
+                                                                                False)
 
         # Ein Mitarbeiter kann zur selben Zeit entweder gesetzlich oder privat krankenversichert sein, niemals
         # beides gleichzeitig!
@@ -230,7 +230,7 @@ class Nutzer:
             raise (ValueError(f"Der Mitarbeiter '{personalnummer}' kann nicht gleichzeitig gesetzlich und"
                               f"privat versichert sein!"))
 
-        # Beitraege fuer gesetzliche Versicherungen
+        # Beitraege fuer gesetzliche Kranken- und Pflege-Versicherungen
         ag_krankenversicherungsbeitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[42],
                                                                                             99,
                                                                                             'AG-Beitrag GKV',
@@ -252,13 +252,27 @@ class Nutzer:
                                                                                     128,
                                                                                     False)
         abkuerzung_gesetzliche_krankenkasse = self._existenz_str_daten_feststellen(liste_ma_daten[47],
-                                                                                    'Abkuerzung ges. Krankenkasse',
-                                                                                    16,
-                                                                                    False)
+                                                                                   'Abkuerzung ges. Krankenkasse',
+                                                                                   16,
+                                                                                   False)
         gkv_zusatzbeitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[48],
-                                                                                            99,
-                                                                                            'GKV Zusatzbeitrag in %',
-                                                                                            False)
+                                                                               99,
+                                                                               'GKV Zusatzbeitrag in %',
+                                                                               False)
+        print("Typ Anzahl Kinder:", type(liste_ma_daten[49]))
+        anzahl_kinder = self._existenz_zahlen_daten_feststellen(liste_ma_daten[49], 99, 'Anzahl Kinder', False)
+        an_anteil_pv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[50],
+                                                                                  99,
+                                                                                  'AN-Anteil Pflegeversicherung in %',
+                                                                                  False)
+        beitragsbemessungsgrenze_pv_ost = self._existenz_zahlen_daten_feststellen(liste_ma_daten[51],
+                                                                                  99999999,
+                                                                                  'Beitragsbemessungsgrenze PV Ost',
+                                                                                  False)
+        beitragsbemessungsgrenze_pv_west = self._existenz_zahlen_daten_feststellen(liste_ma_daten[52],
+                                                                                   99999999,
+                                                                                   'Beitragsbemessungsgrenze PV West',
+                                                                                   False)
 
         # Ein Cursor-Objekt erstellen
         cur = conn.cursor()
@@ -313,7 +327,12 @@ class Nutzer:
                                                  beitragsbemessungsgrenze_kv_west,
                                                  bezeichnung_gesetzliche_krankenkasse,
                                                  abkuerzung_gesetzliche_krankenkasse,
-                                                 gkv_zusatzbeitrag_in_prozent])
+                                                 gkv_zusatzbeitrag_in_prozent,
+                                                 anzahl_kinder,
+                                                 an_anteil_pv_beitrag_in_prozent,
+                                                 beitragsbemessungsgrenze_pv_ost,
+                                                 beitragsbemessungsgrenze_pv_west
+                                                 ])
 
         # Commit der Änderungen
         conn.commit()
@@ -389,12 +408,20 @@ class Nutzer:
             return zahlen_daten
         elif zahlen_daten == '' and pflicht:
             raise (ValueError(f"'{art}' ist nicht vorhanden."))
+        elif not isinstance(zahlen_daten, int) and not isinstance(zahlen_daten, float):
+            raise (TypeError(f"Der übergebene Wert '{zahlen_daten}' konnte nicht in eine Gleitkommazahl "
+                             f"konvertiert werden!"))
+        elif zahlen_daten > hoechstbetrag:
+            raise (ValueError(f"'{art}' ist mit '{zahlen_daten}' hoeher als der zulaessige Maximalbetrag von "
+                              f"'{hoechstbetrag}'!"))
+        elif art == 'Anzahl Kinder':
+            zahlen_daten = int(zahlen_daten)
         else:
-            try:
-                zahlen_daten = round(decimal.Decimal(zahlen_daten), 2)
-            except decimal.InvalidOperation:
-                raise (TypeError(f"Der übergebene Wert '{zahlen_daten}' konnte nicht in eine Gleitkommazahl "
-                                 f"konvertiert werden!"))
+            #try:
+            zahlen_daten = round(decimal.Decimal(zahlen_daten), 2)
+            #except decimal.InvalidOperation:
+            #    raise (TypeError(f"Der übergebene Wert '{zahlen_daten}' konnte nicht in eine Gleitkommazahl "
+            #                     f"konvertiert werden!"))
 
         return zahlen_daten
 
