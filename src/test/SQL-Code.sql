@@ -43,22 +43,25 @@ drop table if exists hat_Geschlecht;
 drop table if exists Geschlechter;
 drop table if exists ist_mitarbeitertyp;
 drop table if exists Mitarbeitertypen;
-
 drop table if exists in_Steuerklasse;
 drop table if exists Steuerklassen;
-
 drop table if exists arbeitet_x_Wochenstunden;
 drop table if exists Wochenarbeitsstunden;
-
 drop table if exists eingesetzt_in;
 drop table if exists Abteilungen;
-
 drop table if exists hat_Jobtitel;
 drop table if exists Jobtitel;
 drop table if exists Erfahrungsstufen;
-
 drop table if exists in_Gesellschaft;
 drop table if exists Gesellschaften;
+drop table if exists hat_Tarif;
+drop table if exists hat_Verguetung;
+drop table if exists Verguetungen;
+drop table if exists Tarife;
+drop table if exists Gewerkschaften;
+drop table if exists Aussertarifliche;
+
+drop table if exists Privat_Krankenversicherte;
 
 drop table if exists mitarbeiter;
 drop table if exists Austrittsgruende;
@@ -66,13 +69,15 @@ drop table if exists Kategorien_Austrittsgruende;
 drop table if exists Nutzer;
 drop table if exists Mandanten;
 
+
 drop function if exists mandant_anlegen(varchar(128));
 drop function if exists nutzer_anlegen(integer, varchar(32), varchar(64), varchar(64));
 drop function if exists nutzer_entfernen(integer, varchar(32));
 drop function if exists select_ausfuehren(varchar(64), integer);
 drop function if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), varchar(32),
 varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), varchar(32), varchar(32),
-char(1), decimal(4, 2), varchar(64), varchar(16), boolean, varchar(32), varchar(32), varchar(128), varchar(16));
+char(1), decimal(4, 2), varchar(64), varchar(16), boolean, varchar(32), varchar(32), varchar(128), varchar(16), boolean, varchar(64), varchar(16), decimal(10, 2), 
+decimal(10,2), decimal(10, 2), boolean, decimal(10, 2), decimal(10,2), decimal(10, 2));
 drop function if exists pruefe_einmaligkeit_personalnummer(integer, varchar(64), varchar(32));
 drop function if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date,  varchar(32), varchar(32), varchar(32), 
 varchar(16), varchar(64), varchar(16), varchar(64), date);
@@ -96,10 +101,17 @@ drop function if exists insert_tbl_jobtitel(integer, varchar(32));
 drop function if exists insert_tbl_erfahrungsstufen(integer, varchar(32));
 drop function if exists insert_tbl_hat_jobtitel(integer, varchar(32), varchar(32), varchar(32), date);
 drop function if exists insert_tbl_gesellschaften(integer, varchar(128), varchar (16));
-drop function if exists insert_tbl_in_gesellschaft(integer, varchar(32), varchar(128), varchar (16), date);
+drop function if exists insert_tbl_in_gesellschaft(integer, varchar(32), varchar(128), date);
+drop function if exists insert_tbl_gewerkschaften (integer, varchar(255));
+drop function if exists insert_tbl_tarife (integer, varchar(16), varchar(255));
+drop function if exists insert_tbl_hat_tarif(integer, varchar(32), varchar(16), date);
+drop function if exists insert_tbl_verguetungen(integer, decimal(10, 2), decimal(10,2), decimal(10, 2));
+drop function if exists insert_tbl_hat_verguetung(integer, varchar(16), decimal(10, 2), decimal(10,2), decimal(10, 2), date);
+drop function if exists insert_tbl_aussertarifliche (varchar(32), integer, date, decimal(10, 2), decimal(10,2), decimal(10, 2));
+drop function if exists insert_tbl_privatkrankenversicherte (varchar(32), integer, date, decimal(10, 2), decimal(10,2), decimal(10, 2));
 
-drop function if exists select_ausfuehren(p_mandant_id INTEGER, p_abfrage TEXT);
-drop function if exists execute_select_query(integer, text);
+
+
 
 
 ----------------------------------------------------------------------------------------------------------------
@@ -705,6 +717,28 @@ create table Aussertarifliche (
 alter table Aussertarifliche enable row level security;
 create policy FilterMandant_aussertarifliche
     on Aussertarifliche
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+   
+create table Privat_Krankenversicherte (
+	Privat_Krankenversichert_ID serial primary key,
+	Mitarbeiter_ID integer not null,
+	Mandant_ID integer not null,
+	Datum_Von date not null,
+	Datum_Bis date not null, 
+	AG_Zuschuss_Krankenversicherung decimal(10,2) not null,
+	AG_Zuschuss_Zusatzbeitrag decimal(10,2) not null,
+	AG_Zuschuss_Pflegeversicherung decimal(10,2) not null,
+	unique(Mitarbeiter_ID, Datum_Bis),
+	constraint fk_privatkrankenversicherte_mitarbeiter
+		foreign key (Mitarbeiter_ID)
+			references Mitarbeiter(Mitarbeiter_ID),
+	constraint fk_privatkrankenversicherte_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)	
+);
+alter table Privat_Krankenversicherte enable row level security;
+create policy FilterMandant_privatkrankenversicherte
+    on Privat_Krankenversicherte
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
 ----------------------------------------------------------------------------------------------------------------
@@ -1765,6 +1799,42 @@ $$
 language plpgsql;
 
 /*
+ * Funktion trägt neue Daten in Tabelle 'Privat_Krankenversicherte' ein.
+ */
+create or replace function insert_tbl_privatkrankenversicherte (
+	p_personalnummer varchar(32),
+	p_mandant_id integer,
+	p_eintrittsdatum date, 
+	p_ag_zuschuss_krankenversicherung decimal(10, 2),
+	p_ag_zuschuss_zusatzbeitrag decimal(10,2),
+	p_ag_zuschuss_pflegeversicherung decimal(10, 2)
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+   
+    execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
+
+    insert into 
+   		Privat_Krankenversicherte(Mitarbeiter_ID, Mandant_ID, Datum_Von, Datum_Bis, AG_Zuschuss_Krankenversicherung, AG_Zuschuss_Zusatzbeitrag, AG_Zuschuss_Pflegeversicherung)
+   	values 
+   		(v_mitarbeiter_ID, p_mandant_id, p_eintrittsdatum, '9999-12-31', p_ag_zuschuss_krankenversicherung, p_ag_zuschuss_zusatzbeitrag, p_ag_zuschuss_pflegeversicherung);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Dieser Mitarbeiter hat bereits aktuelle Zuschüsse zur privaten Krankenversicherung!';
+    
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
  * Mit dieser Funktion sollen die Daten eines neuen Mitarbeiters in die Tabelle eingetragen werden
  */
 create or replace function insert_mitarbeiterdaten(
@@ -1805,7 +1875,11 @@ create or replace function insert_mitarbeiterdaten(
 	p_tarifbezeichnung varchar(16),
 	p_grundgehalt_monat decimal(10, 2),
 	p_weihnachtsgeld decimal(10,2),
-	p_urlaubsgeld decimal(10, 2)
+	p_urlaubsgeld decimal(10, 2),
+	p_privat_krankenversichert boolean,
+	p_ag_zuschuss_krankenversicherung decimal(10, 2),
+	p_ag_zuschuss_zusatzbeitrag decimal(10,2),
+	p_ag_zuschuss_pflegeversicherung decimal(10, 2)
 ) returns void as
 $$
 begin
@@ -1900,18 +1974,26 @@ begin
 		end if;
 	end if;
 	
+	if p_privat_krankenversichert then
+		perform insert_tbl_privatkrankenversicherte(p_personalnummer, p_mandant_id, p_eintrittsdatum,  p_ag_zuschuss_krankenversicherung, p_ag_zuschuss_zusatzbeitrag, p_ag_zuschuss_pflegeversicherung);
+	end if;
 
-	-- Pseudocode gesetzlich oder privat versichert
-	-- if privat versichert:
-		-- befülle Tabelle "privat_krankenversichert"
-		-- befülle Tabellen im Bereich "Arbeitslosenversicherung", falls notwendig
-		-- befülle Tabellen im Bereich "Rentenversicherung", falls notwendig
-		-- befülle Tabellen im Bereich "Unfallversicherung", falls notwendig
-	-- else:
-		-- befülle alle Tabellen im Bereich "Sozialversicherungen"
+
+	-- if gesetzlich krankenversichert
+		-- befülle Tabellen im Bereich 'gesetzlich krankenversichert'
+		-- befülle Tabellen im Bereich 'gesetzlich pflegeversichert'
+	-- if arbeitslosenversichert
+		-- befülle Tabellen im Bereich 'Arbeitslosenversicherung'
+	-- if rentenversichert
+		-- befülle Tabellen im Bereich 'Rentenversicherung'
+	-- if unfallversichert
+		-- befülle Tabellen im Bereich 'Unfallversicherung'
+
+	
 	
 	set role postgres;
 
 end;
 $$
 language plpgsql;
+

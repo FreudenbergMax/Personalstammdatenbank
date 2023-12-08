@@ -116,7 +116,7 @@ class Nutzer:
         with conn.cursor() as cur:
             cur.execute(f"SET role postgres;"
                         f"SET session role tenant_user;"
-                        #f"SET app.current_user_id='{self.mandant_id}';"
+                        # f"SET app.current_user_id='{self.mandant_id}';"
                         f"SET app.current_tenant='{self.mandant_id}';"
                         f"{abfrage}")
             ergebnis = cur.fetchall()
@@ -197,6 +197,23 @@ class Nutzer:
             weihnachtsgeld = self._existenz_zahlen_daten_feststellen(liste_ma_daten[35], 'Weihnachtsgeld', False)
             urlaubsgeld = self._existenz_zahlen_daten_feststellen(liste_ma_daten[36], 'Urlaubsgeld', False)
 
+        privat_krankenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[37],
+                                                                            'privat Krankenversichert?', False)
+        if privat_krankenversichert:
+            ag_zuschuss_krankenversicherung = self._existenz_zahlen_daten_feststellen(liste_ma_daten[38],
+                                                                                      'AG-Zuschuss Krankenversicherung',
+                                                                                      False)
+            ag_zuschuss_zusatzbeitrag = self._existenz_zahlen_daten_feststellen(liste_ma_daten[39],
+                                                                                'AG-Zuschuss Zusatzbeitrag',
+                                                                                False)
+            ag_zuschuss_pflegeversicherung = self._existenz_zahlen_daten_feststellen(liste_ma_daten[40],
+                                                                                     'AG-Zuschuss Pflegeversicherung',
+                                                                                     False)
+        else:
+            ag_zuschuss_krankenversicherung = None
+            ag_zuschuss_zusatzbeitrag = None
+            ag_zuschuss_pflegeversicherung = None
+
         # Ein Cursor-Objekt erstellen
         cur = conn.cursor()
 
@@ -238,7 +255,11 @@ class Nutzer:
                                                  tarif,
                                                  grundgehalt_monat,
                                                  weihnachtsgeld,
-                                                 urlaubsgeld])
+                                                 urlaubsgeld,
+                                                 privat_krankenversichert,
+                                                 ag_zuschuss_krankenversicherung,
+                                                 ag_zuschuss_zusatzbeitrag,
+                                                 ag_zuschuss_pflegeversicherung])
 
         # Commit der Änderungen
         conn.commit()
