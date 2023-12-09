@@ -79,6 +79,10 @@ drop table if exists wohnt_in_Sachsen;
 drop table if exists wohnhaft_Sachsen;
 drop table if exists AG_Pflegeversicherungsbeitraege_gesetzlich;
 
+drop table if exists hat_AVBeitraege;
+drop table if exists Arbeitslosenversicherungsbeitraege_gesetzlich;
+
+
 drop table if exists mitarbeiter;
 drop table if exists Austrittsgruende;
 drop table if exists Kategorien_Austrittsgruende;
@@ -97,7 +101,7 @@ varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(6
 varchar(32), varchar(32), char(1), decimal(4, 2), varchar(64), varchar(16), boolean, varchar(32), varchar(32), varchar(128), varchar(16), boolean, 
 varchar(64), varchar(16), decimal(10, 2), decimal(10,2), decimal(10, 2), boolean, decimal(10, 2), decimal(10,2), decimal(10, 2), boolean, decimal(5, 3), 
 decimal(5, 3), decimal(10, 2), decimal(10, 2), varchar(128), varchar(16), decimal(5, 3), integer, decimal(5, 3), decimal(10, 2), decimal(10, 2),
-boolean, decimal(5, 3));
+boolean, decimal(5, 3), boolean, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2));
 drop function if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date,  varchar(32), varchar(32), 
 varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date);
 drop function if exists insert_tbl_laender(integer, varchar(128));
@@ -142,6 +146,9 @@ drop function if exists insert_tbl_wohnt_in_sachsen(integer, varchar(32), boolea
 drop function if exists insert_tbl_wohnhaft_sachsen(integer, boolean);
 drop function if exists insert_tbl_ag_pflegeversicherungsbeitraege_gesetzlich(integer, decimal(5, 3));
 drop function if exists insert_tbl_hat_gesetzlichen_ag_pv_beitragssatz(integer, boolean, decimal(5, 3), date);
+drop function if exists insert_tbl_hat_avbeitraege(integer, varchar(32), decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
+drop function if exists insert_tbl_arbeitslosenversicherungsbeitraege_gesetzlich(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2));
+
 
 
 
@@ -783,7 +790,7 @@ create table Krankenversicherungsbeitraege_gesetzlich (
 	Beitragsbemessungsgrenze_KV_Ost decimal(10, 2) not null,
 	Beitragsbemessungsgrenze_KV_West decimal(10, 2) not null,
 	unique(Mandant_ID, AG_Krankenversicherungsbeitrag_in_Prozent, AN_Krankenversicherungsbeitrag_in_Prozent, Beitragsbemessungsgrenze_KV_Ost, Beitragsbemessungsgrenze_KV_West),
-	constraint fk_Krankenversicherungsbeitraegegesetzlich_mandanten
+	constraint fk_krankenversicherungsbeitraegegesetzlich_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
@@ -802,7 +809,7 @@ create table hat_KVBeitraege(
 	constraint fk_hatkvbeitraege_mitarbeiter
 		foreign key (Mitarbeiter_ID)
 			references Mitarbeiter(Mitarbeiter_ID),
-	constraint fk_hatkvbeitraege_Krankenversicherungsbeitraegegesetzlich
+	constraint fk_hatkvbeitraege_krankenversicherungsbeitraegegesetzlich
 		foreign key (Krankenversicherungsbeitrag_ID)
 			references Krankenversicherungsbeitraege_gesetzlich(Krankenversicherungsbeitrag_ID),
 	constraint fk_hatkvbeitraege_mandanten
@@ -1034,7 +1041,47 @@ alter table hat_gesetzlichen_AG_PV_Beitragssatz enable row level security;
 create policy FilterMandant_hatgesetzlichenagpvbeitragssatz
     on hat_gesetzlichen_AG_PV_Beitragssatz
     using (Mandant_ID = current_setting('app.current_tenant')::int);
-   
+
+-- Tabellen, die den Bereich "Gesetzliche Arbeitslosenversicherung" behandeln, erstellen
+-- AV = Arbeitslosenversicherung
+create table Arbeitslosenversicherungsbeitraege_gesetzlich (
+	Arbeitslosenversicherungsbeitrag_ID serial primary key,
+	Mandant_ID integer not null,
+	AG_Arbeitslosenversicherungsbeitrag_in_Prozent decimal(5, 3) not null,
+	AN_Arbeitslosenversicherungsbeitrag_in_Prozent decimal(5, 3) not null,
+	Beitragsbemessungsgrenze_AV_Ost decimal(10, 2) not null,
+	Beitragsbemessungsgrenze_AV_West decimal(10, 2) not null,
+	unique(Mandant_ID, AG_Arbeitslosenversicherungsbeitrag_in_Prozent, AN_Arbeitslosenversicherungsbeitrag_in_Prozent, Beitragsbemessungsgrenze_AV_Ost, Beitragsbemessungsgrenze_AV_West),
+	constraint fk_arbeitslosenversicherungsbeitraegegesetzlich_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table Arbeitslosenversicherungsbeitraege_gesetzlich enable row level security;
+create policy FilterMandant_arbeitslosenversicherungsbeitraege_gesetzlich
+    on Arbeitslosenversicherungsbeitraege_gesetzlich
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+create table hat_AVBeitraege(
+	Mitarbeiter_ID integer not null,
+	Arbeitslosenversicherungsbeitrag_ID integer not null,
+	Mandant_ID integer not null,
+	Datum_Von date not null,
+	Datum_Bis date not null,
+	primary key (Mitarbeiter_ID, Datum_Bis),
+	constraint fk_hatavbeitraege_mitarbeiter
+		foreign key (Mitarbeiter_ID)
+			references Mitarbeiter(Mitarbeiter_ID),
+	constraint fk_hatavbeitraege_arbeitslosenversicherungsbeitraegegesetzlich
+		foreign key (Arbeitslosenversicherungsbeitrag_ID)
+			references Arbeitslosenversicherungsbeitraege_gesetzlich(Arbeitslosenversicherungsbeitrag_ID),
+	constraint fk_hatavbeitraege_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table hat_AVBeitraege enable row level security;
+create policy FilterMandant_hat_avbeitraege
+    on hat_AVBeitraege
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
 ----------------------------------------------------------------------------------------------------------------
 -- Erstellung der Stored Procedures
 
@@ -2614,6 +2661,95 @@ $$
 language plpgsql;
 
 /*
+ * Funktion trägt neue Daten in Tabelle 'Arbeitslosenversicherungsbeitraege_gesetzlich' ein.
+ */
+create or replace function insert_tbl_arbeitslosenversicherungsbeitraege_gesetzlich(
+    p_mandant_id integer,
+    p_ag_arbeitslosenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_an_arbeitslosenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_beitragsbemessungsgrenze_av_ost decimal(10, 2),
+	p_beitragsbemessungsgrenze_av_west decimal(10, 2)
+) returns void as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Arbeitslosenversicherungsbeitraege_gesetzlich(
+   			Mandant_ID, 
+   			AG_Arbeitslosenversicherungsbeitrag_in_Prozent, 
+   			AN_Arbeitslosenversicherungsbeitrag_in_Prozent,
+			Beitragsbemessungsgrenze_AV_Ost,
+			Beitragsbemessungsgrenze_AV_West)
+   	values 
+   		(p_mandant_id, 
+		 p_ag_arbeitslosenversicherungsbeitrag_in_prozent,
+		 p_an_arbeitslosenversicherungsbeitrag_in_prozent,
+		 p_beitragsbemessungsgrenze_av_ost,
+		 p_beitragsbemessungsgrenze_av_west
+		);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Diese gesetzlichen Arbeitslosenversicherungsbeitragssaetze und Beitragsbemessungsgrenzen sind bereits vorhanden!';
+    
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt die Daten in die Assoziation "hat_AVBeitraege" ein
+ */
+create or replace function insert_tbl_hat_avbeitraege(
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
+	p_ag_arbeitslosenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_an_arbeitslosenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_beitragsbemessungsgrenze_av_ost decimal(10, 2),
+	p_beitragsbemessungsgrenze_av_west decimal(10, 2),
+	p_eintrittsdatum date
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+	v_arbeitslosenversicherungsbeitrag_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
+	
+	execute 'SELECT arbeitslosenversicherungsbeitrag_id 
+			 FROM arbeitslosenversicherungsbeitraege_gesetzlich 
+			 WHERE ag_arbeitslosenversicherungsbeitrag_in_prozent = $1 
+				and an_arbeitslosenversicherungsbeitrag_in_prozent = $2
+				and beitragsbemessungsgrenze_av_ost = $3
+				and beitragsbemessungsgrenze_av_west = $4' 
+			into v_arbeitslosenversicherungsbeitrag_id
+			using p_ag_arbeitslosenversicherungsbeitrag_in_prozent,
+				  p_an_arbeitslosenversicherungsbeitrag_in_prozent,
+				  p_beitragsbemessungsgrenze_av_ost,
+				  p_beitragsbemessungsgrenze_av_west;
+    
+    insert into hat_AVBeitraege(Mitarbeiter_ID, Arbeitslosenversicherungsbeitrag_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_mitarbeiter_id, v_arbeitslosenversicherungsbeitrag_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+   	
+   	exception
+        when unique_violation then
+            raise notice 'Arbeitlosenversicherungsbeitraege und Beitragsbemessungsgrenzen für Mitarbeiter ''%'' bereits vermerkt!', p_personalnummer;
+	
+   	set role postgres;
+   	
+end;
+$$
+language plpgsql;
+
+/*
  * Mit dieser Funktion sollen die Daten eines neuen Mitarbeiters in die Tabelle eingetragen werden
  */
 create or replace function insert_mitarbeiterdaten(
@@ -2672,7 +2808,12 @@ create or replace function insert_mitarbeiterdaten(
 	p_beitragsbemessungsgrenze_pv_ost decimal(10, 2),
 	p_beitragsbemessungsgrenze_pv_west decimal(10, 2),
 	p_in_sachsen boolean,
-	p_ag_anteil_pv_beitrag_in_prozent decimal(5, 3)
+	p_ag_anteil_pv_beitrag_in_prozent decimal(5, 3),
+	p_arbeitslosenversichert boolean,
+	p_ag_arbeitslosenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_an_arbeitslosenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_beitragsbemessungsgrenze_av_ost decimal(10, 2),
+	p_beitragsbemessungsgrenze_av_west decimal(10, 2)
 ) returns void as
 $$
 begin
@@ -2806,20 +2947,36 @@ begin
 		perform insert_tbl_wohnt_in_sachsen(p_mandant_id, p_personalnummer, p_in_sachsen, p_eintrittsdatum);
 		perform insert_tbl_ag_pflegeversicherungsbeitraege_gesetzlich (p_mandant_id, p_ag_anteil_pv_beitrag_in_prozent);
 		perform insert_tbl_hat_gesetzlichen_ag_pv_beitragssatz(p_mandant_id, p_in_sachsen, p_ag_anteil_pv_beitrag_in_prozent, p_eintrittsdatum);
+
 	end if;
 
-		
-	-- if arbeitslosenversichert
-		-- befülle Tabellen im Bereich 'Arbeitslosenversicherung'
+	if p_arbeitslosenversichert
+		and p_ag_arbeitslosenversicherungsbeitrag_in_prozent is not null 
+		and p_an_arbeitslosenversicherungsbeitrag_in_prozent is not null
+		and p_beitragsbemessungsgrenze_av_ost is not null 
+		and p_beitragsbemessungsgrenze_av_west is not null 
+		then
+			perform insert_tbl_arbeitslosenversicherungsbeitraege_gesetzlich(p_mandant_id,
+																		     p_ag_arbeitslosenversicherungsbeitrag_in_prozent,
+																			 p_an_arbeitslosenversicherungsbeitrag_in_prozent,
+																			 p_beitragsbemessungsgrenze_av_ost,
+																			 p_beitragsbemessungsgrenze_av_west);
+			perform insert_tbl_hat_avbeitraege(p_mandant_id,
+											   p_personalnummer, p_ag_arbeitslosenversicherungsbeitrag_in_prozent,
+											   p_an_arbeitslosenversicherungsbeitrag_in_prozent,
+											   p_beitragsbemessungsgrenze_av_ost,
+											   p_beitragsbemessungsgrenze_av_west,
+											   p_eintrittsdatum);
+	end if;
+
 	-- if rentenversichert
 		-- befülle Tabellen im Bereich 'Rentenversicherung'
 	-- if unfallversichert
 		-- befülle Tabellen im Bereich 'Unfallversicherung'
 
-	
-	
 	set role postgres;
 
 end;
 $$
 language plpgsql;
+

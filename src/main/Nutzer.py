@@ -272,11 +272,31 @@ class Nutzer:
                                                                                    99999999,
                                                                                    'Beitragsbemessungsgrenze PV West',
                                                                                    False)
-        wohnhaft_sachsen = self._existenz_boolean_daten_feststellen(liste_ma_daten[53], 'wohnhaft Schsen', False)
+        wohnhaft_sachsen = self._existenz_boolean_daten_feststellen(liste_ma_daten[53], 'wohnhaft Sachsen', False)
         ag_anteil_pv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[54],
                                                                                   99,
                                                                                   'AG-Anteil Pflegeversicherung in %',
                                                                                   False)
+        # Werte für gesetzliche Arbeitslosenversicherung
+        arbeitslosenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[55],
+                                                                          'arbeitslosenversichert?',
+                                                                          False)
+        ag_anteil_av_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[56],
+                                                                                  99,
+                                                                                  'AG-Anteil Arbeitslosenvers. in %',
+                                                                                  False)
+        an_anteil_av_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[57],
+                                                                                  99,
+                                                                                  'AN-Anteil Arbeitslosenvers. in %',
+                                                                                  False)
+        beitragsbemessungsgrenze_av_ost = self._existenz_zahlen_daten_feststellen(liste_ma_daten[58],
+                                                                                  99999999,
+                                                                                  'Beitragsbemessungsgrenze AV Ost',
+                                                                                  False)
+        beitragsbemessungsgrenze_av_west = self._existenz_zahlen_daten_feststellen(liste_ma_daten[59],
+                                                                                   99999999,
+                                                                                   'Beitragsbemessungsgrenze AV West',
+                                                                                   False)
 
         # Ein Cursor-Objekt erstellen
         cur = conn.cursor()
@@ -337,7 +357,12 @@ class Nutzer:
                                                  beitragsbemessungsgrenze_pv_ost,
                                                  beitragsbemessungsgrenze_pv_west,
                                                  wohnhaft_sachsen,
-                                                 ag_anteil_pv_beitrag_in_prozent
+                                                 ag_anteil_pv_beitrag_in_prozent,
+                                                 arbeitslosenversichert,
+                                                 ag_anteil_av_beitrag_in_prozent,
+                                                 an_anteil_av_beitrag_in_prozent,
+                                                 beitragsbemessungsgrenze_av_ost,
+                                                 beitragsbemessungsgrenze_av_west
                                                  ])
 
         # Commit der Änderungen
