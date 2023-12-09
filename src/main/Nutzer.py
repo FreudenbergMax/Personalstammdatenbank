@@ -298,6 +298,25 @@ class Nutzer:
                                                                                    'Beitragsbemessungsgrenze AV West',
                                                                                    False)
 
+        # Werte für gesetzliche Rentenversicherung
+        rentenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[60], 'rentenversichert?', False)
+        ag_anteil_rv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[61],
+                                                                                  99,
+                                                                                  'AG-Anteil Rentenversicherung in %',
+                                                                                  False)
+        an_anteil_rv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[62],
+                                                                                  99,
+                                                                                  'AN-Anteil Rentenversicherung in %',
+                                                                                  False)
+        beitragsbemessungsgrenze_rv_ost = self._existenz_zahlen_daten_feststellen(liste_ma_daten[63],
+                                                                                  99999999,
+                                                                                  'Beitragsbemessungsgrenze RV Ost',
+                                                                                  False)
+        beitragsbemessungsgrenze_rv_west = self._existenz_zahlen_daten_feststellen(liste_ma_daten[64],
+                                                                                   99999999,
+                                                                                   'Beitragsbemessungsgrenze RV West',
+                                                                                   False)
+
         # Ein Cursor-Objekt erstellen
         cur = conn.cursor()
 
@@ -362,7 +381,12 @@ class Nutzer:
                                                  ag_anteil_av_beitrag_in_prozent,
                                                  an_anteil_av_beitrag_in_prozent,
                                                  beitragsbemessungsgrenze_av_ost,
-                                                 beitragsbemessungsgrenze_av_west
+                                                 beitragsbemessungsgrenze_av_west,
+                                                 rentenversichert,
+                                                 ag_anteil_rv_beitrag_in_prozent,
+                                                 an_anteil_rv_beitrag_in_prozent,
+                                                 beitragsbemessungsgrenze_rv_ost,
+                                                 beitragsbemessungsgrenze_rv_west
                                                  ])
 
         # Commit der Änderungen

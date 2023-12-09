@@ -82,6 +82,8 @@ drop table if exists AG_Pflegeversicherungsbeitraege_gesetzlich;
 drop table if exists hat_AVBeitraege;
 drop table if exists Arbeitslosenversicherungsbeitraege_gesetzlich;
 
+drop table if exists hat_RVBeitraege;
+drop table if exists Rentenversicherungsbeitraege_gesetzlich;
 
 drop table if exists mitarbeiter;
 drop table if exists Austrittsgruende;
@@ -101,7 +103,8 @@ varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(6
 varchar(32), varchar(32), char(1), decimal(4, 2), varchar(64), varchar(16), boolean, varchar(32), varchar(32), varchar(128), varchar(16), boolean, 
 varchar(64), varchar(16), decimal(10, 2), decimal(10,2), decimal(10, 2), boolean, decimal(10, 2), decimal(10,2), decimal(10, 2), boolean, decimal(5, 3), 
 decimal(5, 3), decimal(10, 2), decimal(10, 2), varchar(128), varchar(16), decimal(5, 3), integer, decimal(5, 3), decimal(10, 2), decimal(10, 2),
-boolean, decimal(5, 3), boolean, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2));
+boolean, decimal(5, 3), boolean, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), boolean, decimal(5, 3), decimal(5, 3), decimal(10, 2), 
+decimal(10, 2));
 drop function if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date,  varchar(32), varchar(32), 
 varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date);
 drop function if exists insert_tbl_laender(integer, varchar(128));
@@ -148,6 +151,8 @@ drop function if exists insert_tbl_ag_pflegeversicherungsbeitraege_gesetzlich(in
 drop function if exists insert_tbl_hat_gesetzlichen_ag_pv_beitragssatz(integer, boolean, decimal(5, 3), date);
 drop function if exists insert_tbl_hat_avbeitraege(integer, varchar(32), decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 drop function if exists insert_tbl_arbeitslosenversicherungsbeitraege_gesetzlich(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2));
+drop function if exists insert_tbl_rentenversicherungsbeitraege_gesetzlich(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2));
+drop function if exists insert_tbl_hat_rvbeitraege(integer, varchar(32), decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
 
 
@@ -1082,6 +1087,52 @@ alter table hat_AVBeitraege enable row level security;
 create policy FilterMandant_hat_avbeitraege
     on hat_AVBeitraege
     using (Mandant_ID = current_setting('app.current_tenant')::int);
+   
+-- Tabellen, die den Bereich "Gesetzliche Rentenversicherung" behandeln, erstellen
+-- RV = Rentenversicherung
+create table Rentenversicherungsbeitraege_gesetzlich (
+	Rentenversicherungsbeitrag_ID serial primary key,
+	Mandant_ID integer not null,
+	AG_Rentenversicherungsbeitrag_in_Prozent decimal(5, 3) not null,
+	AN_Rentenversicherungsbeitrag_in_Prozent decimal(5, 3) not null,
+	Beitragsbemessungsgrenze_RV_Ost decimal(10, 2) not null,
+	Beitragsbemessungsgrenze_RV_West decimal(10, 2) not null,
+	unique(Mandant_ID, AG_Rentenversicherungsbeitrag_in_Prozent, AN_Rentenversicherungsbeitrag_in_Prozent, Beitragsbemessungsgrenze_RV_Ost, Beitragsbemessungsgrenze_RV_West),
+	constraint fk_rentenversicherungsbeitraegegesetzlich_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table Rentenversicherungsbeitraege_gesetzlich enable row level security;
+create policy FilterMandant_rentenversicherungsbeitraege_gesetzlich
+    on Rentenversicherungsbeitraege_gesetzlich
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+create table hat_RVBeitraege(
+	Mitarbeiter_ID integer not null,
+	Rentenversicherungsbeitrag_ID integer not null,
+	Mandant_ID integer not null,
+	Datum_Von date not null,
+	Datum_Bis date not null,
+	primary key (Mitarbeiter_ID, Datum_Bis),
+	constraint fk_hatrvbeitraege_mitarbeiter
+		foreign key (Mitarbeiter_ID)
+			references Mitarbeiter(Mitarbeiter_ID),
+	constraint fk_hatrvbeitraege_rentenversicherungsbeitraegegesetzlich
+		foreign key (Rentenversicherungsbeitrag_ID)
+			references Rentenversicherungsbeitraege_gesetzlich(Rentenversicherungsbeitrag_ID),
+	constraint fk_hatrvbeitraege_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table hat_RVBeitraege enable row level security;
+create policy FilterMandant_hat_rvbeitraege
+    on hat_RVBeitraege
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+   
+   
+   
+   
+   
 ----------------------------------------------------------------------------------------------------------------
 -- Erstellung der Stored Procedures
 
@@ -2682,14 +2733,14 @@ begin
    			AG_Arbeitslosenversicherungsbeitrag_in_Prozent, 
    			AN_Arbeitslosenversicherungsbeitrag_in_Prozent,
 			Beitragsbemessungsgrenze_AV_Ost,
-			Beitragsbemessungsgrenze_AV_West)
-   	values 
+			Beitragsbemessungsgrenze_AV_West
+	) values 
    		(p_mandant_id, 
 		 p_ag_arbeitslosenversicherungsbeitrag_in_prozent,
 		 p_an_arbeitslosenversicherungsbeitrag_in_prozent,
 		 p_beitragsbemessungsgrenze_av_ost,
 		 p_beitragsbemessungsgrenze_av_west
-		);
+	);
    	
     exception
         when unique_violation then
@@ -2742,6 +2793,95 @@ begin
    	exception
         when unique_violation then
             raise notice 'Arbeitlosenversicherungsbeitraege und Beitragsbemessungsgrenzen für Mitarbeiter ''%'' bereits vermerkt!', p_personalnummer;
+	
+   	set role postgres;
+   	
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt neue Daten in Tabelle 'Rentenversicherungsbeitraege_gesetzlich' ein.
+ */
+create or replace function insert_tbl_rentenversicherungsbeitraege_gesetzlich(
+    p_mandant_id integer,
+    p_ag_rentenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_an_rentenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_beitragsbemessungsgrenze_rv_ost decimal(10, 2),
+	p_beitragsbemessungsgrenze_rv_west decimal(10, 2)
+) returns void as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Rentenversicherungsbeitraege_gesetzlich(
+   			Mandant_ID, 
+   			AG_Rentenversicherungsbeitrag_in_Prozent, 
+   			AN_Rentenversicherungsbeitrag_in_Prozent,
+			Beitragsbemessungsgrenze_RV_Ost,
+			Beitragsbemessungsgrenze_RV_West
+   	) values 
+   		(p_mandant_id, 
+		 p_ag_rentenversicherungsbeitrag_in_prozent,
+		 p_an_rentenversicherungsbeitrag_in_prozent,
+		 p_beitragsbemessungsgrenze_rv_ost,
+		 p_beitragsbemessungsgrenze_rv_west
+	);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Diese gesetzlichen Rentenversicherungsbeitragssaetze und Beitragsbemessungsgrenzen sind bereits vorhanden!';
+    
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt die Daten in die Assoziation "hat_RVBeitraege" ein
+ */
+create or replace function insert_tbl_hat_rvbeitraege(
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
+	p_ag_rentenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_an_rentenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_beitragsbemessungsgrenze_rv_ost decimal(10, 2),
+	p_beitragsbemessungsgrenze_rv_west decimal(10, 2),
+	p_eintrittsdatum date
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+	v_rentenversicherungsbeitrag_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
+	
+	execute 'SELECT rentenversicherungsbeitrag_id 
+			 FROM rentenversicherungsbeitraege_gesetzlich 
+			 WHERE ag_rentenversicherungsbeitrag_in_prozent = $1 
+				and an_rentenversicherungsbeitrag_in_prozent = $2
+				and beitragsbemessungsgrenze_rv_ost = $3
+				and beitragsbemessungsgrenze_rv_west = $4' 
+			into v_rentenversicherungsbeitrag_id
+			using p_ag_rentenversicherungsbeitrag_in_prozent,
+				  p_an_rentenversicherungsbeitrag_in_prozent,
+				  p_beitragsbemessungsgrenze_rv_ost,
+				  p_beitragsbemessungsgrenze_rv_west;
+    
+    insert into hat_RVBeitraege(Mitarbeiter_ID, Rentenversicherungsbeitrag_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_mitarbeiter_id, v_rentenversicherungsbeitrag_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+   	
+   	exception
+        when unique_violation then
+            raise notice 'Rentenversicherungsbeitraege und Beitragsbemessungsgrenzen für Mitarbeiter ''%'' bereits vermerkt!', p_personalnummer;
 	
    	set role postgres;
    	
@@ -2813,7 +2953,12 @@ create or replace function insert_mitarbeiterdaten(
 	p_ag_arbeitslosenversicherungsbeitrag_in_prozent decimal(5, 3),
 	p_an_arbeitslosenversicherungsbeitrag_in_prozent decimal(5, 3),
 	p_beitragsbemessungsgrenze_av_ost decimal(10, 2),
-	p_beitragsbemessungsgrenze_av_west decimal(10, 2)
+	p_beitragsbemessungsgrenze_av_west decimal(10, 2),
+	p_rentenversichert boolean,
+	p_ag_rentenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_an_rentenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_beitragsbemessungsgrenze_rv_ost decimal(10, 2),
+	p_beitragsbemessungsgrenze_rv_west decimal(10, 2)
 ) returns void as
 $$
 begin
@@ -2968,15 +3113,26 @@ begin
 											   p_beitragsbemessungsgrenze_av_west,
 											   p_eintrittsdatum);
 	end if;
-
-	-- if rentenversichert
-		-- befülle Tabellen im Bereich 'Rentenversicherung'
-	-- if unfallversichert
-		-- befülle Tabellen im Bereich 'Unfallversicherung'
+	
+	
+	if p_rentenversichert then
+		perform insert_tbl_rentenversicherungsbeitraege_gesetzlich(p_mandant_id, 
+																   p_ag_rentenversicherungsbeitrag_in_prozent,
+																   p_an_rentenversicherungsbeitrag_in_prozent,
+																   p_beitragsbemessungsgrenze_rv_ost,
+																   p_beitragsbemessungsgrenze_rv_west);
+		perform insert_tbl_hat_rvbeitraege(p_mandant_id,
+										   p_personalnummer,
+										   p_ag_rentenversicherungsbeitrag_in_prozent,
+										   p_an_rentenversicherungsbeitrag_in_prozent,
+										   p_beitragsbemessungsgrenze_rv_ost,
+										   p_beitragsbemessungsgrenze_rv_west,
+										   p_eintrittsdatum);
+	end if;
+	
 
 	set role postgres;
 
 end;
 $$
 language plpgsql;
-
