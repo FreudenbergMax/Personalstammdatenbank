@@ -259,7 +259,6 @@ class Nutzer:
                                                                                99,
                                                                                'GKV Zusatzbeitrag in %',
                                                                                False)
-        print("Typ Anzahl Kinder:", type(liste_ma_daten[49]))
         anzahl_kinder = self._existenz_zahlen_daten_feststellen(liste_ma_daten[49], 99, 'Anzahl Kinder', False)
         an_anteil_pv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[50],
                                                                                   99,
@@ -273,6 +272,11 @@ class Nutzer:
                                                                                    99999999,
                                                                                    'Beitragsbemessungsgrenze PV West',
                                                                                    False)
+        wohnhaft_sachsen = self._existenz_boolean_daten_feststellen(liste_ma_daten[53], 'wohnhaft Schsen', False)
+        ag_anteil_pv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[54],
+                                                                                  99,
+                                                                                  'AG-Anteil Pflegeversicherung in %',
+                                                                                  False)
 
         # Ein Cursor-Objekt erstellen
         cur = conn.cursor()
@@ -331,7 +335,9 @@ class Nutzer:
                                                  anzahl_kinder,
                                                  an_anteil_pv_beitrag_in_prozent,
                                                  beitragsbemessungsgrenze_pv_ost,
-                                                 beitragsbemessungsgrenze_pv_west
+                                                 beitragsbemessungsgrenze_pv_west,
+                                                 wohnhaft_sachsen,
+                                                 ag_anteil_pv_beitrag_in_prozent
                                                  ])
 
         # Commit der Änderungen
@@ -417,11 +423,7 @@ class Nutzer:
         elif art == 'Anzahl Kinder':
             zahlen_daten = int(zahlen_daten)
         else:
-            #try:
             zahlen_daten = round(decimal.Decimal(zahlen_daten), 2)
-            #except decimal.InvalidOperation:
-            #    raise (TypeError(f"Der übergebene Wert '{zahlen_daten}' konnte nicht in eine Gleitkommazahl "
-            #                     f"konvertiert werden!"))
 
         return zahlen_daten
 

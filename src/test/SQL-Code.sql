@@ -74,6 +74,11 @@ drop table if exists hat_gesetzlichen_AN_PV_Beitragssatz;
 drop table if exists Anzahl_Kinder_unter_25;
 drop table if exists AN_Pflegeversicherungsbeitraege_gesetzlich;
 
+drop table if exists hat_gesetzlichen_AG_PV_Beitragssatz;
+drop table if exists wohnt_in_Sachsen;
+drop table if exists wohnhaft_Sachsen;
+drop table if exists AG_Pflegeversicherungsbeitraege_gesetzlich;
+
 drop table if exists mitarbeiter;
 drop table if exists Austrittsgruende;
 drop table if exists Kategorien_Austrittsgruende;
@@ -85,12 +90,14 @@ drop function if exists mandant_anlegen(varchar(128));
 drop function if exists nutzer_anlegen(integer, varchar(32), varchar(64), varchar(64));
 drop function if exists nutzer_entfernen(integer, varchar(32));
 drop function if exists select_ausfuehren(varchar(64), integer);
+drop function if exists pruefe_einmaligkeit_personalnummer(integer, varchar(64), varchar(32));
+
 drop function if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), 
 varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), 
 varchar(32), varchar(32), char(1), decimal(4, 2), varchar(64), varchar(16), boolean, varchar(32), varchar(32), varchar(128), varchar(16), boolean, 
 varchar(64), varchar(16), decimal(10, 2), decimal(10,2), decimal(10, 2), boolean, decimal(10, 2), decimal(10,2), decimal(10, 2), boolean, decimal(5, 3), 
-decimal(5, 3), decimal(10, 2), decimal(10, 2), varchar(128), varchar(16), decimal(5, 3), integer, decimal(5, 3), decimal(10, 2), decimal(10, 2));
-drop function if exists pruefe_einmaligkeit_personalnummer(integer, varchar(64), varchar(32));
+decimal(5, 3), decimal(10, 2), decimal(10, 2), varchar(128), varchar(16), decimal(5, 3), integer, decimal(5, 3), decimal(10, 2), decimal(10, 2),
+boolean, decimal(5, 3));
 drop function if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date,  varchar(32), varchar(32), 
 varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date);
 drop function if exists insert_tbl_laender(integer, varchar(128));
@@ -131,6 +138,10 @@ drop function if exists insert_tbl_anzahl_kinder_unter_25 (integer, integer);
 drop function if exists insert_tbl_hat_x_kinder_unter25(integer, varchar(32), integer, date);
 drop function if exists insert_tbl_an_pflegeversicherungsbeitraege_gesetzlich (integer, decimal(5, 3), decimal(10, 2), decimal(10, 2));
 drop function if exists insert_tbl_hat_gesetzlichen_an_pv_beitragssatz(integer, integer, decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
+drop function if exists insert_tbl_wohnt_in_sachsen(integer, varchar(32), boolean, date);
+drop function if exists insert_tbl_wohnhaft_sachsen(integer, boolean);
+drop function if exists insert_tbl_ag_pflegeversicherungsbeitraege_gesetzlich(integer, decimal(5, 3));
+drop function if exists insert_tbl_hat_gesetzlichen_ag_pv_beitragssatz(integer, boolean, decimal(5, 3), date);
 
 
 
@@ -951,10 +962,78 @@ alter table hat_gesetzlichen_AN_PV_Beitragssatz enable row level security;
 create policy FilterMandant_hatgesetzlichenanpvbeitragssatz
     on hat_gesetzlichen_AN_PV_Beitragssatz
     using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+create table wohnhaft_Sachsen(
+	wohnhaft_Sachsen_ID serial primary key,
+	Mandant_ID integer not null,
+	in_Sachsen boolean not null,
+	unique(Mandant_ID, in_Sachsen),
+	constraint fk_wohnhaftsachsen_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table wohnhaft_Sachsen enable row level security;
+create policy FilterMandant_wohnhaftsachsen
+    on wohnhaft_Sachsen
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+create table wohnt_in_Sachsen(
+	Mitarbeiter_ID integer not null,
+	wohnhaft_Sachsen_ID integer not null,
+	Mandant_ID integer not null,
+	Datum_Von date not null,
+	Datum_Bis date not null,
+	primary key (Mitarbeiter_ID, Datum_Bis),
+	constraint fk_wohntinsachsen_mitarbeiter
+		foreign key (Mitarbeiter_ID)
+			references Mitarbeiter(Mitarbeiter_ID),
+	constraint fk_wohntinsachsen_wohnhaftsachsen
+		foreign key (wohnhaft_Sachsen_ID)
+			references wohnhaft_Sachsen(wohnhaft_Sachsen_ID),
+	constraint fk_wohntinsachsen_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table wohnt_in_Sachsen enable row level security;
+create policy FilterMandant_wohntinsachsen
+    on wohnt_in_Sachsen
+    using (Mandant_ID = current_setting('app.current_tenant')::int);  
+
+create table AG_Pflegeversicherungsbeitraege_gesetzlich (
+	AG_PV_Beitrag_ID serial primary key,
+	Mandant_ID integer not null,
+	AG_Anteil_PV_Beitrag_in_Prozent decimal(5, 3) not null,
+	unique(Mandant_ID, AG_Anteil_PV_Beitrag_in_Prozent),
+	constraint fk_agpflegeversicherungsbeitraegegesetzlich_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table AG_Pflegeversicherungsbeitraege_gesetzlich enable row level security;
+create policy FilterMandant_agpflegeversicherungsbeitraegegesetzlich
+    on AG_Pflegeversicherungsbeitraege_gesetzlich
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
    
-   
-   
-   
+create table hat_gesetzlichen_AG_PV_Beitragssatz(
+	wohnhaft_Sachsen_ID integer not null,
+	AG_PV_Beitrag_ID integer not null,
+	Mandant_ID integer not null,
+	Datum_Von date not null,
+	Datum_Bis date not null,
+	primary key (wohnhaft_Sachsen_ID, Datum_Bis),
+	constraint fk_hatgesetzlichenagpvbeitragssatz_wohnhaftsachsen
+		foreign key (wohnhaft_Sachsen_ID)
+			references wohnhaft_Sachsen(wohnhaft_Sachsen_ID),	
+	constraint fk_hatgesetzlichenagpvbeitragssatz_agpflegeversicherungsbeitraegegesetzlich
+		foreign key (AG_PV_Beitrag_ID)
+			references AG_Pflegeversicherungsbeitraege_gesetzlich(AG_PV_Beitrag_ID),	
+	constraint fk_hatgesetzlichenagpvbeitragssatz_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table hat_gesetzlichen_AG_PV_Beitragssatz enable row level security;
+create policy FilterMandant_hatgesetzlichenagpvbeitragssatz
+    on hat_gesetzlichen_AG_PV_Beitragssatz
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
    
 ----------------------------------------------------------------------------------------------------------------
 -- Erstellung der Stored Procedures
@@ -2411,9 +2490,128 @@ end;
 $$
 language plpgsql;
 
+/*
+ * Funktion trägt neue Daten in Tabelle 'wohnhaft_Sachsen' ein.
+ */
+create or replace function insert_tbl_wohnhaft_sachsen (
+	p_mandant_id integer,
+	p_in_sachsen boolean
+) returns void as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
 
+    insert into 
+   		wohnhaft_Sachsen(Mandant_ID, in_Sachsen)
+   	values 
+   		(p_mandant_id, p_in_sachsen);
+   	
+    exception
+        when unique_violation then
+            raise notice '''%'' für die Frage, ob jemand in Sachsen wohnt, bereits vorhanden!', p_in_sachsen;
+    
+    set role postgres;
 
+end;
+$$
+language plpgsql;
 
+/*
+ * Funktion trägt die Daten in die Assoziation "wohnt_in_Sachsen" ein
+ */
+create or replace function insert_tbl_wohnt_in_sachsen(
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
+	p_in_sachsen boolean,
+	p_eintrittsdatum date
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+	v_wohnhaft_sachsen_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
+	execute 'SELECT wohnhaft_sachsen_id FROM wohnhaft_sachsen WHERE in_sachsen = $1' into v_wohnhaft_sachsen_id using p_in_sachsen;
+    
+    insert into wohnt_in_sachsen(Mitarbeiter_ID, wohnhaft_Sachsen_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_mitarbeiter_id, v_wohnhaft_sachsen_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+   	
+   	exception
+        when unique_violation then
+            raise notice 'Es ist bereits vermerkt, ob Mitarbeiter ''%'' in Sachsen wohnt!', p_personalnummer;
+	
+   	set role postgres;
+   	
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt neue Daten in Tabelle 'AG_Pflegeversicherungsbeitraege_gesetzlich' ein.
+ */
+create or replace function insert_tbl_ag_pflegeversicherungsbeitraege_gesetzlich (
+	p_mandant_id integer,
+	p_ag_anteil_pv_beitrag_in_prozent decimal(5, 3)
+) returns void as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into AG_Pflegeversicherungsbeitraege_gesetzlich(Mandant_ID, AG_Anteil_PV_Beitrag_in_Prozent)
+   		values (p_mandant_id, p_ag_anteil_pv_beitrag_in_prozent);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Dieser AG-PV-Beitragssatz ist bereits vorhanden!';
+    
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt die Daten in die Assoziation "hat_gesetzlichen_AG_PV_Beitragssatz" ein
+ */
+create or replace function insert_tbl_hat_gesetzlichen_ag_pv_beitragssatz(
+	p_mandant_id integer,
+	p_in_sachsen boolean,
+	p_ag_anteil_pv_beitrag_in_prozent decimal(5, 3),
+	p_eintrittsdatum date
+) returns void as
+$$
+declare
+	v_wohnhaft_sachsen_id integer;
+	v_ag_pv_beitrag_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+	execute 'SELECT wohnhaft_sachsen_id FROM wohnhaft_sachsen WHERE in_sachsen = $1' into v_wohnhaft_sachsen_id using p_in_sachsen;
+	execute 'SELECT ag_pv_beitrag_id FROM ag_pflegeversicherungsbeitraege_gesetzlich WHERE ag_anteil_pv_beitrag_in_prozent = $1'
+				into v_ag_pv_beitrag_id using p_ag_anteil_pv_beitrag_in_prozent;
+    
+    insert into hat_gesetzlichen_AG_PV_Beitragssatz(wohnhaft_Sachsen_ID, AG_PV_Beitrag_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_wohnhaft_sachsen_id, v_ag_pv_beitrag_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+   	
+   	exception
+        when unique_violation then
+            raise notice 'Dieser AG-PV-Beitragssatz ist in Bezug auf die Frage, ob in Sachsen wohnhaft oder nicht, bereits angelegt!';
+	
+   	set role postgres;
+   	
+end;
+$$
+language plpgsql;
 
 /*
  * Mit dieser Funktion sollen die Daten eines neuen Mitarbeiters in die Tabelle eingetragen werden
@@ -2472,7 +2670,9 @@ create or replace function insert_mitarbeiterdaten(
 	p_anzahl_kinder integer,
 	p_an_anteil_pv_beitrag_in_prozent decimal(5, 3),
 	p_beitragsbemessungsgrenze_pv_ost decimal(10, 2),
-	p_beitragsbemessungsgrenze_pv_west decimal(10, 2)
+	p_beitragsbemessungsgrenze_pv_west decimal(10, 2),
+	p_in_sachsen boolean,
+	p_ag_anteil_pv_beitrag_in_prozent decimal(5, 3)
 ) returns void as
 $$
 begin
@@ -2602,8 +2802,10 @@ begin
 															   p_beitragsbemessungsgrenze_pv_ost,
 															   p_beitragsbemessungsgrenze_pv_west,
 															   p_eintrittsdatum);
-											
-		-- befülle Tabellen im Bereich 'gesetzlich pflegeversichert'
+		perform insert_tbl_wohnhaft_sachsen(p_mandant_id, p_in_sachsen);
+		perform insert_tbl_wohnt_in_sachsen(p_mandant_id, p_personalnummer, p_in_sachsen, p_eintrittsdatum);
+		perform insert_tbl_ag_pflegeversicherungsbeitraege_gesetzlich (p_mandant_id, p_ag_anteil_pv_beitrag_in_prozent);
+		perform insert_tbl_hat_gesetzlichen_ag_pv_beitragssatz(p_mandant_id, p_in_sachsen, p_ag_anteil_pv_beitrag_in_prozent, p_eintrittsdatum);
 	end if;
 
 		
