@@ -2,7 +2,10 @@ from src.main.Mandant import Mandant
 
 testfirma = Mandant("testu")
 testfirma.nutzer_anlegen("M100001", "Erika", "Musterfrau")
-testfirma.get_nutzer("M100001").insert_neuer_mitarbeiter('Max Mustermann.xlsx')
+testfirma.get_nutzer("M100001").insert_neuer_mitarbeiter('Neuanlage Mitarbeiter.xlsx')
+testfirma.get_nutzer("M100001").update_adresse('Update Adresse.xlsx')
+#testfirma.get_nutzer("M100001").delete_mandantendaten()
+testfirma.get_nutzer("M100001").delete_mitarbeiterdaten('Delete Mitarbeiterdaten.xlsx')
 
 '''
 testfirma.get_nutzer("M100001").insert_neuer_mitarbeiter('Erika Musterfrau.xlsx')

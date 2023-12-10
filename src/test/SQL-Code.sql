@@ -107,6 +107,8 @@ boolean, decimal(5, 3), boolean, decimal(5, 3), decimal(5, 3), decimal(10, 2), d
 decimal(10, 2));
 drop function if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date,  varchar(32), varchar(32), 
 varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date);
+drop function if exists insert_tbl_kategorien_austrittsgruende(integer, varchar(16));
+drop function if exists insert_tbl_austrittsgruende(integer, varchar(32), varchar(16));
 drop function if exists insert_tbl_laender(integer, varchar(128));
 drop function if exists insert_tbl_regionen(integer, varchar(128), varchar(128));
 drop function if exists insert_tbl_staedte(integer, varchar(128), varchar(128));
@@ -154,9 +156,11 @@ drop function if exists insert_tbl_arbeitslosenversicherungsbeitraege_gesetzlich
 drop function if exists insert_tbl_rentenversicherungsbeitraege_gesetzlich(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2));
 drop function if exists insert_tbl_hat_rvbeitraege(integer, varchar(32), decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
+drop function if exists update_adresse(integer, varchar(32), date, date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128));
+drop function if exists update_mitarbeiterentlassung(integer, varchar(32), date, varchar(32), varchar(16));
 
-
-
+drop function if exists delete_mandantendaten(integer);
+drop function if exists delete_mitarbeiterdaten(integer, varchar(32));
 
 ----------------------------------------------------------------------------------------------------------------
 -- Erstellung der Tabellen einschließlich von Row-Level-Security (RLS)
@@ -203,7 +207,7 @@ create policy FilterMandant_kategorien_austrittsgruende
 create table Austrittsgruende (
 	Austrittsgrund_ID serial primary key,
 	Mandant_ID integer not null,
-	Austrittsgrund varchar(64) not null,
+	Austrittsgrund varchar(32) not null,
 	Kategorie_Austrittsgruende_ID integer not null,
 	unique(Mandant_ID, Austrittsgrund),
 	constraint fk_Austrittsgruende_mandanten
@@ -235,7 +239,14 @@ create table Mitarbeiter (
     Private_Emailadresse varchar(64),
     Dienstliche_Telefonnummer varchar(16),
     Dienstliche_Emailadresse varchar(64),
-    Austrittsdatum date
+    Austrittsdatum date,
+    Austrittsgrund_ID integer,
+    constraint fk_mitarbeiter_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID),
+    constraint fk_mitarbeiter_austrittsgruende
+		foreign key (Austrittsgrund_ID) 
+			references Austrittsgruende(Austrittsgrund_ID)
 );
 alter table Mitarbeiter enable row level security;
 create policy FilterMandant_Mitarbeiter
@@ -1243,6 +1254,68 @@ begin
     delete from nutzer where Personalnummer = p_personalnummer and Mandant_ID = p_mandant_id;
 
 	set role postgres;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt die Daten in die Tabelle "Kategorien_Austrittsgruende" ein
+ */
+create or replace function insert_tbl_kategorien_austrittsgruende(
+	p_mandant_id integer,
+	p_austrittsgrundkategorie varchar(16)
+) returns void as
+$$
+begin
+
+	set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Kategorien_Austrittsgruende(Mandant_ID, Austrittsgrundkategorie) 
+   	values 
+   		(p_mandant_id, p_austrittsgrundkategorie);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Austrittsgrundkategorie ''%'' bereits vorhanden!', p_austrittsgrundkategorie;
+
+    set role postgres;
+   
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt die Daten in die Tabelle "Austrittsgruende" ein
+ */
+create or replace function insert_tbl_austrittsgruende(
+	p_mandant_id integer,
+	p_austrittsgrund varchar(32),
+	p_austrittsgrundkategorie varchar(16)
+) returns void as
+$$
+declare
+	v_kategorie_austrittsgruende_id integer;
+begin
+
+	set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    execute 'SELECT kategorie_austrittsgruende_id FROM kategorien_austrittsgruende WHERE austrittsgrundkategorie = $1' 
+   		into v_kategorie_austrittsgruende_id using p_austrittsgrundkategorie;
+    
+   	insert into 
+   		Austrittsgruende(Mandant_ID, Austrittsgrund, Kategorie_Austrittsgruende_ID) 
+   	values 
+   		(p_mandant_id, p_austrittsgrund, v_kategorie_austrittsgruende_id);
+   	
+    exception
+        when unique_violation then
+            raise notice 'Austrittsgrund ''%'' bereits vorhanden!', p_austrittsgrund;
+
+    set role postgres;
 
 end;
 $$
@@ -2981,8 +3054,9 @@ begin
 								   p_private_telefonnummer, 
 								   p_private_emailadresse, 
 								   p_dienstliche_telefonnummer, 
-								   p_dienstliche_emailadresse, 
-								   p_austrittsdatum);
+								   p_dienstliche_emailadresse,
+								   p_austrittsdatum
+								  );
 	
 	-- Sofern keines der Adress-Parameter 'null' ist, den Bereich 'Adresse' mit Daten befüllen
 	if p_land is not null and p_region is not null and p_stadt is not null and p_postleitzahl is not null and p_strasse is not null and p_hausnummer is not null then
@@ -3133,6 +3207,279 @@ begin
 
 	set role postgres;
 
+end;
+$$
+language plpgsql;
+
+/*
+ * Methode schreibt die Daten einer neuen Wohnadresse fuer einen Mitarbeiter ein. Zudem wird der letzte Tag des alten Wohnsitzes im entsprechenden
+ * Datensatz der Tabelle 'wohnt_in' eingetragen (zuvor steht dort standardmaessig '9999-12-31'). Die Methode wird auch benutzt, um bei einem neuen
+ * Mitarbeiter, wo noch keine Adressdaten hinterlegt sind, dessen Adresse anzulegen. 
+ */
+create or replace function update_adresse(
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
+	p_neuer_eintrag_gueltig_ab date,
+	p_alter_eintrag_gueltig_bis date,
+	p_strasse varchar(64),
+	p_hausnummer varchar(8),
+	p_postleitzahl varchar(16),
+	p_stadt varchar(128),
+	p_region varchar(128),
+	p_land varchar(128)
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+	v_anzahl_eintraege_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+
+	-- Pruefung, ob der Mitarbeiter überhaupt existiert und falls ja, dann Mitarbeiter_ID in Variable speichern
+	execute 'SELECT mitarbeiter_id FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_id using p_personalnummer;
+	if v_mitarbeiter_id is null then
+		set role postgres;
+		raise exception 'Mitarbeiter ''%'' existiert nicht!', p_personalnummer;
+	end if;
+
+	-- Eintrag der neuen Wohnadresse
+	perform insert_tbl_laender(p_mandant_id, p_land);
+	perform insert_tbl_regionen(p_mandant_id, p_region, p_land);
+	perform insert_tbl_staedte(p_mandant_id, p_stadt, p_region);
+	perform insert_tbl_postleitzahlen(p_mandant_id, p_postleitzahl, p_stadt);
+	perform insert_tbl_strassenbezeichnungen(p_mandant_id, p_strasse, p_hausnummer, p_postleitzahl);
+	
+	-- Pruefung, ob für Mitarbeiter bereits ein Datensatz in 'wohnt_in' existiert. Falls nicht, so wurde für den Mitarbeiter noch kein Wohnort angelegt
+	execute 'SELECT count(*) FROM wohnt_in WHERE mitarbeiter_id = $1' into v_anzahl_eintraege_id using v_mitarbeiter_ID;
+	
+	-- falls bereits Adresszuordnungen für Mitarbeiter besteht, dann die aktuelle, in der in Spalte 'Datum_Bis' der Wert '9999-12-31' steht, updaten.
+	if v_anzahl_eintraege_id != 0 then
+		execute 'UPDATE wohnt_in SET Datum_Bis = $1 WHERE mitarbeiter_ID = $2 AND Datum_Bis = ''9999-12-31''' 
+				using p_alter_eintrag_gueltig_bis, v_mitarbeiter_ID;
+	end if;
+	
+	-- neue Adresse mit Mitarbeiter verknuepfen
+	perform insert_tbl_wohnt_in(p_mandant_id, p_personalnummer, p_strasse, p_hausnummer, p_neuer_eintrag_gueltig_ab);
+	
+   	set role postgres;
+   	
+end;
+$$
+language plpgsql;
+
+/*
+ * Methode ändert die Angaben aufgrund von Kündigung eines bestimmten Mitarbeiters. Es wird das Austrittsdatum in Tabelle 'Mitarbeiter' auf
+ * den letzten Arbeitstag geupdatet und der Austrittsgrund bzw. dessen Kategorie in dessen Tabellen vermerkt. 
+ */
+create or replace function update_mitarbeiterentlassung(
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
+	p_letzter_arbeitstag date,
+	p_austrittsgrund varchar(32),
+	p_austrittsgrundkategorie varchar(16)
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+	v_austrittsgrund_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+
+	-- Pruefung, ob der Mitarbeiter überhaupt existiert und falls ja, dann Mitarbeiter_ID in Variable speichern
+	execute 'SELECT mitarbeiter_id FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_id using p_personalnummer;
+	if v_mitarbeiter_id is null then
+		set role postgres;
+		raise exception 'Mitarbeiter ''%'' existiert nicht!', p_personalnummer;
+	end if;
+	
+	-- Austrittsgrund und dessen Kategorie in Datenbank eintragen, sofern noch nicht vorhanden
+	perform insert_tbl_kategorien_austrittsgruende(p_mandant_id, p_austrittsgrundkategorie);
+	perform insert_tbl_austrittsgruende(p_mandant_id, p_austrittsgrund , p_austrittsgrundkategorie);
+	
+	-- ID des soeben erstellen Austrittsgrund in Variable speichern, da diese bei der Update-Funktion benötigt wird
+	execute 'SELECT austrittsgrund_id FROM austrittsgruende WHERE austrittsgrund = $1' into v_austrittsgrund_id using p_austrittsgrund;
+	
+	-- Austrittsgrund mit Mitarbeiter verknuepfen
+	execute 'UPDATE mitarbeiter SET austrittsdatum = $1, austrittsgrund_id = $2 WHERE personalnummer = $3' 
+			using p_letzter_arbeitstag, v_austrittsgrund_id, p_personalnummer;
+
+   	set role postgres;
+   	
+end;
+$$
+language plpgsql;
+
+/*
+ * Methode loescht alle Eintraege eines Mandanten aus allen Tabellen. 
+ */
+create or replace function delete_mandantendaten(
+	p_mandant_id integer
+) returns void as
+$$
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+
+	-- Daten aus Bereich 'Entgelt' entfernen
+	execute 'DELETE FROM hat_verguetung WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM hat_tarif WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM tarife WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM gewerkschaften WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM verguetungen WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM aussertarifliche WHERE mandant_id = $1' using p_mandant_id;
+
+	-- Daten aus Bereich 'Adresse' entfernen
+	execute 'DELETE FROM wohnt_in WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM strassenbezeichnungen WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM postleitzahlen WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM staedte WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM regionen WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM laender WHERE mandant_id = $1' using p_mandant_id;
+
+	-- Daten aus Bereich 'Gesellschaften' entfernen
+	execute 'DELETE FROM in_gesellschaft WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM gesellschaften WHERE mandant_id = $1' using p_mandant_id;
+
+	-- Daten aus Bereich 'Geschlechter' entfernen
+	execute 'DELETE FROM hat_geschlecht WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM geschlechter WHERE mandant_id = $1' using p_mandant_id;
+	
+	-- Daten aus Bereich 'Mitarbeiteryp' entfernen
+	execute 'DELETE FROM ist_mitarbeitertyp WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM mitarbeitertypen WHERE mandant_id = $1' using p_mandant_id;
+
+	-- Daten aus Bereich 'Kranken- und Pflegeversicherung' entfernen
+	execute 'DELETE FROM privat_krankenversicherte WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM hat_kvbeitraege WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM krankenversicherungsbeitraege_gesetzlich WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM ist_in_gkv WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM hat_gkv_zusatzbeitrag WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM GKV_zusatzbeitraege WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM krankenkassen WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM hat_x_kinder_unter25 WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM hat_gesetzlichen_an_pv_beitragssatz WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM an_pflegeversicherungsbeitraege_gesetzlich WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM anzahl_kinder_unter_25 WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM wohnt_in_sachsen WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM hat_gesetzlichen_ag_pv_beitragssatz WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM ag_pflegeversicherungsbeitraege_gesetzlich WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM wohnhaft_sachsen WHERE mandant_id = $1' using p_mandant_id;
+
+	-- Daten aus Bereich 'Arbeitslosenversicherung' entfernen
+	execute 'DELETE FROM hat_avbeitraege WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM arbeitslosenversicherungsbeitraege_gesetzlich WHERE mandant_id = $1' using p_mandant_id;
+
+	-- Daten aus Bereich 'Rentenversicherung' entfernen
+	execute 'DELETE FROM hat_rvbeitraege WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM rentenversicherungsbeitraege_gesetzlich WHERE mandant_id = $1' using p_mandant_id;
+
+	-- Daten aus Bereich 'Steuerklasse' entfernen
+	execute 'DELETE FROM in_steuerklasse WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM steuerklassen WHERE mandant_id = $1' using p_mandant_id;
+
+	-- Daten aus Bereich 'Wochenarbeitsstunden' entfernen
+	execute 'DELETE FROM arbeitet_x_wochenstunden WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM wochenarbeitsstunden WHERE mandant_id = $1' using p_mandant_id;
+
+	-- Daten aus Bereich 'Wochenarbeitsstunden' entfernen
+	execute 'DELETE FROM eingesetzt_in WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM abteilungen WHERE mandant_id = $1' using p_mandant_id;
+	
+	-- Daten aus Bereich 'Jobtitel' entfernen
+	execute 'DELETE FROM hat_jobtitel WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM jobtitel WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM erfahrungsstufen WHERE mandant_id = $1' using p_mandant_id;
+
+	-- Daten aus zentraler Tabelle 'Mitarbeiter' entfernen
+	execute 'DELETE FROM mitarbeiter WHERE mandant_id = $1' using p_mandant_id;
+
+	-- Daten aus Bereich 'Austrittsgruende' entfernen
+	execute 'DELETE FROM austrittsgruende WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM kategorien_austrittsgruende WHERE mandant_id = $1' using p_mandant_id;
+
+	-- Daten aus Tabellen 'Nutzer' und zuletzt 'Mandanten' loeschen
+	execute 'DELETE FROM nutzer WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM mandanten WHERE mandant_id = $1' using p_mandant_id;
+	
+   	set role postgres;
+   	
+end;
+$$
+language plpgsql;
+
+/*
+ * Methode loescht alle Eintraege eines Mitarbeiters aus den Assoziationstabellen, der Tabelle 'Privat_Krankenversicherte' 
+ * und der zentralen Tabelle 'Mitarbeiter'. 
+ */
+create or replace function delete_mitarbeiterdaten(
+	p_mandant_id integer,
+	p_personalnummer varchar(32)
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+
+	-- Pruefung, ob der Mitarbeiter überhaupt existiert und falls ja, dann Mitarbeiter_ID in Variable speichern
+	execute 'SELECT mitarbeiter_id FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_id using p_personalnummer;
+	if v_mitarbeiter_id is null then
+		set role postgres;
+		raise exception 'Mitarbeiter ''%'' existiert nicht!', p_personalnummer;
+	end if;
+	
+	-- personenbezogene Mitarbeiterdaten aus Bereich 'Entgelt' entfernen
+	execute 'DELETE FROM hat_tarif WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+	
+	-- personenbezogene Mitarbeiterdaten aus Bereich 'Adresse' entfernen
+	execute 'DELETE FROM wohnt_in WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+
+	-- personenbezogene Mitarbeiterdaten aus Bereich 'Gesellschaften' entfernen
+	execute 'DELETE FROM in_gesellschaft WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+	
+	-- personenbezogene Mitarbeiterdaten aus Bereich 'Geschlechter' entfernen
+	execute 'DELETE FROM hat_geschlecht WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+	
+	-- personenbezogene Mitarbeiterdaten aus Bereich 'Mitarbeiteryp' entfernen
+	execute 'DELETE FROM ist_mitarbeitertyp WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+
+	-- personenbezogene Mitarbeiterdaten aus Bereich 'Kranken- und Pflegeversicherung' entfernen
+	execute 'DELETE FROM privat_krankenversicherte WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+	execute 'DELETE FROM hat_kvbeitraege WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+	execute 'DELETE FROM ist_in_gkv WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+	execute 'DELETE FROM hat_x_kinder_unter25 WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+	execute 'DELETE FROM wohnt_in_sachsen WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+
+	-- personenbezogene Mitarbeiterdaten aus Bereich 'Arbeitslosenversicherung' entfernen
+	execute 'DELETE FROM hat_avbeitraege WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+
+	-- personenbezogene Mitarbeiterdaten aus Bereich 'Rentenversicherung' entfernen
+	execute 'DELETE FROM hat_rvbeitraege WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+
+	-- personenbezogene Mitarbeiterdaten aus Bereich 'Steuerklasse' entfernen
+	execute 'DELETE FROM in_steuerklasse WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+
+	-- personenbezogene Mitarbeiterdaten aus Bereich 'Wochenarbeitsstunden' entfernen
+	execute 'DELETE FROM arbeitet_x_wochenstunden WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+
+	-- personenbezogene Mitarbeiterdaten aus Bereich 'Wochenarbeitsstunden' entfernen
+	execute 'DELETE FROM eingesetzt_in WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+	
+	-- personenbezogene Mitarbeiterdaten aus Bereich 'Jobtitel' entfernen
+	execute 'DELETE FROM hat_jobtitel WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+
+	-- personenbezogene Mitarbeiterdaten aus zentraler Tabelle 'Mitarbeiter' entfernen
+	execute 'DELETE FROM mitarbeiter WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+	
+   	set role postgres;
+   	
 end;
 $$
 language plpgsql;

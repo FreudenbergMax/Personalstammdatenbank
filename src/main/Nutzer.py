@@ -1,7 +1,7 @@
 import decimal
 import pandas as pd
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import psycopg2
 
@@ -137,7 +137,6 @@ class Nutzer:
         'insert_neuer_mitarbeiter' aufgerufen wird.
         :param mitarbeiterdaten: Name der Excel-Datei, dessen Mitarbeiterdaten in die Datenbank
         eingetragen werden sollen.
-        :return:
         """
         conn = self._datenbankbverbindung_aufbauen()
 
@@ -396,6 +395,102 @@ class Nutzer:
         cur.close()
         conn.close()
 
+    def update_adresse(self, adressdaten):
+        """
+        Diese Methode überträgt die neue Adresse eines Mitarbeiters (im Rahmen der Bachelorarbeit
+        dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
+        'update_adresse' aufgerufen wird.
+        :param adressdaten: Name der Excel-Datei, dessen Adressdaten in die Datenbank
+        eingetragen werden sollen.
+        """
+        conn = self._datenbankbverbindung_aufbauen()
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Übertrag in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"Mitarbeiterdaten/{adressdaten}", index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        personalnummer = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Personalnummer', 32, True)
+        neuer_eintrag_gueltig_ab = self._existenz_date_daten_feststellen(liste_ma_daten[1], 'Gueltig ab', True)
+        alter_eintrag_gueltig_bis = self._vorherigen_tag_berechnen(neuer_eintrag_gueltig_ab)
+        strasse = self._existenz_str_daten_feststellen(liste_ma_daten[2], 'Strasse', 64, True)
+        hausnummer = self._existenz_str_daten_feststellen(liste_ma_daten[3], 'Hausnummer', 8, True)
+        postleitzahl = self._existenz_str_daten_feststellen(liste_ma_daten[4], 'Postleitzahl', 16, True)
+        stadt = self._existenz_str_daten_feststellen(liste_ma_daten[5], 'Stadt', 128, True)
+        region = self._existenz_str_daten_feststellen(liste_ma_daten[6], 'Region', 128, True)
+        land = self._existenz_str_daten_feststellen(liste_ma_daten[7], 'Land', 128, True)
+
+        # Ein Cursor-Objekt erstellen
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen
+        cur.callproc('update_adresse', [self.mandant_id,
+                                        personalnummer,
+                                        neuer_eintrag_gueltig_ab,
+                                        alter_eintrag_gueltig_bis,
+                                        strasse,
+                                        hausnummer,
+                                        postleitzahl,
+                                        stadt,
+                                        region,
+                                        land
+                                        ])
+
+        # Commit der Änderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def delete_mandantendaten(self):
+        """
+        Methode ruft die Stored Procedure 'delete_mandantendaten' auf, welche alle Daten des Mandanten aus allen
+        Tabellen entfernt.
+        """
+        conn = self._datenbankbverbindung_aufbauen()
+
+        # Ein Cursor-Objekt erstellen
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen
+        cur.callproc('delete_mandantendaten', [self.mandant_id])
+
+        # Commit der Änderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def delete_mitarbeiterdaten(self, mitarbeiter):
+        """
+        Methode ruft die Stored Procedure 'delete_mitarbeiterdaten' auf, welche alle personenbezogenen Daten
+        eines Mitarbeiters aus den Assoziationstabellen, der Tabelle 'Privat_Krankenversicherte' und der
+        zentralen Tabelle entfernt
+        :param mitarbeiter: Name der Excel-Datei, die die Personalnummer des Mitarbeiters enthaelt, der entfernt
+                            werden soll
+        """
+        conn = self._datenbankbverbindung_aufbauen()
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Übertrag in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"Mitarbeiterdaten/{mitarbeiter}", index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        personalnummer = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Personalnummer', 32, True)
+
+        # Ein Cursor-Objekt erstellen
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen
+        cur.callproc('delete_mitarbeiterdaten', [self.mandant_id, personalnummer])
+
+        # Commit der Änderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
     def _existenz_str_daten_feststellen(self, str_daten, art, anzahl_zeichen, pflicht):
         """
         Methode stellt fest, ob optionale Daten vorliegen oder nicht und wenn ja, so sollen diese auf jeden Fall
@@ -501,3 +596,22 @@ class Nutzer:
         else:
             raise TypeError(f"Der übergebene Wert '{boolean_daten}' konnte nicht verarbeitet werden. Bitte geben "
                             f"Sie ausschließlich 'ja' oder 'nein' ein.")
+
+    def _vorherigen_tag_berechnen(self, datum):
+        """
+        Methode berechnet den Vortag des Datums, ab dem ein neuer Eintrag gültig sein soll. Dies wird benoetigt,
+        um in der Spalte "Datum_Bis" des vorherigen Eintrags (gilt für alle Assoziationstabellen) ein Datum eintragen
+        zu koennen.
+        :param datum: Datum, ab dem ein neuer Eintrag gueltig werden soll
+        :return: Datum des Vortags, dass gleichzeitig das Enddatum des alten Eintrags ist
+        """
+        tag_abziehen = timedelta(1)
+
+        try:
+            letzter_tag_alter_eintrag = datum - tag_abziehen
+        except ValueError:
+            raise (ValueError(f"'{datum}' ist nicht möglich!"))
+        except TypeError:
+            raise (TypeError(f"'{datum}' ist kein datetime-Objekt!"))
+
+        return letzter_tag_alter_eintrag
