@@ -83,7 +83,7 @@ drop table if exists hat_GKV_Zusatzbeitrag;
 drop table if exists GKV_Zusatzbeitraege;
 drop table if exists Krankenkassen;
 
-drop table if exists hat_x_Kinder_unter25;
+drop table if exists hat_x_Kinder_unter_25;
 drop table if exists hat_gesetzlichen_AN_PV_Beitragssatz;
 drop table if exists Anzahl_Kinder_unter_25;
 drop table if exists AN_Pflegeversicherungsbeitraege_gesetzlich;
@@ -98,10 +98,10 @@ drop table if exists hat_AV_Beitraege;
 drop table if exists Arbeitslosenversicherungsbeitraege;
 drop table if exists Arbeitslosenversicherungen;
 
---drop table if exists hat_gesetzliche_Rentenversicherung;
---drop table if exists hat_RV_Beitraege;
---drop table if exists Arbeitslosenversicherungsbeitraege;
---drop table if exists Arbeitslosenversicherungen;
+drop table if exists hat_gesetzliche_Rentenversicherung;
+drop table if exists hat_RV_Beitraege;
+drop table if exists Rentenversicherungsbeitraege;
+drop table if exists Rentenversicherungen;
 
 drop table if exists hat_RVBeitraege;
 drop table if exists Rentenversicherungsbeitraege_gesetzlich;  
@@ -116,18 +116,25 @@ drop table if exists Mandanten;
 drop function if exists mandant_anlegen(varchar(128));
 drop function if exists nutzer_anlegen(integer, varchar(32), varchar(64), varchar(64));
 drop function if exists nutzer_entfernen(integer, varchar(32));
-drop function if exists select_ausfuehren(varchar(64), integer);
 drop function if exists pruefe_einmaligkeit_personalnummer(integer, varchar(64), varchar(32));
-
--- Löschung der Stored Procedures für Use Case "Eintrag neue Krankenkasse"
-drop function if exists insert_Krankenkasse(integer, varchar(128), varchar(16), decimal(5, 3), date);
 
 -- Löschung der Stored Procedures für Use Case "Eintrag neue Krankenversicherungsbeitraege"
 drop function if exists insert_krankenversicherungsbeitraege(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
+-- Löschung der Stored Procedures für Use Case "Eintrag neue Krankenkasse"
+drop function if exists insert_Krankenkasse(integer, varchar(128), varchar(16), decimal(5, 3), date);
+
+-- Löschung der Stored Procedures für Use Case "Eintrag neue Kinderanzahl"
+drop function if exists insert_anzahl_kinder_an_pv_beitrag(integer, integer, decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
+
+-- Löschung der Stored Procedures für Use Case "Eintrag Sachsen"
+drop function if exists insert_Sachsen (integer, boolean, decimal(5, 3), date);
+
 -- Löschung der Stored Procedures für Use Case "Eintrag neue Arbeitslosenversicherungsbeitraege"
 drop function if exists insert_arbeitslosenversicherungsbeitraege(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
+-- Löschung der Stored Procedures für Use Case "Eintrag neue Rentenversicherungsbeitraege"
+drop function if exists insert_rentenversicherungsbeitraege(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
 
 
@@ -183,23 +190,24 @@ drop function if exists insert_tbl_aussertarifliche (varchar(32), integer, date,
 
 drop function if exists insert_tbl_privat_krankenversicherte (varchar(32), integer, date, decimal(10, 2), decimal(10,2), decimal(10, 2));
 
+
+
+
+
 drop function if exists insert_tbl_ist_in_gkv(integer, varchar(32), varchar(128), varchar(16), date);
 drop function if exists insert_tbl_hat_gesetzliche_Krankenversicherung(integer, varchar(32), date);
 drop function if exists insert_tbl_hat_gesetzliche_arbeitslosenversicherung(integer, varchar(32), date);
+drop function if exists insert_tbl_hat_gesetzliche_rentenversicherung(integer, varchar(32), date);
+drop function if exists insert_tbl_hat_x_kinder_unter_25(integer, varchar(32), integer, date);
 
-drop function if exists insert_tbl_anzahl_kinder_unter_25 (integer, integer);
-drop function if exists insert_tbl_hat_x_kinder_unter25(integer, varchar(32), integer, date);
-drop function if exists insert_tbl_an_pflegeversicherungsbeitraege_gesetzlich (integer, decimal(5, 3), decimal(10, 2), decimal(10, 2));
-drop function if exists insert_tbl_hat_gesetzlichen_an_pv_beitragssatz(integer, integer, decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
+
+
+
+
 drop function if exists insert_tbl_wohnt_in_sachsen(integer, varchar(32), boolean, date);
-drop function if exists insert_tbl_wohnhaft_sachsen(integer, boolean);
-drop function if exists insert_tbl_ag_pflegeversicherungsbeitraege_gesetzlich(integer, decimal(5, 3));
-drop function if exists insert_tbl_hat_gesetzlichen_ag_pv_beitragssatz(integer, boolean, decimal(5, 3), date);
 
 
 
-drop function if exists insert_tbl_rentenversicherungsbeitraege_gesetzlich(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2));
-drop function if exists insert_tbl_hat_rvbeitraege(integer, varchar(32), decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
 -- Löschung der Stored Procedures für Use Case "Update Kündigung Mitarbeiter"
 drop function if exists update_adresse(integer, varchar(32), date, date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128));
@@ -992,6 +1000,11 @@ alter table hat_GKV_Zusatzbeitrag enable row level security;
 create policy FilterMandant_hatgkvzusatzbeitrag
     on hat_GKV_Zusatzbeitrag
     using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+   
+   
+   
+   
    
 create table Anzahl_Kinder_unter_25 (
 	Anzahl_Kinder_unter_25_ID serial primary key,
@@ -1007,7 +1020,7 @@ create policy FilterMandant_anzahlkinderunter25
     on Anzahl_Kinder_unter_25
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
-create table hat_x_Kinder_unter25(
+create table hat_x_Kinder_unter_25(
 	Mitarbeiter_ID integer not null,
 	Anzahl_Kinder_unter_25_ID integer not null,
 	Mandant_ID integer not null,
@@ -1024,9 +1037,9 @@ create table hat_x_Kinder_unter25(
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
-alter table hat_x_Kinder_unter25 enable row level security;
+alter table hat_x_Kinder_unter_25 enable row level security;
 create policy FilterMandant_hatxKinderunter25
-    on hat_x_Kinder_unter25
+    on hat_x_Kinder_unter_25
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
 -- PV = Pflegeversicherung
@@ -1068,6 +1081,11 @@ create policy FilterMandant_hatgesetzlichenanpvbeitragssatz
     on hat_gesetzlichen_AN_PV_Beitragssatz
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
+   
+   
+   
+   
+   
 create table wohnhaft_Sachsen(
 	wohnhaft_Sachsen_ID serial primary key,
 	Mandant_ID integer not null,
@@ -1164,7 +1182,7 @@ create table hat_gesetzliche_Arbeitslosenversicherung(
 	constraint fk_hatgesetzlichearbeitslosenversicherung_mitarbeiter
 		foreign key (Mitarbeiter_ID)
 			references Mitarbeiter(Mitarbeiter_ID),
-	constraint fk_hatgesetzlichearbeitslosenversicherung_arbeitslosenversicherungsbeitraegegesetzlich
+	constraint fk_hatgesetzlichearbeitslosenversicherung_arbeitslosenversicherungen
 		foreign key (Arbeitslosenversicherung_ID)
 			references Arbeitslosenversicherungen(Arbeitslosenversicherung_ID),
 	constraint fk_hatgesetzlichearbeitslosenversicherung_mandanten
@@ -1218,7 +1236,41 @@ create policy FilterMandant_hatavbeitraege
 
 -- Tabellen, die den Bereich "Gesetzliche Rentenversicherung" behandeln, erstellen
 -- RV = Rentenversicherung
-create table Rentenversicherungsbeitraege_gesetzlich (
+create table Rentenversicherungen (
+	Rentenversicherung_ID serial primary key,
+	Mandant_ID integer not null,
+	constraint fk_rentenversicherungen_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table Rentenversicherungen enable row level security;
+create policy FilterMandant_rentenversicherungen
+    on Rentenversicherungen
+    using (Mandant_ID = current_setting('app.current_tenant')::int); 
+
+create table hat_gesetzliche_Rentenversicherung(
+	Mitarbeiter_ID integer not null,
+	Rentenversicherung_ID integer not null,
+	Mandant_ID integer not null,
+	Datum_Von date not null,
+	Datum_Bis date not null,
+	primary key (Mitarbeiter_ID, Datum_Bis),
+	constraint fk_hatgesetzlicherentenversicherung_mitarbeiter
+		foreign key (Mitarbeiter_ID)
+			references Mitarbeiter(Mitarbeiter_ID),
+	constraint fk_hatgesetzlicherentenversicherung_rentenversicherungen
+		foreign key (Rentenversicherung_ID)
+			references Rentenversicherungen(Rentenversicherung_ID),
+	constraint fk_hatgesetzlicherentenversicherung_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table hat_gesetzliche_Rentenversicherung enable row level security;
+create policy FilterMandant_hatgesetzlicherentenversicherung
+    on hat_gesetzliche_Rentenversicherung
+    using (Mandant_ID = current_setting('app.current_tenant')::int);   
+   
+create table Rentenversicherungsbeitraege (
 	Rentenversicherungsbeitrag_ID serial primary key,
 	Mandant_ID integer not null,
 	AG_Rentenversicherungsbeitrag_in_Prozent decimal(5, 3) not null,
@@ -1226,35 +1278,35 @@ create table Rentenversicherungsbeitraege_gesetzlich (
 	Beitragsbemessungsgrenze_RV_Ost decimal(10, 2) not null,
 	Beitragsbemessungsgrenze_RV_West decimal(10, 2) not null,
 	unique(Mandant_ID, AG_Rentenversicherungsbeitrag_in_Prozent, AN_Rentenversicherungsbeitrag_in_Prozent, Beitragsbemessungsgrenze_RV_Ost, Beitragsbemessungsgrenze_RV_West),
-	constraint fk_rentenversicherungsbeitraegegesetzlich_mandanten
+	constraint fk_rentenversicherungsbeitraege_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
-alter table Rentenversicherungsbeitraege_gesetzlich enable row level security;
-create policy FilterMandant_rentenversicherungsbeitraege_gesetzlich
-    on Rentenversicherungsbeitraege_gesetzlich
+alter table Rentenversicherungsbeitraege enable row level security;
+create policy FilterMandant_rentenversicherungsbeitraege
+    on Rentenversicherungsbeitraege
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
-create table hat_RVBeitraege(
-	Mitarbeiter_ID integer not null,
+create table hat_RV_Beitraege(
+	Rentenversicherung_ID integer not null,
 	Rentenversicherungsbeitrag_ID integer not null,
 	Mandant_ID integer not null,
 	Datum_Von date not null,
 	Datum_Bis date not null,
-	primary key (Mitarbeiter_ID, Datum_Bis),
-	constraint fk_hatrvbeitraege_mitarbeiter
-		foreign key (Mitarbeiter_ID)
-			references Mitarbeiter(Mitarbeiter_ID),
+	primary key (Rentenversicherung_ID, Datum_Bis),
+	constraint fk_hatrvbeitraege_rentenversicherungen
+		foreign key (Rentenversicherung_ID)
+			references Rentenversicherungen(Rentenversicherung_ID),
 	constraint fk_hatrvbeitraege_rentenversicherungsbeitraegegesetzlich
 		foreign key (Rentenversicherungsbeitrag_ID)
-			references Rentenversicherungsbeitraege_gesetzlich(Rentenversicherungsbeitrag_ID),
+			references Rentenversicherungsbeitraege(Rentenversicherungsbeitrag_ID),
 	constraint fk_hatrvbeitraege_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
-alter table hat_RVBeitraege enable row level security;
-create policy FilterMandant_hat_rvbeitraege
-    on hat_RVBeitraege
+alter table hat_RV_Beitraege enable row level security;
+create policy FilterMandant_hatrvbeitraege
+    on hat_RV_Beitraege
     using (Mandant_ID = current_setting('app.current_tenant')::int);
    
 
@@ -1416,25 +1468,124 @@ begin
     end if;
     
     -- ... ansonsten die Daten in den entsprechenden Tabellen eintragen
+    -- Pruefen, ob die Beitrags- und Beitragsbemessungsgrenzen-Kombination bereits vorhanden ist...
+   	execute 'SELECT gkv_zusatzbeitrag_id FROM gkv_zusatzbeitraege WHERE gkv_zusatzbeitrag_in_prozent = $1'
+	   		into v_gkvzusatzbeitrag_id using p_gkv_zusatzbeitrag_in_prozent;
+	
+	-- ... falls nicht, dann eintragen
+   	if v_gkvzusatzbeitrag_id is null then
+		
+		insert into GKV_Zusatzbeitraege(Mandant_ID, GKV_Zusatzbeitrag_in_Prozent)
+   			values (p_mandant_id, p_gkv_zusatzbeitrag_in_prozent);
+   		
+   		execute 'SELECT gkv_zusatzbeitrag_id FROM gkv_zusatzbeitraege WHERE gkv_zusatzbeitrag_in_prozent = $1'
+	   		into v_gkvzusatzbeitrag_id using p_gkv_zusatzbeitrag_in_prozent;
+   		
+	end if;
+
 	insert into Krankenkassen(Mandant_ID, Krankenkasse, Krankenkassenkuerzel)
    		values (p_mandant_id, p_krankenkasse, p_krankenkassenkuerzel);
-   	
-   	insert into GKV_Zusatzbeitraege(Mandant_ID, GKV_Zusatzbeitrag_in_Prozent)
-   		values (p_mandant_id, p_gkv_zusatzbeitrag_in_prozent);
-	
-   	
-	execute 'SELECT gkv_zusatzbeitrag_id FROM gkv_zusatzbeitraege WHERE gkv_zusatzbeitrag_in_prozent = $1'
-			into v_gkvzusatzbeitrag_id using p_gkv_zusatzbeitrag_in_prozent;
 		
 	execute 'SELECT krankenkasse_ID FROM krankenkassen WHERE krankenkasse = $1' into v_krankenkasse_ID using p_krankenkasse;
     
     insert into hat_GKV_Zusatzbeitrag(Krankenkasse_ID, GKV_Zusatzbeitrag_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_krankenkasse_id, v_gkvzusatzbeitrag_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
+
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------
+-- Stored Procedures für Use Case "Eintrag neue Kinderanzahl"
+
+/*
+ * Funktion trägt neue Daten bzgl. der Anzahl der Kinder ein.
+ */
+create or replace function insert_anzahl_kinder_an_pv_beitrag (
+	p_mandant_id integer,
+	p_anzahl_kinder integer,
+	p_an_anteil_pv_beitrag_in_prozent decimal(5, 3),
+	p_beitragsbemessungsgrenze_pv_ost decimal(10, 2),
+	p_beitragsbemessungsgrenze_pv_west decimal(10, 2),
+	p_eintragungsdatum date
+) returns void as
+$$
+declare
+	v_anzahl_kinder_unter_25_id integer;
+	v_an_pv_beitrag_id integer;
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+    
+   	-- Pruefen, ob Anzahl Kinder unter 25 bereits vorhanden ist...
+   	execute 'SELECT anzahl_kinder_unter_25_id FROM anzahl_kinder_unter_25 WHERE anzahl_kinder = $1' 
+   		into v_anzahl_kinder_unter_25_id using p_anzahl_kinder;
+    
+    -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden müssen
+    if v_anzahl_kinder_unter_25_id is not null then
+		set role postgres;
+		raise exception 'Kinderanzahl ''%'' ist bereits vorhanden! Übergebene Daten werden nicht eingetragen!', p_anzahl_kinder;   
+    end if;
+    
+    -- ... ansonsten die Daten in den entsprechenden Tabellen eintragen
+	-- Pruefen, ob die Beitrags- und Beitragsbemessungsgrenzen-Kombination bereits vorhanden ist...
+   	execute 'SELECT 
+				an_pv_beitrag_id
+			 FROM 
+				an_pflegeversicherungsbeitraege_gesetzlich
+			 WHERE 
+				an_anteil_pv_beitrag_in_prozent = $1 AND
+				beitragsbemessungsgrenze_pv_ost = $2 AND
+				beitragsbemessungsgrenze_pv_west = $3' 
+   			into 
+   				v_an_pv_beitrag_id
+			using 
+				p_an_anteil_pv_beitrag_in_prozent,
+				p_beitragsbemessungsgrenze_pv_ost,
+				p_beitragsbemessungsgrenze_pv_west;
    	
-   	exception
-        when unique_violation then
-        	set role postgres;
-            raise notice 'Dieser Zusatzbeitrag ist für die Krankenkasse ''%'' bereits aktuell!', p_krankenkasse;
+	-- ... falls nicht, dann eintragen
+   	if v_an_pv_beitrag_id is null then
+	   	insert into AN_Pflegeversicherungsbeitraege_gesetzlich(Mandant_ID, 
+	   														   AN_Anteil_PV_Beitrag_in_Prozent, 
+	   														   Beitragsbemessungsgrenze_PV_Ost, 
+	   														   Beitragsbemessungsgrenze_PV_West)
+	   		values (p_mandant_id, 
+	   				p_an_anteil_pv_beitrag_in_prozent,
+					p_beitragsbemessungsgrenze_pv_ost,
+					p_beitragsbemessungsgrenze_pv_west);
+		
+		execute 'SELECT 
+					an_pv_beitrag_id
+				 FROM 
+					an_pflegeversicherungsbeitraege_gesetzlich
+				 WHERE 
+					an_anteil_pv_beitrag_in_prozent = $1 AND
+					beitragsbemessungsgrenze_pv_ost = $2 AND
+					beitragsbemessungsgrenze_pv_west = $3' 
+	   			into 
+	   				v_an_pv_beitrag_id
+				using 
+					p_an_anteil_pv_beitrag_in_prozent,
+					p_beitragsbemessungsgrenze_pv_ost,
+					p_beitragsbemessungsgrenze_pv_west;
+	end if;
+
+	insert into anzahl_kinder_unter_25(Mandant_ID, Anzahl_Kinder)
+   		values (p_mandant_id, p_anzahl_kinder);
+
+	execute 'SELECT anzahl_kinder_unter_25_id FROM anzahl_kinder_unter_25 WHERE anzahl_kinder = $1' 
+   		into v_anzahl_kinder_unter_25_id using p_anzahl_kinder;
+		
+	insert into hat_gesetzlichen_AN_PV_Beitragssatz(Anzahl_Kinder_unter_25_ID, AN_PV_Beitrag_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_anzahl_kinder_unter_25_id, v_an_pv_beitrag_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
    	
     set role postgres;
 
@@ -1493,7 +1644,7 @@ begin
 		raise exception 'Diese Kombination der Krankenversicherungsbeitragssaetze ist bereits vorhanden! Übergebene Daten werden nicht eingetragen!';   
     end if;
    
-    -- Pruefen, ob bereits eine Krankenversicherung_ID für Minijobber angelegt wurde...
+    -- Jeder Mandant hat nur maximal einen Eintrag. Prüfen, ob dieser bereits vorhanden ist...
    	execute 'SELECT krankenversicherung_id FROM krankenversicherungen' into v_krankenversicherung_id;
     
     -- ... und falls nicht, dann Eintrag anlegen
@@ -1543,12 +1694,81 @@ begin
         when unique_violation then
         	set role postgres;
             raise notice 'Diese GKV-Beitragssätze und GKV-Beitragsbemessungsgrenzen sind bereits aktuell!';
-   
+    
     set role postgres;
 
 end;
 $$
 language plpgsql;
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------
+-- Stored Procedures für Use Case "Eintrag Sachsen"
+
+/*
+ * Funktion trägt neue Daten in Bezug auf die Frage ein, ob jemand in Sachsen wohnhaft ist. (Wichtig für Bestimmung des AG-Anteil zur Pflegeversicherung).
+ */
+create or replace function insert_Sachsen (
+	p_mandant_id integer,
+	p_in_sachsen boolean,
+	p_ag_anteil_pv_beitrag_in_prozent decimal(5, 3),
+	p_eintragungsdatum date
+) returns void as
+$$
+declare
+	v_wohnhaft_sachsen_id integer;
+	v_ag_pv_beitrag_id integer;
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+    
+   	-- Pruefen, ob Wahrheitswert für Sachsen-Frage bereits vorhanden ist...
+   	execute 'SELECT wohnhaft_sachsen_id FROM wohnhaft_sachsen WHERE in_sachsen = $1' into v_wohnhaft_sachsen_id using p_in_sachsen;
+    
+    -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden müssen
+    if v_wohnhaft_sachsen_id is not null then
+		set role postgres;
+		raise exception 'wohnhaft_Sachsen = ''%'' ist bereits vorhanden! Übergebene Daten werden nicht eingetragen!', p_in_sachsen;   
+    end if;
+    
+    -- ... ansonsten die Daten in den entsprechenden Tabellen eintragen
+    -- Pruefen, ob der AG-PV-Beitragssatz bereits vorhanden ist...
+   	execute 'SELECT ag_pv_beitrag_id FROM ag_pflegeversicherungsbeitraege_gesetzlich WHERE ag_anteil_pv_beitrag_in_prozent = $1'
+	   		into v_ag_pv_beitrag_id using p_ag_anteil_pv_beitrag_in_prozent;
+	
+	-- ... falls nicht, dann eintragen
+   	if v_ag_pv_beitrag_id is null then
+		
+		insert into AG_Pflegeversicherungsbeitraege_gesetzlich(Mandant_ID, AG_Anteil_PV_Beitrag_in_Prozent)
+   			values (p_mandant_id, p_ag_anteil_pv_beitrag_in_prozent);
+   		
+   		execute 'SELECT ag_pv_beitrag_id FROM ag_pflegeversicherungsbeitraege_gesetzlich WHERE ag_anteil_pv_beitrag_in_prozent = $1'
+	   		into v_ag_pv_beitrag_id using p_ag_anteil_pv_beitrag_in_prozent;
+   		
+	end if;
+
+	insert into wohnhaft_Sachsen(Mandant_ID, in_Sachsen)
+   		values (p_mandant_id, p_in_sachsen);
+		
+	execute 'SELECT wohnhaft_sachsen_id FROM wohnhaft_sachsen WHERE in_sachsen = $1' into v_wohnhaft_sachsen_id using p_in_sachsen;
+    
+    insert into hat_gesetzlichen_AG_PV_Beitragssatz(wohnhaft_Sachsen_ID, AG_PV_Beitrag_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_wohnhaft_sachsen_id, v_ag_pv_beitrag_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
+
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+
+
+
+
 
 ----------------------------------------------------------------------------------------------------------------
 -- Stored Procedures für Use Case "Eintrag neue Arbeitslosenversicherungsbeitraege"
@@ -1597,7 +1817,7 @@ begin
 		raise exception 'Diese Kombination der Arbeitslosenversicherungsbeitragssaetze ist bereits vorhanden! Übergebene Daten werden nicht eingetragen!';   
     end if;
    
-    -- Pruefen, ob bereits eine Krankenversicherung_ID für Minijobber angelegt wurde...
+    -- Jeder Mandant hat nur maximal einen Eintrag. Prüfen, ob dieser bereits vorhanden ist...
    	execute 'SELECT arbeitslosenversicherung_id FROM Arbeitslosenversicherungen' into v_arbeitslosenversicherung_id;
     
     -- ... und falls nicht, dann Eintrag anlegen
@@ -1647,7 +1867,115 @@ begin
         when unique_violation then
         	set role postgres;
             raise notice 'Diese AV-Beitragssätze und AV-Beitragsbemessungsgrenzen sind bereits aktuell!';
+    
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------
+-- Stored Procedures für Use Case "Eintrag neue Rentenversicherungsbeitraege"
+
+/*
+ * Funktion trägt neue Daten bzgl. Rentenversicherungsbeitraege und Beitragsbemessungsgrenzen ein
+ */
+create or replace function insert_rentenversicherungsbeitraege(
+	p_mandant_id integer,
+	p_ag_rentenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_an_rentenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_beitragsbemessungsgrenze_rv_ost decimal(10, 2),
+	p_beitragsbemessungsgrenze_rv_west decimal(10, 2),
+	p_eintragungsdatum date
+) returns void as
+$$
+declare
+	v_rentenversicherungsbeitrag_id integer;
+	v_rentenversicherung_id integer;
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+    
+   	-- Pruefen, ob die Beitrags- und Beitragsbemessungsgrenzen-Kombination bereits vorhanden ist...
+   	execute 'SELECT 
+				rentenversicherungsbeitrag_id
+			 FROM 
+				rentenversicherungsbeitraege 
+			 WHERE 
+				ag_rentenversicherungsbeitrag_in_prozent = $1 AND
+				an_rentenversicherungsbeitrag_in_prozent = $2 AND
+				beitragsbemessungsgrenze_rv_ost = $3 AND
+				beitragsbemessungsgrenze_rv_west = $4' 
+   			into 
+   				v_rentenversicherungsbeitrag_id
+			using 
+				p_ag_rentenversicherungsbeitrag_in_prozent, 
+				p_an_rentenversicherungsbeitrag_in_prozent,
+				p_beitragsbemessungsgrenze_rv_ost,
+				p_beitragsbemessungsgrenze_rv_west;
+    
+    -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden müssen
+    if v_rentenversicherungsbeitrag_id is not null then
+		set role postgres;
+		raise exception 'Diese Kombination der Rentenversicherungsbeitragssaetze ist bereits vorhanden! Übergebene Daten werden nicht eingetragen!';   
+    end if;
    
+    -- Jeder Mandant hat nur maximal einen Eintrag. Prüfen, ob dieser bereits vorhanden ist...
+   	execute 'SELECT rentenversicherung_id FROM Rentenversicherungen' into v_rentenversicherung_id;
+    
+    -- ... und falls nicht, dann Eintrag anlegen
+    if v_rentenversicherung_id is null then
+		insert into 
+   			Rentenversicherungen(Mandant_ID)
+	   	values 
+	   		(p_mandant_id);		
+    end if;
+    
+	insert into
+   		Rentenversicherungsbeitraege(Mandant_ID, 
+						   		     AG_Rentenversicherungsbeitrag_in_Prozent,
+								     AN_Rentenversicherungsbeitrag_in_Prozent,
+								     Beitragsbemessungsgrenze_RV_Ost,
+								     Beitragsbemessungsgrenze_RV_West)
+   	values
+   		(p_mandant_id,
+   		 p_ag_rentenversicherungsbeitrag_in_prozent, 
+		 p_an_rentenversicherungsbeitrag_in_prozent,
+		 p_beitragsbemessungsgrenze_rv_ost,
+		 p_beitragsbemessungsgrenze_rv_west);
+		
+	execute 'SELECT rentenversicherung_id FROM Rentenversicherungen' into v_rentenversicherung_id;
+
+	execute 'SELECT 
+				rentenversicherungsbeitrag_id
+			 FROM 
+				rentenversicherungsbeitraege 
+			 WHERE 
+				ag_rentenversicherungsbeitrag_in_prozent = $1 AND
+				an_rentenversicherungsbeitrag_in_prozent = $2 AND
+				beitragsbemessungsgrenze_rv_ost = $3 AND
+				beitragsbemessungsgrenze_rv_west = $4' 
+   			into 
+   				v_rentenversicherungsbeitrag_id
+			using 
+				p_ag_rentenversicherungsbeitrag_in_prozent, 
+				p_an_rentenversicherungsbeitrag_in_prozent,
+				p_beitragsbemessungsgrenze_rv_ost,
+				p_beitragsbemessungsgrenze_rv_west;
+    
+    insert into hat_RV_Beitraege(Rentenversicherung_ID, Rentenversicherungsbeitrag_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_rentenversicherung_id, v_rentenversicherungsbeitrag_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
+   	
+   	exception
+        when unique_violation then
+        	set role postgres;
+            raise notice 'Diese RV-Beitragssätze und RV-Beitragsbemessungsgrenzen sind bereits aktuell!';
+    
     set role postgres;
 
 end;
@@ -2659,7 +2987,7 @@ begin
 	-- Pruefen, ob Mandant bereits Eintrag in Tabelle Krankenversicherungen hat...
 	execute 'SELECT krankenversicherung_id FROM krankenversicherungen WHERE mandant_id = $1' into v_krankenversicherung_id using p_mandant_id;
     
-    -- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Krankenkasse hinterlegt werden muss!
+    -- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Krankenversicherung hinterlegt werden muss!
     if v_krankenversicherung_id is null then
 		set role postgres;
 		raise exception 'Sie muessen erst KV-Beitraege und Beitragsbemessungsgrenzen anlegen, bevor Sie Mitarbeiter anlegen!';   
@@ -2726,38 +3054,11 @@ end;
 $$
 language plpgsql;
 
-/*
- * Funktion trägt neue Daten in Tabelle 'Anzahl_Kinder_unter_25' ein.
- */
-create or replace function insert_tbl_anzahl_kinder_unter_25 (
-	p_mandant_id integer,
-	p_anzahl_kinder integer
-) returns void as
-$$
-begin
-    
-    set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    insert into 
-   		Anzahl_Kinder_unter_25(Mandant_ID, Anzahl_Kinder)
-   	values 
-   		(p_mandant_id, p_anzahl_kinder);
-   	
-    exception
-        when unique_violation then
-            raise notice 'Kinderanzahl ''%'' bereits vorhanden!', p_anzahl_kinder;
-    
-    set role postgres;
-
-end;
-$$
-language plpgsql;
 
 /*
- * Funktion trägt die Daten in die Assoziation "hat_x_Kinder_unter25" ein
+ * Funktion trägt die Daten in die Assoziation "hat_x_Kinder_unter_25" ein
  */
-create or replace function insert_tbl_hat_x_kinder_unter25(
+create or replace function insert_tbl_hat_x_kinder_unter_25(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_anzahl_kinder integer,
@@ -2777,7 +3078,7 @@ begin
 	execute 'SELECT anzahl_kinder_unter_25_id FROM anzahl_kinder_unter_25 WHERE anzahl_kinder = $1'
 			into v_anzahl_kinder_unter25_id using p_anzahl_kinder;
     
-    insert into hat_x_Kinder_unter25(Mitarbeiter_ID, Anzahl_Kinder_unter_25_ID, Mandant_ID, Datum_Von, Datum_Bis)
+    insert into hat_x_Kinder_unter_25(Mitarbeiter_ID, Anzahl_Kinder_unter_25_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_anzahl_kinder_unter25_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
    	
    	exception
@@ -2786,111 +3087,6 @@ begin
 	
    	set role postgres;
    	
-end;
-$$
-language plpgsql;
-
-/*
- * Funktion trägt neue Daten in Tabelle 'AN_Pflegeversicherungsbeitraege_gesetzlich' ein.
- */
-create or replace function insert_tbl_an_pflegeversicherungsbeitraege_gesetzlich (
-	p_mandant_id integer,
-	p_an_anteil_pv_beitrag_in_prozent decimal(5, 3),
-	p_beitragsbemessungsgrenze_pv_ost decimal(10, 2),
-	p_beitragsbemessungsgrenze_pv_west decimal(10, 2)
-) returns void as
-$$
-begin
-    
-    set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    insert into 
-   		AN_Pflegeversicherungsbeitraege_gesetzlich(
-   			Mandant_ID, 
-   			AN_Anteil_PV_Beitrag_in_Prozent, 
-   			Beitragsbemessungsgrenze_PV_Ost, 
-   			Beitragsbemessungsgrenze_PV_West)
-   	values 
-   		(p_mandant_id, 
-   		 p_an_anteil_pv_beitrag_in_prozent, 
-   		 p_beitragsbemessungsgrenze_pv_ost, 
-   		 p_beitragsbemessungsgrenze_pv_west);
-   	
-    exception
-        when unique_violation then
-            raise notice 'Diese PV-Beitragssätze und PV-Beitragsbemessungsgrenzen sind bereits vorhanden!';
-    
-    set role postgres;
-
-end;
-$$
-language plpgsql;
-
-/*
- * Funktion trägt die Daten in die Assoziation "hat_gesetzlichen_AN_PV_Beitragssatz" ein
- */
-create or replace function insert_tbl_hat_gesetzlichen_an_pv_beitragssatz(
-	p_mandant_id integer,
-	p_anzahl_kinder integer,
-	p_an_anteil_pv_beitrag_in_prozent decimal(5, 3),
-	p_beitragsbemessungsgrenze_pv_ost decimal(10, 2),
-	p_beitragsbemessungsgrenze_pv_west decimal(10, 2),
-	p_eintrittsdatum date
-) returns void as
-$$
-declare
-	v_anzahl_kinder_unter25_id integer;
-	v_an_pv_beitrag_id integer;
-begin
-	
-	set session role tenant_user;
-	execute 'SET app.current_tenant=' || p_mandant_id;
-	
-	execute 'SELECT anzahl_kinder_unter_25_id FROM anzahl_kinder_unter_25 WHERE anzahl_kinder = $1'
-			into v_anzahl_kinder_unter25_id using p_anzahl_kinder;
-	
-	execute 'SELECT AN_PV_Beitrag_ID FROM an_pflegeversicherungsbeitraege_gesetzlich 
-				WHERE an_anteil_pv_beitrag_in_prozent = $1 AND beitragsbemessungsgrenze_pv_ost = $2 AND beitragsbemessungsgrenze_pv_west = $3'
-				into v_an_pv_beitrag_id using p_an_anteil_pv_beitrag_in_prozent, p_beitragsbemessungsgrenze_pv_ost, p_beitragsbemessungsgrenze_pv_west;
-    
-    insert into hat_gesetzlichen_AN_PV_Beitragssatz(Anzahl_Kinder_unter_25_ID, AN_PV_Beitrag_ID, Mandant_ID, Datum_Von, Datum_Bis)
-   		values (v_anzahl_kinder_unter25_id, v_an_pv_beitrag_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-   	
-   	exception
-        when unique_violation then
-            raise notice 'Diese Kinderanzahl ist bereits mit diesen AN_PV-Beitragssatz und Beitragsbemessungsgrenzen versehen!';
-	
-   	set role postgres;
-   	
-end;
-$$
-language plpgsql;
-
-/*
- * Funktion trägt neue Daten in Tabelle 'wohnhaft_Sachsen' ein.
- */
-create or replace function insert_tbl_wohnhaft_sachsen (
-	p_mandant_id integer,
-	p_in_sachsen boolean
-) returns void as
-$$
-begin
-    
-    set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    insert into 
-   		wohnhaft_Sachsen(Mandant_ID, in_Sachsen)
-   	values 
-   		(p_mandant_id, p_in_sachsen);
-   	
-    exception
-        when unique_violation then
-            raise notice '''%'' für die Frage, ob jemand in Sachsen wohnt, bereits vorhanden!', p_in_sachsen;
-    
-    set role postgres;
-
 end;
 $$
 language plpgsql;
@@ -2930,67 +3126,6 @@ $$
 language plpgsql;
 
 /*
- * Funktion trägt neue Daten in Tabelle 'AG_Pflegeversicherungsbeitraege_gesetzlich' ein.
- */
-create or replace function insert_tbl_ag_pflegeversicherungsbeitraege_gesetzlich (
-	p_mandant_id integer,
-	p_ag_anteil_pv_beitrag_in_prozent decimal(5, 3)
-) returns void as
-$$
-begin
-    
-    set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    insert into AG_Pflegeversicherungsbeitraege_gesetzlich(Mandant_ID, AG_Anteil_PV_Beitrag_in_Prozent)
-   		values (p_mandant_id, p_ag_anteil_pv_beitrag_in_prozent);
-   	
-    exception
-        when unique_violation then
-            raise notice 'Dieser AG-PV-Beitragssatz ist bereits vorhanden!';
-    
-    set role postgres;
-
-end;
-$$
-language plpgsql;
-
-/*
- * Funktion trägt die Daten in die Assoziation "hat_gesetzlichen_AG_PV_Beitragssatz" ein
- */
-create or replace function insert_tbl_hat_gesetzlichen_ag_pv_beitragssatz(
-	p_mandant_id integer,
-	p_in_sachsen boolean,
-	p_ag_anteil_pv_beitrag_in_prozent decimal(5, 3),
-	p_eintrittsdatum date
-) returns void as
-$$
-declare
-	v_wohnhaft_sachsen_id integer;
-	v_ag_pv_beitrag_id integer;
-begin
-	
-	set session role tenant_user;
-	execute 'SET app.current_tenant=' || p_mandant_id;
-	
-	execute 'SELECT wohnhaft_sachsen_id FROM wohnhaft_sachsen WHERE in_sachsen = $1' into v_wohnhaft_sachsen_id using p_in_sachsen;
-	execute 'SELECT ag_pv_beitrag_id FROM ag_pflegeversicherungsbeitraege_gesetzlich WHERE ag_anteil_pv_beitrag_in_prozent = $1'
-				into v_ag_pv_beitrag_id using p_ag_anteil_pv_beitrag_in_prozent;
-    
-    insert into hat_gesetzlichen_AG_PV_Beitragssatz(wohnhaft_Sachsen_ID, AG_PV_Beitrag_ID, Mandant_ID, Datum_Von, Datum_Bis)
-   		values (v_wohnhaft_sachsen_id, v_ag_pv_beitrag_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-   	
-   	exception
-        when unique_violation then
-            raise notice 'Dieser AG-PV-Beitragssatz ist in Bezug auf die Frage, ob in Sachsen wohnhaft oder nicht, bereits angelegt!';
-	
-   	set role postgres;
-   	
-end;
-$$
-language plpgsql;
-
-/*
  * Funktion trägt die Daten in die Assoziation "hat_gesetzliche_arbeitslosenversicherung" ein
  */
 create or replace function insert_tbl_hat_gesetzliche_arbeitslosenversicherung(
@@ -3007,11 +3142,11 @@ begin
 	set session role tenant_user;
 	execute 'SET app.current_tenant=' || p_mandant_id;
 		
-	-- Pruefen, ob Mandant bereits Eintrag in Tabelle Krankenversicherungen hat (jeder Mandant hat nur maximal einen Eintrag in diese Tabelle)...
+	-- Pruefen, ob Mandant bereits Eintrag in Tabelle 'Arbeitslosenversicherungen' hat (jeder Mandant hat nur maximal einen Eintrag in diese Tabelle)...
 	execute 'SELECT arbeitslosenversicherung_id FROM arbeitslosenversicherungen WHERE mandant_id = $1' 
 		into v_arbeitslosenversicherung_id using p_mandant_id;
     
-    -- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Arbeitslosenversicheurngsdaten hinterlegt werden muessen!
+    -- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Arbeitslosenversicherungsdaten hinterlegt werden muessen!
     if v_arbeitslosenversicherung_id is null then
 		set role postgres;
 		raise exception 'Sie muessen erst AV-Beitraege und Beitragsbemessungsgrenzen anlegen, bevor Sie Mitarbeiter anlegen!';   
@@ -3034,87 +3169,41 @@ $$
 language plpgsql;
 
 /*
- * Funktion trägt neue Daten in Tabelle 'Rentenversicherungsbeitraege_gesetzlich' ein.
+ * Funktion trägt neue Daten in Tabelle 'hat_gesetzliche_Rentenversicherung' ein.
  */
-create or replace function insert_tbl_rentenversicherungsbeitraege_gesetzlich(
-    p_mandant_id integer,
-    p_ag_rentenversicherungsbeitrag_in_prozent decimal(5, 3),
-	p_an_rentenversicherungsbeitrag_in_prozent decimal(5, 3),
-	p_beitragsbemessungsgrenze_rv_ost decimal(10, 2),
-	p_beitragsbemessungsgrenze_rv_west decimal(10, 2)
-) returns void as
-$$
-begin
-    
-    set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    insert into 
-   		Rentenversicherungsbeitraege_gesetzlich(
-   			Mandant_ID, 
-   			AG_Rentenversicherungsbeitrag_in_Prozent, 
-   			AN_Rentenversicherungsbeitrag_in_Prozent,
-			Beitragsbemessungsgrenze_RV_Ost,
-			Beitragsbemessungsgrenze_RV_West
-   	) values 
-   		(p_mandant_id, 
-		 p_ag_rentenversicherungsbeitrag_in_prozent,
-		 p_an_rentenversicherungsbeitrag_in_prozent,
-		 p_beitragsbemessungsgrenze_rv_ost,
-		 p_beitragsbemessungsgrenze_rv_west
-	);
-   	
-    exception
-        when unique_violation then
-            raise notice 'Diese gesetzlichen Rentenversicherungsbeitragssaetze und Beitragsbemessungsgrenzen sind bereits vorhanden!';
-    
-    set role postgres;
-
-end;
-$$
-language plpgsql;
-
-/*
- * Funktion trägt die Daten in die Assoziation "hat_RVBeitraege" ein
- */
-create or replace function insert_tbl_hat_rvbeitraege(
+create or replace function insert_tbl_hat_gesetzliche_rentenversicherung(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
-	p_ag_rentenversicherungsbeitrag_in_prozent decimal(5, 3),
-	p_an_rentenversicherungsbeitrag_in_prozent decimal(5, 3),
-	p_beitragsbemessungsgrenze_rv_ost decimal(10, 2),
-	p_beitragsbemessungsgrenze_rv_west decimal(10, 2),
 	p_eintrittsdatum date
 ) returns void as
 $$
 declare
 	v_mitarbeiter_id integer;
-	v_rentenversicherungsbeitrag_id integer;
+	v_rentenversicherung_id integer;
 begin
 	
 	set session role tenant_user;
 	execute 'SET app.current_tenant=' || p_mandant_id;
-	
-	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
-	
-	execute 'SELECT rentenversicherungsbeitrag_id 
-			 FROM rentenversicherungsbeitraege_gesetzlich 
-			 WHERE ag_rentenversicherungsbeitrag_in_prozent = $1 
-				and an_rentenversicherungsbeitrag_in_prozent = $2
-				and beitragsbemessungsgrenze_rv_ost = $3
-				and beitragsbemessungsgrenze_rv_west = $4' 
-			into v_rentenversicherungsbeitrag_id
-			using p_ag_rentenversicherungsbeitrag_in_prozent,
-				  p_an_rentenversicherungsbeitrag_in_prozent,
-				  p_beitragsbemessungsgrenze_rv_ost,
-				  p_beitragsbemessungsgrenze_rv_west;
+		
+	-- Pruefen, ob Mandant bereits Eintrag in Tabelle 'Rentenversicherungen' hat (jeder Mandant hat nur maximal einen Eintrag in diese Tabelle)...
+	execute 'SELECT rentenversicherung_id FROM rentenversicherungen WHERE mandant_id = $1' 
+		into v_rentenversicherung_id using p_mandant_id;
     
-    insert into hat_RVBeitraege(Mitarbeiter_ID, Rentenversicherungsbeitrag_ID, Mandant_ID, Datum_Von, Datum_Bis)
-   		values (v_mitarbeiter_id, v_rentenversicherungsbeitrag_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+    -- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Rentenversicherungsdaten hinterlegt werden muessen!
+    if v_rentenversicherung_id is null then
+		set role postgres;
+		raise exception 'Sie muessen erst RV-Beitraege und Beitragsbemessungsgrenzen anlegen, bevor Sie Mitarbeiter anlegen!';   
+    end if;
+   
+    execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
+    
+    insert into hat_gesetzliche_Rentenversicherung(Mitarbeiter_ID, Rentenversicherung_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_mitarbeiter_id, v_rentenversicherung_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
    	
    	exception
         when unique_violation then
-            raise notice 'Rentenversicherungsbeitraege und Beitragsbemessungsgrenzen für Mitarbeiter ''%'' bereits vermerkt!', p_personalnummer;
+        	set role postgres;
+            raise notice 'Es ist bereits vermerkt, dass der Mitarbeiter gesetzlich rentenversichert ist!';
 	
    	set role postgres;
    	
@@ -3179,23 +3268,16 @@ create or replace function insert_mitarbeiterdaten(
 	p_ag_zuschuss_krankenversicherung decimal(10, 2),
 	p_ag_zuschuss_zusatzbeitrag decimal(10,2),
 	p_ag_zuschuss_pflegeversicherung decimal(10, 2),
+	
 	p_gesetzlich_krankenversichert boolean,
 	p_krankenkasse varchar(128),
 	p_krankenkassenkuerzel varchar(16),
 	p_anzahl_kinder integer,
-	p_an_anteil_pv_beitrag_in_prozent decimal(5, 3),
-	p_beitragsbemessungsgrenze_pv_ost decimal(10, 2),
-	p_beitragsbemessungsgrenze_pv_west decimal(10, 2),
 	p_in_sachsen boolean,
-	p_ag_anteil_pv_beitrag_in_prozent decimal(5, 3),
 	-- Bereich 'Arbeitslosenversicherung'
 	p_arbeitslosenversichert boolean,
 	-- Bereich 'Rentenversicherung'
-	p_rentenversichert boolean,
-	p_ag_rentenversicherungsbeitrag_in_prozent decimal(5, 3),
-	p_an_rentenversicherungsbeitrag_in_prozent decimal(5, 3),
-	p_beitragsbemessungsgrenze_rv_ost decimal(10, 2),
-	p_beitragsbemessungsgrenze_rv_west decimal(10, 2)
+	p_rentenversichert boolean
 ) returns void as
 $$
 begin
@@ -3300,27 +3382,8 @@ begin
 	
 		perform insert_tbl_hat_gesetzliche_Krankenversicherung(p_mandant_id, p_personalnummer, p_eintrittsdatum);
 		perform insert_tbl_ist_in_gkv(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
-		
-		
-	
-	
-	
-		perform insert_tbl_anzahl_kinder_unter_25(p_mandant_id, p_anzahl_kinder);
-		perform insert_tbl_hat_x_kinder_unter25(p_mandant_id, p_personalnummer, p_anzahl_kinder, p_eintrittsdatum);
-		perform insert_tbl_an_pflegeversicherungsbeitraege_gesetzlich(p_mandant_id, 
-																	  p_an_anteil_pv_beitrag_in_prozent,
-																	  p_beitragsbemessungsgrenze_pv_ost,
-																	  p_beitragsbemessungsgrenze_pv_west);
-		perform insert_tbl_hat_gesetzlichen_an_pv_beitragssatz(p_mandant_id, 
-															   p_anzahl_kinder,
-															   p_an_anteil_pv_beitrag_in_prozent,
-															   p_beitragsbemessungsgrenze_pv_ost,
-															   p_beitragsbemessungsgrenze_pv_west,
-															   p_eintrittsdatum);
-		perform insert_tbl_wohnhaft_sachsen(p_mandant_id, p_in_sachsen);
-		perform insert_tbl_wohnt_in_sachsen(p_mandant_id, p_personalnummer, p_in_sachsen, p_eintrittsdatum);
-		perform insert_tbl_ag_pflegeversicherungsbeitraege_gesetzlich (p_mandant_id, p_ag_anteil_pv_beitrag_in_prozent);
-		perform insert_tbl_hat_gesetzlichen_ag_pv_beitragssatz(p_mandant_id, p_in_sachsen, p_ag_anteil_pv_beitrag_in_prozent, p_eintrittsdatum);
+		perform insert_tbl_hat_x_kinder_unter_25(p_mandant_id, p_personalnummer, p_anzahl_kinder, p_eintrittsdatum);
+		perform insert_tbl_wohnt_in_sachsen(p_mandant_id, p_personalnummer, p_in_sachsen, p_eintrittsdatum);									  
 
 	end if;
 
@@ -3328,12 +3391,10 @@ begin
 			perform insert_tbl_hat_gesetzliche_arbeitslosenversicherung(p_mandant_id, p_personalnummer, p_eintrittsdatum);
 	end if;
 	
-	
 	if p_rentenversichert then
-		perform insert_tbl_hat_gesetzliche_arbeitslosenversicherung(p_mandant_id, p_personalnummer, p_eintrittsdatum);
+		perform insert_tbl_hat_gesetzliche_rentenversicherung(p_mandant_id, p_personalnummer, p_eintrittsdatum);
 	end if;
 	
-
 	set role postgres;
 
 end;
@@ -3578,7 +3639,7 @@ begin
 	execute 'DELETE FROM hat_gkv_zusatzbeitrag WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM GKV_zusatzbeitraege WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM krankenkassen WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM hat_x_kinder_unter25 WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM hat_x_kinder_unter_25 WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM hat_gesetzlichen_an_pv_beitragssatz WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM an_pflegeversicherungsbeitraege_gesetzlich WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM anzahl_kinder_unter_25 WHERE mandant_id = $1' using p_mandant_id;
@@ -3659,7 +3720,7 @@ begin
 	execute 'DELETE FROM privat_krankenversicherte WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 	execute 'DELETE FROM hat_kvbeitraege WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 	execute 'DELETE FROM ist_in_gkv WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
-	execute 'DELETE FROM hat_x_kinder_unter25 WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+	execute 'DELETE FROM hat_x_kinder_unter_25 WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 	execute 'DELETE FROM wohnt_in_sachsen WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 
 	-- personenbezogene Mitarbeiterdaten aus Bereich 'Arbeitslosenversicherung' entfernen

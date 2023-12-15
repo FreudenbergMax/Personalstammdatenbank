@@ -12,9 +12,9 @@ select nutzer_anlegen(1, 'M00001', 'Max', 'Mustermann');
 select insert_Krankenkasse(1, 'Kaufmaennische Krankenkasse', 'KKH', 1.5, '2023-12-15');
 select insert_Krankenkasse(1, 'Technische Krankenkasse', 'TK', 1.5, '2023-12-15');
 select * from krankenkassen;
-select * from ist_in_gkv;
 select * from GKV_Zusatzbeitraege;
 select * from hat_GKV_Zusatzbeitrag;
+select * from ist_in_gkv;
 
 select insert_krankenversicherungsbeitraege(1, 7.3, 7.3, 68000.00, 72000.45, '2023-12-15');
 select * from Krankenversicherungen;
@@ -22,11 +22,33 @@ select * from GKV_Beitraege;
 select * from hat_GKV_Beitraege;
 select * from hat_gesetzliche_Krankenversicherung;
 
-select * from insert_arbeitslosenversicherungsbeitraege (1, 3.0, 3.0, 57456.12, 60000, '2023-12-15');
+select insert_arbeitslosenversicherungsbeitraege(1, 3.0, 3.0, 57456.12, 60000, '2023-12-15');
 select * from Arbeitslosenversicherungen;
 select * from Arbeitslosenversicherungsbeitraege;
-select * from hat_gesetzliche_Arbeitslosenversicherung;
 select * from hat_AV_Beitraege;
+select * from hat_gesetzliche_Arbeitslosenversicherung;
+
+select insert_rentenversicherungsbeitraege(1, 9.8, 9.8, 78564.12, 81245.65, '2023-12-15');
+select * from Rentenversicherungen;
+select * from Rentenversicherungsbeitraege;
+select * from hat_RV_Beitraege;
+select * from hat_gesetzliche_Rentenversicherung;
+
+select insert_anzahl_kinder_an_pv_beitrag(1, 0, 1.7, 68000.00, 72000.45, '2023-12-15');
+select insert_anzahl_kinder_an_pv_beitrag(1, 1, 1.7, 68000.00, 72000.45, '2023-12-15');
+select * from Anzahl_Kinder_unter_25;
+select * from AN_Pflegeversicherungsbeitraege_gesetzlich;
+select * from hat_gesetzlichen_AN_PV_Beitragssatz;
+select * from hat_x_Kinder_unter_25;
+
+select insert_Sachsen(1, true, 1.7, '2023-12-15');
+select insert_Sachsen(1, true, 1.2, '2023-12-15');
+select insert_Sachsen(1, false, 1.2, '2023-12-15');
+select * from wohnhaft_Sachsen;
+select * from AG_Pflegeversicherungsbeitraege_gesetzlich;
+select * from hat_gesetzlichen_AG_PV_Beitragssatz;
+select * from wohnt_in_Sachsen;
+
 
 select insert_mitarbeiterdaten(-- Tabelle Mitarbeiter
 							   1,								-- Mandant_ID
@@ -85,19 +107,11 @@ select insert_mitarbeiterdaten(-- Tabelle Mitarbeiter
 							   'Kaufmaennische Krankenkasse',	-- Mitglied gesetzliche Krankenkasse (vollständiger Name)
 							   'KKH',							-- Mitglied gesetzliche Krankenkasse (Abkürzung)
 							   0,								-- Anzahl Kinder
-							   2.3,								-- AN-Pflegeversicherungsbeitrag in Prozent
-							   65000,							-- Beitragsbemessungsgrenze Pflegeversicherung Ost
-							   68000,							-- Beitragsbemessungsgrenze Pflegeversicherung West
 							   true,							-- wohnhaft Sachsen?
-							   1.2,								-- AG-Pflegeversicherungsbeitrag in Prozent
 							   -- Bereich 'Arbeitslosenversicherung'
 							   true,							-- Arbeitslosenversichert?
 							   -- Bereich 'Rentenversicherung'
-							   true,							-- Rentenversichert?
-							   9.8,								-- AG-Rentenbeitrag in Prozent
-							   9.8,								-- AN-Rentenbeitrag in Prozent
-							   85000.25,						-- Beitragsbemessungsgrenze Rente Ost
-							   88000							-- Beitragsbemessungsgrenze Rente West
+							   true							-- Rentenversichert?
 							   );
 					  
 select update_adresse(1, 'M100001', '2026-01-01', '2025-12-31', 'Hofzeichendamm', '5', '13125', 'Berlin', 'Berlin', 'Deutschland');
