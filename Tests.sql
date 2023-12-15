@@ -49,13 +49,21 @@ select * from AG_Pflegeversicherungsbeitraege_gesetzlich;
 select * from hat_gesetzlichen_AG_PV_Beitragssatz;
 select * from wohnt_in_Sachsen;
 
+select insert_Tarif(1,'A5-1', 'Verdi', 3449.63, 2000, 2000, '9999-12-31');
+select insert_Tarif(1,'A5-2', 'Verdi', 3863.12, 2200, 2200, '9999-12-31');
+select * from Verguetungen;
+select * from Tarife;
+select * from Gewerkschaften;
+select * from hat_Verguetung;
+select * from hat_Tarif;
+select * from Aussertarifliche;
 
 select insert_mitarbeiterdaten(-- Tabelle Mitarbeiter
-							   1,								-- Mandant_ID
-							   'M100001',						-- Personalnummer	
-							   'Max',							-- Vorname
+							   1,								-- Mandant_ID 
+							   'M100002',						-- Personalnummer 
+							   'Erika',							-- Vorname
 							   '',								-- Zweitname
-							   'Mustermann',					-- Nachname
+							   'Musterfrau',					-- Nachname
 							   '1992-12-12',					-- Geburtsdatum
 							   '2024-01-01',					-- Eintrittsdatum
 							   '11 111 111 111',				-- Steuernummer
@@ -92,12 +100,12 @@ select insert_mitarbeiterdaten(-- Tabelle Mitarbeiter
 							   'Bundesdruckerei GmbH',			-- Gesellschaft
 							   'BDr',							-- Abkuerzung Gesellschaft
 							   -- Bereich 'Entgelt'	
-							   true,							-- tarifbeschaeftigt?		
-							   'Verdi',							-- Gewerkschaft				
+							   false,							-- tarifbeschaeftigt?		
 							   'A5-1',							-- Tarif
+							   --'Verdi',							-- Gewerkschaft	
 							   3500.25,							-- Grundgehalt
-							   null,							-- Weihnachtsgeld
-							   null,							-- Urlaubsgeld
+							   0,								-- Weihnachtsgeld
+							   0,								-- Urlaubsgeld
 							   -- Bereich 'Kranken- und Pflegeversicherung'
 							   false,							-- privat krankenversichert
 							   200.25,							-- Zuschuss private Krankenversicherung

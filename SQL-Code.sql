@@ -103,40 +103,37 @@ drop table if exists hat_RV_Beitraege;
 drop table if exists Rentenversicherungsbeitraege;
 drop table if exists Rentenversicherungen;
 
-drop table if exists hat_RVBeitraege;
-drop table if exists Rentenversicherungsbeitraege_gesetzlich;  
-
 drop table if exists mitarbeiter;
 drop table if exists Austrittsgruende;
 drop table if exists Kategorien_Austrittsgruende;
 drop table if exists Nutzer;
 drop table if exists Mandanten;
 
-
 drop function if exists mandant_anlegen(varchar(128));
 drop function if exists nutzer_anlegen(integer, varchar(32), varchar(64), varchar(64));
 drop function if exists nutzer_entfernen(integer, varchar(32));
 drop function if exists pruefe_einmaligkeit_personalnummer(integer, varchar(64), varchar(32));
 
--- Löschung der Stored Procedures für Use Case "Eintrag neue Krankenversicherungsbeitraege"
+-- Loeschung der Stored Procedures für Use Case "Eintrag neue Krankenversicherungsbeitraege"
 drop function if exists insert_krankenversicherungsbeitraege(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
--- Löschung der Stored Procedures für Use Case "Eintrag neue Krankenkasse"
+-- Loeschung der Stored Procedures für Use Case "Eintrag neue Krankenkasse"
 drop function if exists insert_Krankenkasse(integer, varchar(128), varchar(16), decimal(5, 3), date);
 
--- Löschung der Stored Procedures für Use Case "Eintrag neue Kinderanzahl"
+-- Loeschung der Stored Procedures für Use Case "Eintrag neue Kinderanzahl"
 drop function if exists insert_anzahl_kinder_an_pv_beitrag(integer, integer, decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
--- Löschung der Stored Procedures für Use Case "Eintrag Sachsen"
+-- Loeschung der Stored Procedures für Use Case "Eintrag Sachsen"
 drop function if exists insert_Sachsen (integer, boolean, decimal(5, 3), date);
 
--- Löschung der Stored Procedures für Use Case "Eintrag neue Arbeitslosenversicherungsbeitraege"
+-- Loeschung der Stored Procedures für Use Case "Eintrag neue Arbeitslosenversicherungsbeitraege"
 drop function if exists insert_arbeitslosenversicherungsbeitraege(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
--- Löschung der Stored Procedures für Use Case "Eintrag neue Rentenversicherungsbeitraege"
+-- Loeschung der Stored Procedures für Use Case "Eintrag neue Rentenversicherungsbeitraege"
 drop function if exists insert_rentenversicherungsbeitraege(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
-
+-- Loeschung der Stored Procedures für Use Case "Eintrag Tarif"
+drop function if exists insert_Tarif(integer, varchar(16), varchar(64), decimal(10, 2), decimal(10,2), decimal(10, 2), date);
 
 -- Löschung der Stored Procedures für Use Case "Eintrag neuer Mitarbeiter"
 drop function if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), 
@@ -181,33 +178,16 @@ drop function if exists insert_tbl_hat_jobtitel(integer, varchar(32), varchar(32
 drop function if exists insert_tbl_gesellschaften(integer, varchar(128), varchar (16));
 drop function if exists insert_tbl_in_gesellschaft(integer, varchar(32), varchar(128), date);
 
-drop function if exists insert_tbl_gewerkschaften (integer, varchar(255));
-drop function if exists insert_tbl_tarife (integer, varchar(16), varchar(255));
 drop function if exists insert_tbl_hat_tarif(integer, varchar(32), varchar(16), date);
-drop function if exists insert_tbl_verguetungen(integer, decimal(10, 2), decimal(10,2), decimal(10, 2));
-drop function if exists insert_tbl_hat_verguetung(integer, varchar(16), decimal(10, 2), decimal(10,2), decimal(10, 2), date);
-drop function if exists insert_tbl_aussertarifliche (varchar(32), integer, date, decimal(10, 2), decimal(10,2), decimal(10, 2));
+drop function if exists insert_tbl_aussertarifliche(varchar(32), integer, date, decimal(10, 2), decimal(10,2), decimal(10, 2));
 
 drop function if exists insert_tbl_privat_krankenversicherte (varchar(32), integer, date, decimal(10, 2), decimal(10,2), decimal(10, 2));
-
-
-
-
-
 drop function if exists insert_tbl_ist_in_gkv(integer, varchar(32), varchar(128), varchar(16), date);
 drop function if exists insert_tbl_hat_gesetzliche_Krankenversicherung(integer, varchar(32), date);
 drop function if exists insert_tbl_hat_gesetzliche_arbeitslosenversicherung(integer, varchar(32), date);
 drop function if exists insert_tbl_hat_gesetzliche_rentenversicherung(integer, varchar(32), date);
 drop function if exists insert_tbl_hat_x_kinder_unter_25(integer, varchar(32), integer, date);
-
-
-
-
-
 drop function if exists insert_tbl_wohnt_in_sachsen(integer, varchar(32), boolean, date);
-
-
-
 
 -- Löschung der Stored Procedures für Use Case "Update Kündigung Mitarbeiter"
 drop function if exists update_adresse(integer, varchar(32), date, date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128));
@@ -773,8 +753,8 @@ create table Verguetungen (
 	Verguetung_ID serial primary key,
 	Mandant_ID integer not null,
 	Grundgehalt_monat decimal(10, 2) not null,
-	Weihnachtsgeld decimal(10,2),
-	Urlaubsgeld decimal (10, 2),
+	Weihnachtsgeld decimal(10,2) not null,
+	Urlaubsgeld decimal (10, 2) not null,
 	unique(Mandant_ID, Grundgehalt_monat, Weihnachtsgeld, Urlaubsgeld),
 	constraint fk_verguetungen_mandanten
 		foreign key (Mandant_ID) 
@@ -814,8 +794,8 @@ create table Aussertarifliche (
 	Datum_Von date not null,
 	Datum_Bis date not null,
 	Grundgehalt_monat decimal(10, 2) not null,
-	Weihnachtsgeld decimal(10,2),
-	Urlaubsgeld decimal (10, 2),
+	Weihnachtsgeld decimal(10,2) not null,
+	Urlaubsgeld decimal(10, 2) not null,
 	unique(Mitarbeiter_ID, Datum_Bis),
 	constraint fk_aussertarifliche_mitarbeiter
 		foreign key (Mitarbeiter_ID)
@@ -1987,6 +1967,87 @@ language plpgsql;
 
 
 ----------------------------------------------------------------------------------------------------------------
+-- Stored Procedures für Use Case "Eintrag Tarif"
+
+/*
+ * Funktion trägt neue Tarif-Daten ein.
+ */
+create or replace function insert_Tarif (
+	p_mandant_id integer,
+	p_tarifbezeichnung varchar(16),
+	p_gewerkschaft varchar(64),
+	p_grundgehalt_monat decimal(10, 2),
+	p_weihnachtsgeld decimal(10,2),
+	p_urlaubsgeld decimal(10, 2),
+	p_eintragungsdatum date
+) returns void as
+$$
+declare
+	v_gewerkschaft_id integer;
+	v_tarif_id integer;
+	v_verguetung_id integer;
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+    
+   	-- Pruefen, ob Gewerkschaft bereits vorhanden ist...
+   	execute 'SELECT gewerkschaft_id FROM gewerkschaften WHERE gewerkschaft = $1' into v_gewerkschaft_id using p_gewerkschaft;
+    
+    -- ... und falls sie noch nicht existiert, dann eintragen
+    if v_gewerkschaft_id is null then
+		insert into Gewerkschaften(Mandant_ID, Gewerkschaft)
+			values(p_mandant_id, p_gewerkschaft);
+		
+		-- Gewerkschaft_ID in Variable speichern, da diese als Fremdschluessel in Tabelle 'Tarife' benoetigt wird
+		execute 'SELECT gewerkschaft_id FROM gewerkschaften WHERE gewerkschaft = $1' into v_gewerkschaft_id using p_gewerkschaft;
+    end if;
+   
+    -- Pruefen, ob Tarif bereits vorhanden ist...
+    execute 'SELECT tarif_id FROM Tarife WHERE tarifbezeichnung = $1' into v_tarif_id using p_tarifbezeichnung;
+   
+    if v_tarif_id is null then
+   		insert into Tarife(Mandant_ID, Tarifbezeichnung, Gewerkschaft_ID)
+   			values(p_mandant_id, p_tarifbezeichnung, v_gewerkschaft_id);
+   		
+   		-- Tarif_ID in Variable speichern, da diese als Teil des Primaerschluessels in Tabelle 'hat_Verguetung' benoetigt wird
+   		execute 'SELECT tarif_id FROM Tarife WHERE tarifbezeichnung = $1' into v_tarif_id using p_tarifbezeichnung;
+    end if;
+   
+    -- Pruefen, ob Verguetung bereits vorhanden ist,
+    execute 'SELECT verguetung_id FROM verguetungen WHERE grundgehalt_monat = $1 AND weihnachtsgeld = $2 AND urlaubsgeld = $3'
+   		into v_verguetung_id using p_grundgehalt_monat, p_weihnachtsgeld, p_urlaubsgeld;
+   	
+   	-- ... und falls sie noch nicht existiert, dann eintragen
+   	if v_verguetung_id is null then
+   		insert into Verguetungen(Mandant_ID, Grundgehalt_monat, Weihnachtsgeld, Urlaubsgeld)
+   			values(p_mandant_id, p_grundgehalt_monat, p_weihnachtsgeld, p_urlaubsgeld);
+   		
+   		-- Verguetung_ID in Variable speichern, weil sie als Fremdschluessel in Tabelle 'hat_Verguetung' benoetigt wird
+   		execute 'SELECT verguetung_id FROM verguetungen WHERE grundgehalt_monat = $1 AND weihnachtsgeld = $2 AND urlaubsgeld = $3'
+   			into v_verguetung_id using p_grundgehalt_monat, p_weihnachtsgeld, p_urlaubsgeld;
+   	end if;
+   
+    -- Assoziationstabelle 'hat_Verguetung', welche die Tabellen 'Tarife' und 'Verguetungen' verbindet. mit entsprechenden Daten befuellen,
+    insert into hat_Verguetung(Tarif_ID, Verguetung_ID, Mandant_ID, Datum_Von, Datum_Bis)
+    	values(v_tarif_id, v_verguetung_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
+   
+ 	exception
+        when unique_violation then
+        	set role postgres;
+            raise notice 'Diese RV-Beitragssätze und RV-Beitragsbemessungsgrenzen sind bereits aktuell!';
+
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------
 -- Stored Procedures für Use Case "Eintrag neuer Mitarbeiter"
 
 /*
@@ -2726,67 +2787,6 @@ $$
 language plpgsql;
 
 /*
- * Funktion trägt neue Daten in Tabelle 'Gewerkschaften' ein.
- */
-create or replace function insert_tbl_gewerkschaften (
-	p_mandant_id integer,
-	p_gewerkschaft varchar(64)
-) returns void as
-$$
-begin
-    
-    set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    insert into 
-   		Gewerkschaften(Mandant_ID, Gewerkschaft)
-   	values 
-   		(p_mandant_id, p_gewerkschaft);
-   	
-    exception
-        when unique_violation then
-            raise notice 'Gewerkschaft ''%'' bereits vorhanden!', p_gesellschaft;
-    
-    set role postgres;
-
-end;
-$$
-language plpgsql;
-
-/*
- * Funktion trägt neue Daten in Tabelle 'Tarife' ein.
- */
-create or replace function insert_tbl_tarife (
-	p_mandant_id integer,
-	p_tarifbezeichnung varchar(16),
-	p_gewerkschaft varchar(64)
-) returns void as
-$$
-declare
-	v_gewerkschaft_id integer;
-begin
-    
-    set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-   
-    execute 'SELECT gewerkschaft_ID FROM gewerkschaften WHERE gewerkschaft = $1' into v_gewerkschaft_id using p_gewerkschaft;
-
-    insert into 
-   		Tarife(Mandant_ID, Tarifbezeichnung, Gewerkschaft_ID)
-   	values 
-   		(p_mandant_id, p_tarifbezeichnung, v_gewerkschaft_id);
-   	
-    exception
-        when unique_violation then
-            raise notice 'Gewerkschaft ''%'' bereits vorhanden!', p_gesellschaft;
-    
-    set role postgres;
-
-end;
-$$
-language plpgsql;
-
-/*
  * Funktion trägt die Daten in die Assoziation "hat_Tarif" ein
  */
 create or replace function insert_tbl_hat_tarif(
@@ -2809,81 +2809,6 @@ begin
     
     insert into hat_Tarif(Mitarbeiter_ID, Tarif_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_ID, v_tarif_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-   	
-   	exception
-        when unique_violation then
-            raise notice 'Mitarbeiter ist bereits in dieser Gesellschaft!';
-	
-   	set role postgres;
-   	
-end;
-$$
-language plpgsql;
-
-/*
- * Funktion trägt neue Daten in Tabelle 'Verguetungen' ein.
- */
-create or replace function insert_tbl_verguetungen (
-	p_mandant_id integer,
-	p_grundgehalt_monat decimal(10, 2),
-	p_weihnachtsgeld decimal(10,2),
-	p_urlaubsgeld decimal(10, 2)
-) returns void as
-$$
-begin
-	
-    set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-	
-    insert into 
-   		Verguetungen(Mandant_ID, Grundgehalt_monat, Weihnachtsgeld, Urlaubsgeld)
-   	values 
-   		(p_mandant_id, p_grundgehalt_monat, p_weihnachtsgeld, p_urlaubsgeld);
-   	
-    exception
-        when unique_violation then
-            raise notice 'Diese Verguetungszahlen sind bereits vorhanden!';
-    
-    set role postgres;
-	
-end;
-$$
-language plpgsql;
-
-/*
- * Funktion trägt die Daten in die Assoziation "hat_Verguetung" ein
- */
-create or replace function insert_tbl_hat_verguetung(
-	p_mandant_id integer,
-	p_tarifbezeichnung varchar(16),
-	p_grundgehalt_monat decimal(10, 2),
-	p_weihnachtsgeld decimal(10,2),
-	p_urlaubsgeld decimal(10, 2),
-	p_eintrittsdatum date
-) returns void as
-$$
-declare
-	v_tarif_id integer;
-	v_verguetung_id integer;
-begin
-	
-	set session role tenant_user;
-	execute 'SET app.current_tenant=' || p_mandant_id;
-	
-	execute 'SELECT tarif_ID FROM tarife WHERE tarifbezeichnung = $1' into v_tarif_id using p_tarifbezeichnung;
-
-	if p_weihnachtsgeld is null and p_urlaubsgeld is null then
-		execute 'SELECT verguetung_id FROM verguetungen WHERE grundgehalt_monat = $1' into v_verguetung_id using p_grundgehalt_monat;
-	elseif p_weihnachtsgeld is null and p_urlaubsgeld is not null then
-		execute 'SELECT verguetung_id FROM verguetungen WHERE grundgehalt_monat = $1 and urlaubsgeld = $2' into v_verguetung_id using p_grundgehalt_monat, p_urlaubsgeld;
-	elseif p_weihnachtsgeld is not null and p_urlaubsgeld is null then
-		execute 'SELECT verguetung_id FROM verguetungen WHERE grundgehalt_monat = $1 and weihnachtsgeld = $2' into v_verguetung_id using p_grundgehalt_monat, p_weihnachtsgeld;
-	else 
-		execute 'SELECT verguetung_id FROM verguetungen WHERE grundgehalt_monat = $1 and weihnachtsgeld = $2 and urlaubsgeld = $3' into v_verguetung_id using p_grundgehalt_monat, p_weihnachtsgeld, p_urlaubsgeld;
-	end if;
-
-    insert into hat_Verguetung(Tarif_ID, Verguetung_ID, Mandant_ID, Datum_Von, Datum_Bis)
-   		values (v_tarif_id, v_verguetung_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
    	
    	exception
         when unique_violation then
@@ -3258,11 +3183,11 @@ create or replace function insert_mitarbeiterdaten(
 	p_abk_gesellschaft varchar(16),
 	-- Bereich 'Entgelt'
 	p_tarifbeschaeftigt boolean,
-	p_gewerkschaft varchar(64),
 	p_tarifbezeichnung varchar(16),
-	p_grundgehalt_monat decimal(10, 2),
-	p_weihnachtsgeld decimal(10,2),
-	p_urlaubsgeld decimal(10, 2),
+	--p_gewerkschaft varchar(64),
+	p_grundgehalt_monat_aussertariflich decimal(10, 2),
+	p_weihnachtsgeld_aussertariflich decimal(10,2),
+	p_urlaubsgeld_aussertariflich decimal(10, 2),
 	-- Bereich 'Kranken- und Pflegeversicherung'
 	p_privat_krankenversichert boolean,
 	p_ag_zuschuss_krankenversicherung decimal(10, 2),
@@ -3358,21 +3283,21 @@ begin
 		perform insert_tbl_in_gesellschaft(p_mandant_id, p_personalnummer, p_gesellschaft, p_eintrittsdatum);
 	end if;
 	
-	-- sofern neuer Mitarbeiter tariflich bezahlt wird und die Parameter 'p_gewerkschaft', 'p_tarifbezeichnung' und 'p_grundgehalt_monat'
-	-- nicht null sind, den Bereich 'tarifbeschaeftigt' befüllen
-	if p_tarifbeschaeftigt is true then
-		if p_gewerkschaft is not null and p_tarifbezeichnung is not null and p_grundgehalt_monat is not null then
-			perform insert_tbl_gewerkschaften(p_mandant_id, p_gewerkschaft);
-			perform insert_tbl_tarife(p_mandant_id, p_tarifbezeichnung, p_gewerkschaft);
-			perform insert_tbl_hat_tarif(p_mandant_id, p_personalnummer, p_tarifbezeichnung, p_eintrittsdatum);
-			perform insert_tbl_verguetungen(p_mandant_id, p_grundgehalt_monat, p_weihnachtsgeld, p_urlaubsgeld);
-			perform insert_tbl_hat_verguetung(p_mandant_id, p_tarifbezeichnung, p_grundgehalt_monat, p_weihnachtsgeld, p_urlaubsgeld, p_eintrittsdatum);
-		end if;
-	else
-		if p_grundgehalt_monat is not null then
-			perform insert_tbl_Aussertarifliche(p_personalnummer, p_mandant_id, p_eintrittsdatum, p_grundgehalt_monat, p_weihnachtsgeld, p_urlaubsgeld);
-		end if;
+	-- sofern neuer Mitarbeiter tariflich bezahlt wird, dann Tarif zuordnen...
+	if p_tarifbeschaeftigt is true and p_tarifbezeichnung is not null then 
+		perform insert_tbl_hat_tarif(p_mandant_id, p_personalnummer, p_tarifbezeichnung, p_eintrittsdatum);
 	end if;
+	
+	-- ... alternativ ist Mitarbeiter aussertariflich
+	if p_tarifbeschaeftigt is false then
+		perform insert_tbl_Aussertarifliche(p_personalnummer, 
+											p_mandant_id, 
+											p_eintrittsdatum, 
+											p_grundgehalt_monat_aussertariflich, 
+											p_weihnachtsgeld_aussertariflich, 
+											p_urlaubsgeld_aussertariflich);
+	end if;
+
 	
 	if p_privat_krankenversichert then
 		perform insert_tbl_privatkrankenversicherte(p_personalnummer, p_mandant_id, p_eintrittsdatum,  p_ag_zuschuss_krankenversicherung, p_ag_zuschuss_zusatzbeitrag, p_ag_zuschuss_pflegeversicherung);
