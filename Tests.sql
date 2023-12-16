@@ -3,26 +3,45 @@ set search_path to public;
 set search_path to temp_test_schema;
 
 set session role tenant_user;
-SET app.current_tenant=1;
+SET app.current_tenant=2;
 
 set role postgres;
+select mandant_anlegen('beispielfirma');
 select mandant_anlegen('testu');
 select nutzer_anlegen(1, 'M00001', 'Max', 'Mustermann');
 
-select insert_Krankenkasse(1, 'Kaufmaennische Krankenkasse', 'KKH', 1.5, '2023-12-15');
+select insert_krankenversicherungsbeitraege(1, false, 7.3, 7.3, 68000.00, 72000.45, '2023-12-15');
+select insert_krankenversicherungsbeitraege(1, true, 7.3, 7.3, 68000.00, 72000.45, '2023-12-15');
+select * from Krankenversicherungen;
+select * from GKV_Beitraege;
+select * from hat_GKV_Beitraege;
+select * from hat_gesetzliche_Krankenversicherung;
+select update_krankenversicherungsbeitraege(1, false, 7.8, 7.8, 80000, 82000.75,'2024-12-31', '2025-01-01');
+
+
+select insert_Krankenkasse(1, 'Kaufmaennische Krankenkasse', 'KKH', 1.6, '2023-12-15');
 select insert_Krankenkasse(1, 'Technische Krankenkasse', 'TK', 1.5, '2023-12-15');
+select insert_Krankenkasse(1, 'BARMER', 'BAR', 1.5, '2023-12-15');
 select * from krankenkassen;
 select * from GKV_Zusatzbeitraege;
 select * from hat_GKV_Zusatzbeitrag;
 select * from ist_in_gkv;
 
-select insert_krankenversicherungsbeitraege(1, 7.3, 7.3, 68000.00, 72000.45, '2023-12-15');
-select * from Krankenversicherungen;
-select * from GKV_Beitraege;
-select * from hat_GKV_Beitraege;
-select * from hat_gesetzliche_Krankenversicherung;
+select insert_anzahl_kinder_an_pv_beitrag(1, 0, 1.9, 68000.00, 72000.45, '2023-12-15');
+select insert_anzahl_kinder_an_pv_beitrag(1, 1, 1.9, 68000.00, 72000.45, '2023-12-15');
+select * from Anzahl_Kinder_unter_25;
+select * from AN_Pflegeversicherungsbeitraege_gesetzlich;
+select * from hat_gesetzlichen_AN_PV_Beitragssatz;
+select * from hat_x_Kinder_unter_25;
 
-select insert_arbeitslosenversicherungsbeitraege(1, 3.0, 3.0, 57456.12, 60000, '2023-12-15');
+select insert_Sachsen(1, true, 1.2, '2023-12-15');
+select insert_Sachsen(1, false, 1.2, '2023-12-15');
+select * from wohnhaft_Sachsen;
+select * from AG_Pflegeversicherungsbeitraege_gesetzlich;
+select * from hat_gesetzlichen_AG_PV_Beitragssatz;
+select * from wohnt_in_Sachsen;
+
+select insert_arbeitslosenversicherungsbeitraege(1, 3.2, 3.2, 57456.12, 60000, '2023-12-15');
 select * from Arbeitslosenversicherungen;
 select * from Arbeitslosenversicherungsbeitraege;
 select * from hat_AV_Beitraege;
@@ -34,21 +53,6 @@ select * from Rentenversicherungsbeitraege;
 select * from hat_RV_Beitraege;
 select * from hat_gesetzliche_Rentenversicherung;
 
-select insert_anzahl_kinder_an_pv_beitrag(1, 0, 1.7, 68000.00, 72000.45, '2023-12-15');
-select insert_anzahl_kinder_an_pv_beitrag(1, 1, 1.7, 68000.00, 72000.45, '2023-12-15');
-select * from Anzahl_Kinder_unter_25;
-select * from AN_Pflegeversicherungsbeitraege_gesetzlich;
-select * from hat_gesetzlichen_AN_PV_Beitragssatz;
-select * from hat_x_Kinder_unter_25;
-
-select insert_Sachsen(1, true, 1.7, '2023-12-15');
-select insert_Sachsen(1, true, 1.2, '2023-12-15');
-select insert_Sachsen(1, false, 1.2, '2023-12-15');
-select * from wohnhaft_Sachsen;
-select * from AG_Pflegeversicherungsbeitraege_gesetzlich;
-select * from hat_gesetzlichen_AG_PV_Beitragssatz;
-select * from wohnt_in_Sachsen;
-
 select insert_Tarif(1,'A5-1', 'Verdi', 3449.63, 2000, 2000, '9999-12-31');
 select insert_Tarif(1,'A5-2', 'Verdi', 3863.12, 2200, 2200, '9999-12-31');
 select * from Verguetungen;
@@ -57,6 +61,24 @@ select * from Gewerkschaften;
 select * from hat_Verguetung;
 select * from hat_Tarif;
 select * from Aussertarifliche;
+
+select insert_Minijob(1, false, 13.0, 15, 3.6, 1.1, 0.24, 0.06, 2.0, '2023-12-15');
+select * from minijobs;
+select * from pauschalabgaben;
+select * from hat_Pauschalabgaben;
+
+SELECT 
+				pauschalabgabe_id
+			 FROM 
+				pauschalabgaben
+			 WHERE 
+				ag_krankenversicherungsbeitrag_in_prozent,
+				ag_rentenversicherungsbeitrag_in_prozent,
+				an_rentenversicherungsbeitrag_in_prozent,
+				u1_umlage_in_prozent,
+				u2_umlage_in_prozent,
+				insolvenzgeldumlage_in_prozent,
+				pauschalsteuer_in_prozent;
 
 select insert_mitarbeiterdaten(-- Tabelle Mitarbeiter
 							   1,								-- Mandant_ID 
@@ -100,18 +122,18 @@ select insert_mitarbeiterdaten(-- Tabelle Mitarbeiter
 							   'Bundesdruckerei GmbH',			-- Gesellschaft
 							   'BDr',							-- Abkuerzung Gesellschaft
 							   -- Bereich 'Entgelt'	
-							   false,							-- tarifbeschaeftigt?		
+							   true,							-- tarifbeschaeftigt?		
 							   'A5-1',							-- Tarif
-							   --'Verdi',							-- Gewerkschaft	
+							   'Verdi',							-- Gewerkschaft	
 							   3500.25,							-- Grundgehalt
 							   0,								-- Weihnachtsgeld
 							   0,								-- Urlaubsgeld
 							   -- Bereich 'Kranken- und Pflegeversicherung'
 							   false,							-- privat krankenversichert
 							   200.25,							-- Zuschuss private Krankenversicherung
-							   20.02,							-- Zuschuss privater Zusatzbeitrag
 							   53.72,							-- Zuschuss private Pflegeversicherung
 							   true,							-- gesetzlich versichert?
+							   false,							-- ermaessigter KV_Beitragssatz?
 							   'Kaufmaennische Krankenkasse',	-- Mitglied gesetzliche Krankenkasse (vollständiger Name)
 							   'KKH',							-- Mitglied gesetzliche Krankenkasse (Abkürzung)
 							   0,								-- Anzahl Kinder
@@ -119,13 +141,13 @@ select insert_mitarbeiterdaten(-- Tabelle Mitarbeiter
 							   -- Bereich 'Arbeitslosenversicherung'
 							   true,							-- Arbeitslosenversichert?
 							   -- Bereich 'Rentenversicherung'
-							   true							-- Rentenversichert?
+							   true								-- Rentenversichert?
 							   );
 					  
-select update_adresse(1, 'M100001', '2026-01-01', '2025-12-31', 'Hofzeichendamm', '5', '13125', 'Berlin', 'Berlin', 'Deutschland');
+select update_adresse(1, 'M100002', '2025-12-31', '2026-01-01', 'Hofzeichendamm', '5', '13125', 'Berlin', 'Berlin', 'Deutschland');
 
 select insert_tbl_mitarbeiter(1,
-							   'M100002',
+							   'M100001',
 							   'Erika',
 							   '',
 							   'Musterfrau',
@@ -140,6 +162,7 @@ select insert_tbl_mitarbeiter(1,
 							   'Mustermann@testfirma.de',
 							   null);
 
+
 select update_adresse(1,
 						'M100002',
 						'2024-01-01',
@@ -152,7 +175,7 @@ select update_adresse(1,
 						'Deutschland'
 );
 
-select update_mitarbeiterentlassung(1, 'M100002', '2024-12-31', 'Umsatzrueckgang', 'betrieblich');
+select update_mitarbeiterentlassung(1, 'M100002', '2026-12-31', 'Umsatzrueckgang', 'betrieblich');
 
 
 
@@ -163,6 +186,13 @@ select delete_mandantendaten(1);
 select * from mandanten;
 select * from nutzer;
 select * from mitarbeiter;
+
+UPDATE mitarbeiter SET vorname = 'Maria' where mitarbeiter_id = 1;
+
+set role postgres;
+set session role tenant_user;
+SET app.current_tenant=1;
+UPDATE mitarbeiter SET mandant_id = 2 where mitarbeiter_id = 1;
 
 -- Bereich 'Austritt'
 select * from austrittsgruende;
