@@ -11,7 +11,7 @@ select mandant_anlegen('testu');
 select nutzer_anlegen(1, 'M00001', 'Max', 'Mustermann');
 
 select insert_krankenversicherungsbeitraege(1, false, 7.3, 7.3, 68000.00, 72000.45, '2023-12-15');
-select insert_krankenversicherungsbeitraege(1, true, 7.3, 7.3, 68000.00, 72000.45, '2023-12-15');
+select insert_krankenversicherungsbeitraege(1, true, 7.0, 7.0, 68000.00, 72000.45, '2023-12-15');
 select * from Krankenversicherungen;
 select * from GKV_Beitraege;
 select * from hat_GKV_Beitraege;
@@ -63,22 +63,13 @@ select * from hat_Tarif;
 select * from Aussertarifliche;
 
 select insert_Minijob(1, false, 13.0, 15, 3.6, 1.1, 0.24, 0.06, 2.0, '2023-12-15');
+select insert_Minijob(1, true, 0, 0, 0, 1.1, 0.24, 0.06, 0, '2023-12-15');
 select * from minijobs;
 select * from pauschalabgaben;
 select * from hat_Pauschalabgaben;
+select * from ist_minijobber;
 
-SELECT 
-				pauschalabgabe_id
-			 FROM 
-				pauschalabgaben
-			 WHERE 
-				ag_krankenversicherungsbeitrag_in_prozent,
-				ag_rentenversicherungsbeitrag_in_prozent,
-				an_rentenversicherungsbeitrag_in_prozent,
-				u1_umlage_in_prozent,
-				u2_umlage_in_prozent,
-				insolvenzgeldumlage_in_prozent,
-				pauschalsteuer_in_prozent;
+
 
 select insert_mitarbeiterdaten(-- Tabelle Mitarbeiter
 							   1,								-- Mandant_ID 
@@ -132,8 +123,10 @@ select insert_mitarbeiterdaten(-- Tabelle Mitarbeiter
 							   false,							-- privat krankenversichert
 							   200.25,							-- Zuschuss private Krankenversicherung
 							   53.72,							-- Zuschuss private Pflegeversicherung
+							   true,							-- ist Minijobber?
+							   true,							-- kurzfristig beschaeftigt?
 							   true,							-- gesetzlich versichert?
-							   false,							-- ermaessigter KV_Beitragssatz?
+							   true,							-- ermaessigter KV_Beitragssatz?
 							   'Kaufmaennische Krankenkasse',	-- Mitglied gesetzliche Krankenkasse (vollständiger Name)
 							   'KKH',							-- Mitglied gesetzliche Krankenkasse (Abkürzung)
 							   0,								-- Anzahl Kinder

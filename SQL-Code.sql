@@ -188,11 +188,12 @@ drop function if exists insert_tbl_aussertarifliche(varchar(32), integer, date, 
 
 drop function if exists insert_tbl_privat_krankenversicherte (varchar(32), integer, date, decimal(10, 2), decimal(10,2));
 drop function if exists insert_tbl_ist_in_gkv(integer, varchar(32), varchar(128), varchar(16), date);
-drop function if exists insert_tbl_hat_gesetzliche_Krankenversicherung(integer, varchar(32), date);
+drop function if exists insert_tbl_hat_gesetzliche_Krankenversicherung(integer, varchar(32), boolean, date);
 drop function if exists insert_tbl_hat_gesetzliche_arbeitslosenversicherung(integer, varchar(32), date);
 drop function if exists insert_tbl_hat_gesetzliche_rentenversicherung(integer, varchar(32), date);
 drop function if exists insert_tbl_hat_x_kinder_unter_25(integer, varchar(32), integer, date);
 drop function if exists insert_tbl_wohnt_in_sachsen(integer, varchar(32), boolean, date);
+drop function if exists insert_tbl_ist_Minijobber(integer, varchar(32), boolean, date);
 
 -- Loeschung der Stored Procedure für Use Case "Update Adresse Mitarbeiter"
 drop function if exists update_adresse(integer, varchar(32), date, date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128));
@@ -1558,6 +1559,8 @@ create or replace function insert_mitarbeiterdaten(
 	p_privat_krankenversichert boolean,
 	p_ag_zuschuss_krankenversicherung decimal(10, 2),
 	p_ag_zuschuss_pflegeversicherung decimal(10, 2),
+	p_ist_minijobber boolean,
+	p_ist_kurzfristig_beschaeftigt boolean,
 	p_gesetzlich_krankenversichert boolean,
 	p_ermaessigter_kv_beitrag boolean,
 	p_krankenkasse varchar(128),
@@ -1672,20 +1675,24 @@ begin
 													 p_ag_zuschuss_pflegeversicherung);
 	end if;
 
-	if p_gesetzlich_krankenversichert then
+	if p_ist_minijobber then
+		perform insert_tbl_ist_Minijobber(p_mandant_id, p_personalnummer, p_ist_kurzfristig_beschaeftigt, p_eintrittsdatum);
+	end if;
+
+	if p_gesetzlich_krankenversichert and p_ist_kurzfristig_beschaeftigt is not true then
 	
-		perform insert_tbl_hat_gesetzliche_Krankenversicherung(p_mandant_id, p_personalnummer, p_eintrittsdatum);
+		perform insert_tbl_hat_gesetzliche_Krankenversicherung(p_mandant_id, p_personalnummer, p_ermaessigter_kv_beitrag, p_eintrittsdatum);
 		perform insert_tbl_ist_in_gkv(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
 		perform insert_tbl_hat_x_kinder_unter_25(p_mandant_id, p_personalnummer, p_anzahl_kinder, p_eintrittsdatum);
 		perform insert_tbl_wohnt_in_sachsen(p_mandant_id, p_personalnummer, p_in_sachsen, p_eintrittsdatum);									  
 
 	end if;
 
-	if p_arbeitslosenversichert then
+	if p_arbeitslosenversichert and p_ist_kurzfristig_beschaeftigt is not true then
 			perform insert_tbl_hat_gesetzliche_arbeitslosenversicherung(p_mandant_id, p_personalnummer, p_eintrittsdatum);
 	end if;
 	
-	if p_rentenversichert then
+	if p_rentenversichert and p_ist_kurzfristig_beschaeftigt is not true then
 		perform insert_tbl_hat_gesetzliche_rentenversicherung(p_mandant_id, p_personalnummer, p_eintrittsdatum);
 	end if;
 	
@@ -2542,6 +2549,7 @@ language plpgsql;
 create or replace function insert_tbl_hat_gesetzliche_Krankenversicherung(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
+	p_ermaessigter_kv_beitrag boolean,
 	p_eintrittsdatum date
 ) returns void as
 $$
@@ -2553,26 +2561,30 @@ begin
 	set session role tenant_user;
 	execute 'SET app.current_tenant=' || p_mandant_id;
 		
-	-- Pruefen, ob Mandant bereits Eintrag in Tabelle Krankenversicherungen hat...
-	execute 'SELECT krankenversicherung_id FROM krankenversicherungen WHERE mandant_id = $1' into v_krankenversicherung_id using p_mandant_id;
+	-- Pruefen, ob Wahrheitswert fuer ermaessigten Beitragssatz bereits in Tabelle 'Krankenversicherungen' hinterlegt ist...
+	execute 'SELECT krankenversicherung_id FROM krankenversicherungen WHERE ermaessigter_beitragssatz = $1' into v_krankenversicherung_id using p_ermaessigter_kv_beitrag;
     
     -- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Krankenversicherung hinterlegt werden muss!
     if v_krankenversicherung_id is null then
 		set role postgres;
-		raise exception 'Sie muessen erst KV-Beitraege und Beitragsbemessungsgrenzen anlegen, bevor Sie Mitarbeiter anlegen!';   
+		if p_ermaessigter_kv_beitrag then
+			raise exception 'Sie muessen erst noch die Moeglichkeit, ermaessigte Beitragssaetze zu beruecksichtigen, anlegen!';   
+		else
+			raise exception 'Sie muessen erst noch die Moeglichkeit, nicht ermaessigte Beitragssaetze zu beruecksichtigen, anlegen!'; 
+		end if;
     end if;
    
     execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
     
     insert into hat_gesetzliche_Krankenversicherung(Mitarbeiter_ID, Krankenversicherung_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_krankenversicherung_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-   	
-   	exception
-        when unique_violation then
-        	set role postgres;
-            raise notice 'Es ist bereits vermerkt, dass der Mitarbeiter gesetzlich krankenversichert ist!';
 	
    	set role postgres;
+
+exception
+    when unique_violation then
+    	set role postgres;
+        raise notice 'Es ist bereits vermerkt, dass der Mitarbeiter gesetzlich krankenversichert ist!';
    	
 end;
 $$
@@ -2611,13 +2623,13 @@ begin
     
     insert into ist_in_GKV(Mitarbeiter_ID, Krankenkasse_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_Krankenkasse_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-   	
-   	exception
-        when unique_violation then
-        	set role postgres;
-            raise notice 'Mitarbeiter ist bereits aktuell in Krankenkasse ''%'' vermerkt!', p_krankenkasse;
 	
    	set role postgres;
+
+exception
+    when unique_violation then
+    	set role postgres;
+        raise notice 'Mitarbeiter ist bereits aktuell in Krankenkasse ''%'' vermerkt!', p_krankenkasse;
    	
 end;
 $$
@@ -2649,12 +2661,13 @@ begin
     
     insert into hat_x_Kinder_unter_25(Mitarbeiter_ID, Anzahl_Kinder_unter_25_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_anzahl_kinder_unter25_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-   	
-   	exception
-        when unique_violation then
-            raise notice 'Aktuelle Anzahl der Kinder für Mitarbeiter ''%'' ist bereits vermerkt!', p_personalnummer;
 	
    	set role postgres;
+
+exception
+    when unique_violation then
+    	set role postgres;
+        raise notice 'Aktuelle Anzahl der Kinder für Mitarbeiter ''%'' ist bereits vermerkt!', p_personalnummer;
    	
 end;
 $$
@@ -2683,12 +2696,13 @@ begin
     
     insert into wohnt_in_sachsen(Mitarbeiter_ID, wohnhaft_Sachsen_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_wohnhaft_sachsen_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-   	
-   	exception
-        when unique_violation then
-            raise notice 'Es ist bereits vermerkt, ob Mitarbeiter ''%'' in Sachsen wohnt!', p_personalnummer;
 	
    	set role postgres;
+
+exception
+    when unique_violation then
+    	set role postgres;
+        raise notice 'Es ist bereits vermerkt, ob Mitarbeiter ''%'' in Sachsen wohnt!', p_personalnummer;
    	
 end;
 $$
@@ -2725,13 +2739,13 @@ begin
     
     insert into hat_gesetzliche_Arbeitslosenversicherung(Mitarbeiter_ID, Arbeitslosenversicherung_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_arbeitslosenversicherung_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-   	
-   	exception
-        when unique_violation then
-        	set role postgres;
-            raise notice 'Es ist bereits vermerkt, dass der Mitarbeiter gesetzlich arbeitslosenversichert ist!';
 	
    	set role postgres;
+
+exception
+    when unique_violation then
+    	set role postgres;
+        raise notice 'Es ist bereits vermerkt, dass der Mitarbeiter gesetzlich arbeitslosenversichert ist!';
    	
 end;
 $$
@@ -2768,22 +2782,64 @@ begin
     
     insert into hat_gesetzliche_Rentenversicherung(Mitarbeiter_ID, Rentenversicherung_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_rentenversicherung_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-   	
-   	exception
-        when unique_violation then
-        	set role postgres;
-            raise notice 'Es ist bereits vermerkt, dass der Mitarbeiter gesetzlich rentenversichert ist!';
 	
    	set role postgres;
+
+exception
+    when unique_violation then
+    	set role postgres;
+        raise notice 'Es ist bereits vermerkt, dass der Mitarbeiter gesetzlich rentenversichert ist!';
    	
 end;
 $$
 language plpgsql;
 
+/*
+ * Funktion trägt die Daten in die Assoziation "ist_Minijobber" ein
+ */
+create or replace function insert_tbl_ist_Minijobber(
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
+	p_ist_kurzfristig_beschaeftigt boolean,
+	p_eintrittsdatum date
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+	v_minijob_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+		
+	-- Pruefen, ob Wahrheitswert fuer kurzfristige Beschaeftigung bereits in Tabelle 'Minijobs' hinterlegt ist...
+	execute 'SELECT minijob_id FROM minijobs WHERE kurzfristig_beschaeftigt = $1' into v_minijob_id using p_ist_kurzfristig_beschaeftigt;
+    
+    -- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Krankenversicherung hinterlegt werden muss!
+    if v_minijob_id is null then
+		set role postgres;
+		if p_ist_kurzfristig_beschaeftigt then
+			raise exception 'Sie muessen erst noch die Moeglichkeit, kurzfristige Minijobs zu beruecksichtigen, anlegen!';   
+		else
+			raise exception 'Sie muessen erst noch die Moeglichkeit, nicht kurzfristige Minijobs zu beruecksichtigen, anlegen!'; 
+		end if;
+    end if;
+   
+    execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
+    
+    insert into ist_Minijobber(Mitarbeiter_ID, Minijob_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_mitarbeiter_id, v_minijob_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+	
+   	set role postgres;
 
-
-
-
+exception
+    when unique_violation then
+    	set role postgres;
+        raise notice 'Es ist bereits vermerkt, dass der Mitarbeiter Minijobber ist!';
+   	
+end;
+$$
+language plpgsql;
 
 ----------------------------------------------------------------------------------------------------------------
 -- Stored Procedures für Use Case "Eintrag neue Krankenversicherungsbeitraege"
