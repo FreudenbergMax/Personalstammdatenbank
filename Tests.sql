@@ -1,6 +1,6 @@
 -- Kontrolle
 set search_path to public;
-set search_path to temp_test_schema;
+--set search_path to temp_test_schema;
 
 set session role tenant_user;
 SET app.current_tenant=2;
@@ -19,15 +19,21 @@ select * from hat_gesetzliche_Krankenversicherung;
 select update_krankenversicherungsbeitraege(1, false, 7.8, 7.8, 80000, 82000.75,'2024-12-31', '2025-01-01');
 
 
-select insert_Krankenkasse(1, 'Kaufmaennische Krankenkasse', 'KKH', 1.6, '2023-12-15');
-select insert_Krankenkasse(1, 'Technische Krankenkasse', 'TK', 1.5, '2023-12-15');
-select insert_Krankenkasse(1, 'BARMER', 'BAR', 1.5, '2023-12-15');
-select * from krankenkassen;
+select insert_gesetzliche_Krankenkasse(1, 'Kaufmaennische Krankenkasse', 'KKH', 1.7, 1.6, 0.44, 0.06, 'gesetzlich', '2023-12-15');
+select * from gesetzliche_krankenkassen;
 select * from GKV_Zusatzbeitraege;
 select * from hat_GKV_Zusatzbeitrag;
 select * from ist_in_gkv;
+select * from umlagen;
+select * from hat_Umlagen_gesetzlich;
 
-select insert_anzahl_kinder_an_pv_beitrag(1, 0, 1.9, 68000.00, 72000.45, '2023-12-15');
+select insert_private_Krankenkasse(1, 'BARMER', 'BAR', 2.41, 0.77, 0.06, 'privat', '2023-12-15');
+select * from privatkrankenkassen;
+select * from umlagen;
+select * from hat_Umlagen_privat;
+select * from hat_Privatkrankenkasse;
+
+select insert_anzahl_kinder_an_pv_beitrag(1, 0, 1.7, 68000.00, 72000.45, '2023-12-15');
 select insert_anzahl_kinder_an_pv_beitrag(1, 1, 1.9, 68000.00, 72000.45, '2023-12-15');
 select * from Anzahl_Kinder_unter_25;
 select * from AN_Pflegeversicherungsbeitraege_gesetzlich;
@@ -35,30 +41,32 @@ select * from hat_gesetzlichen_AN_PV_Beitragssatz;
 select * from hat_x_Kinder_unter_25;
 
 select insert_Sachsen(1, true, 1.2, '2023-12-15');
-select insert_Sachsen(1, false, 1.2, '2023-12-15');
+select insert_Sachsen(1, false, 1.7, '2023-12-15');
 select * from wohnhaft_Sachsen;
 select * from AG_Pflegeversicherungsbeitraege_gesetzlich;
 select * from hat_gesetzlichen_AG_PV_Beitragssatz;
 select * from wohnt_in_Sachsen;
 
-select insert_arbeitslosenversicherungsbeitraege(1, 3.2, 3.2, 57456.12, 60000, '2023-12-15');
+select insert_arbeitslosenversicherungsbeitraege(1, 1.3, 1.3, 57456.12, 60000, '2023-12-15');
 select * from Arbeitslosenversicherungen;
 select * from Arbeitslosenversicherungsbeitraege;
 select * from hat_AV_Beitraege;
 select * from hat_gesetzliche_Arbeitslosenversicherung;
 
-select insert_rentenversicherungsbeitraege(1, 9.8, 9.8, 78564.12, 81245.65, '2023-12-15');
+select insert_rentenversicherungsbeitraege(1, 9.3, 9.3, 78564.12, 81245.65, '2023-12-15');
 select * from Rentenversicherungen;
 select * from Rentenversicherungsbeitraege;
 select * from hat_RV_Beitraege;
 select * from hat_gesetzliche_Rentenversicherung;
 
-select insert_Tarif(1,'A5-1', 'Verdi', 3449.63, 2000, 2000, '9999-12-31');
-select insert_Tarif(1,'A5-2', 'Verdi', 3863.12, 2200, 2200, '9999-12-31');
-select * from Verguetungen;
+select insert_gewerkschaft(1, 'Verdi');
+select insert_Tarif(1, 'A5-1', 'Verdi');
+select insert_verguetungsbestandteile(1, 'Grundgehalt', true);
+select insert_tarifliche_verguetungsbestandteile(1, 'A5-1', 'Grundgehalt', 4215.76, '2024-01-01');
 select * from Tarife;
 select * from Gewerkschaften;
-select * from hat_Verguetung;
+select * from verguetungsbestandteile;
+select * from hat_verguetungsbestandteil;
 select * from hat_Tarif;
 select * from Aussertarifliche;
 
@@ -70,6 +78,43 @@ select * from hat_Pauschalabgaben;
 select * from ist_minijobber;
 
 
+select insert_steuerklasse(1, '1');
+select * from steuerklassen;
+select * from in_steuerklasse;
+
+select insert_geschlecht(1, 'maennlich');
+select * from geschlechter;
+select * from hat_geschlecht;
+
+select insert_mitarbeitertyp(1, 'Angestellter');
+select * from mitarbeitertypen;
+select * from ist_mitarbeitertyp;
+
+select insert_abteilung(1, 'Human Resources Personalcontrolling', 'HR PC');
+select insert_abteilung(1, 'Human Resources', 'HR');
+select update_erstelle_abteilungshierarchie(1, 'Human Resources Personalcontrolling', 'Human Resources');
+select * from abteilungen;
+select * from eingesetzt_in;
+
+select insert_jobtitel(1, 'Personalcontroller');
+select insert_erfahrungsstufe (1, 'Junior');
+select * from jobtitel;
+select * from erfahrungsstufen;
+select * from hat_jobtitel;.
+
+select insert_gesellschaft(1, 'Bundesdruckerei GmbH', 'BDr GmbH');
+select * from gesellschaften;
+select * from in_gesellschaft;
+
+select insert_kategorien_austrittsgruende(1, 'betriebsbedingt');
+select insert_austrittsgruende(1, 'Umsatzrueckgang', 'betriebsbedingt');
+select * from kategorien_austrittsgruende;
+select * from austrittsgruende;
+
+select insert_berufsgenossenschaft(1, 'Berufsgenossenschaft Genussmittel', 'BGN');
+select insert_unfallversicherungsbeitrag(1, 'Bundesdruckerei GmbH', 'BDr GmbH', 'Berufsgenossenschaft Genussmittel', 'BGN', 100.75, 2023);
+select * from berufsgenossenschaften;
+select * from unfallversicherungsbeitraege;
 
 select insert_mitarbeiterdaten(-- Tabelle Mitarbeiter
 							   1,								-- Mandant_ID 
@@ -86,7 +131,7 @@ select insert_mitarbeiterdaten(-- Tabelle Mitarbeiter
 							   'maxmustermann@web.de',			-- private E-Mail
 							   '030 987654321',					-- dienstliche Telefonnummer
 							   'Mustermann@testfirma.de',		-- dienstliche E-Mail
-							   null,							-- Austrittsdatum
+							   '2025-12-31',					-- befristet bis
 							   -- Bereich 'Adresse'
 							   'Musterstrasse',					-- Strasse
 							   '1',								-- Hausnummer
@@ -103,32 +148,29 @@ select insert_mitarbeiterdaten(-- Tabelle Mitarbeiter
 							   -- Bereich 'Wochenarbeitszeit'	
 							   40,							-- Wochenarbeitszeit
 							   -- Bereich 'Abteilung'
-							   'Personalcontrolling',			-- Abteilung
-							   'PC',							-- Abteilungskuerzel
+							   'Human Resources Personalcontrolling',			-- Abteilung
+							   'HR PC',							-- Abteilungskuerzel
 							   false,							-- Fuehrungskraft
 							   -- Bereich 'Jobtitel'
 							   'Personalcontroller',			-- Jobtitel
 							   'Junior',						-- Erfahrungsstufe
 							   -- Bereich 'Gesellschaft'
 							   'Bundesdruckerei GmbH',			-- Gesellschaft
-							   'BDr',							-- Abkuerzung Gesellschaft
 							   -- Bereich 'Entgelt'	
 							   true,							-- tarifbeschaeftigt?		
 							   'A5-1',							-- Tarif
-							   'Verdi',							-- Gewerkschaft	
 							   3500.25,							-- Grundgehalt
 							   0,								-- Weihnachtsgeld
 							   0,								-- Urlaubsgeld
 							   -- Bereich 'Kranken- und Pflegeversicherung'
-							   false,							-- privat krankenversichert
+							   true,							-- privat krankenversichert
 							   200.25,							-- Zuschuss private Krankenversicherung
-							   53.72,							-- Zuschuss private Pflegeversicherung
-							   true,							-- ist Minijobber?
-							   true,							-- kurzfristig beschaeftigt?
-							   true,							-- gesetzlich versichert?
-							   true,							-- ermaessigter KV_Beitragssatz?
-							   'Kaufmaennische Krankenkasse',	-- Mitglied gesetzliche Krankenkasse (vollständiger Name)
-							   'KKH',							-- Mitglied gesetzliche Krankenkasse (Abkürzung)
+							   false,							-- ist Minijobber?
+							   false,							-- kurzfristig beschaeftigt?
+							   false,							-- gesetzlich krankenversichert?
+							   false,							-- ermaessigter KV_Beitragssatz?
+							   'BARMER',						-- Mitglied Krankenkasse (vollständiger Name)
+							   'BAR',							-- Mitglied Krankenkasse (Abkürzung)
 							   0,								-- Anzahl Kinder
 							   true,							-- wohnhaft Sachsen?
 							   -- Bereich 'Arbeitslosenversicherung'
@@ -139,37 +181,7 @@ select insert_mitarbeiterdaten(-- Tabelle Mitarbeiter
 					  
 select update_adresse(1, 'M100002', '2025-12-31', '2026-01-01', 'Hofzeichendamm', '5', '13125', 'Berlin', 'Berlin', 'Deutschland');
 
-select insert_tbl_mitarbeiter(1,
-							   'M100001',
-							   'Erika',
-							   '',
-							   'Musterfrau',
-							   '1992-12-12',
-							   '2024-01-01',
-							   '11 111 111 111',
-							   '00 121292 F 00',
-							   'DE00 0000 0000 0000 0000 00',
-							   '0175 1234567',
-							   'maxmustermann@web.de',
-							   '030 987654321',
-							   'Mustermann@testfirma.de',
-							   null);
-
-
-select update_adresse(1,
-						'M100002',
-						'2024-01-01',
-						'2023-12-31',
-						'neue Straße',
-						'42',
-						'10369',
-						'Berlin',
-						'Berlin',
-						'Deutschland'
-);
-
-select update_mitarbeiterentlassung(1, 'M100002', '2026-12-31', 'Umsatzrueckgang', 'betrieblich');
-
+select update_mitarbeiterentlassung(1, 'M100002', '2026-12-31', 'Umsatzrueckgang');
 
 
 select delete_mitarbeiterdaten(1, 'M100002');
