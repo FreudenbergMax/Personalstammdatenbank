@@ -68,10 +68,11 @@ drop table if exists in_Gesellschaft;
 drop table if exists Gesellschaften;
 
 drop table if exists hat_Tarif;
-drop table if exists hat_Verguetungsbestandteil;
-drop table if exists Verguetungsbestandteile;
+drop table if exists hat_Verguetungsbestandteil_Tarif;
 drop table if exists Tarife;
 drop table if exists Gewerkschaften;
+drop table if exists hat_Verguetungsbestandteil_AT;
+drop table if exists Verguetungsbestandteile;
 drop table if exists Aussertarifliche;
 
 drop table if exists hat_Privatkrankenkasse;
@@ -88,6 +89,10 @@ drop table if exists hat_GKV_Zusatzbeitrag;
 drop table if exists GKV_Zusatzbeitraege;
 drop table if exists hat_Umlagen_gesetzlich;
 drop table if exists gesetzliche_Krankenkassen;
+
+drop table if exists hat_Umlagen_anderweitig;
+drop table if exists ist_anderweitig_versichert;
+drop table if exists gemeldete_Krankenkassen;
 drop table if exists Umlagen;
 
 drop table if exists hat_x_Kinder_unter_25;
@@ -132,8 +137,11 @@ drop function if exists insert_krankenversicherungsbeitraege(integer, boolean, d
 -- Loeschung der Stored Procedure für Use Case "Eintrag neue gesetzliche Krankenkasse"
 drop function if exists insert_gesetzliche_Krankenkasse(integer, varchar(128), varchar(16), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), varchar(16), date);
 
--- Loeschung der Stored Procedure für Use Case "Eintrag neue private Krankenkasse"
+-- Loeschung der Stored Procedure fuer Use Case "Eintrag neue private Krankenkasse"
 drop function if exists insert_private_Krankenkasse(integer, varchar(128), varchar(16), decimal(5, 3), decimal(5, 3), decimal(5, 3), varchar(16), date);
+
+-- Loeschung der Stored Procedure fuer Use Case "Eintrag neue gemeldete Krankenkasse fuer anderweitig Versicherte"
+drop function if exists insert_gemeldete_Krankenkasse(integer, varchar(128), varchar(16), decimal(5, 3), decimal(5, 3), decimal(5, 3), varchar(16), date);
 
 -- Loeschung der Stored Procedure für Use Case "Eintrag neue Kinderanzahl"
 drop function if exists insert_anzahl_kinder_an_pv_beitrag(integer, integer, decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
@@ -153,7 +161,7 @@ drop function if exists insert_Minijob(integer, boolean, decimal(5, 3), decimal(
 -- Loeschung der Stored Procedures für Use Case "Eintrag neuer Tarif mit Verguetung"
 drop function if exists insert_gewerkschaft(integer, varchar(64));
 drop function if exists insert_Tarif(integer, varchar(16), varchar(64));
-drop function if exists insert_verguetungsbestandteile(integer, varchar(64), boolean);
+drop function if exists insert_verguetungsbestandteile(integer, varchar(64), varchar(16));
 drop function if exists insert_tarifliche_verguetungsbestandteile(integer, varchar(16), varchar(64), decimal(8, 2), date);
 
 -- Loeschung der Stored Procedure fuer Use Case "Eintrag neues Geschlecht"
@@ -193,7 +201,7 @@ drop function if exists insert_austrittsgruende(integer, varchar(32), varchar(16
 drop function if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), varchar(32), varchar(16), varchar(64), 
 varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), varchar(32), varchar(32), char(1), decimal(4, 2), varchar(64), varchar(16), 
 boolean, varchar(32), varchar(32), varchar(128), boolean, varchar(16), decimal(10, 2), decimal(10,2), decimal(10, 2), boolean, decimal(6, 2), boolean, boolean, boolean, boolean, varchar(128), 
-varchar(16), integer, boolean, boolean, boolean);
+varchar(16), integer, boolean, boolean, boolean, boolean);
 drop function if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date,  varchar(32), varchar(32), 
 varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date);
 drop function if exists insert_tbl_laender(integer, varchar(128));
@@ -211,7 +219,7 @@ drop function if exists insert_tbl_eingesetzt_in(integer, varchar(32), varchar(6
 drop function if exists insert_tbl_hat_jobtitel(integer, varchar(32), varchar(32), varchar(32), date);
 drop function if exists insert_tbl_in_gesellschaft(integer, varchar(32), varchar(128), date);
 drop function if exists insert_tbl_hat_tarif(integer, varchar(32), varchar(16), date);
-drop function if exists insert_tbl_aussertarifliche(varchar(32), integer, date, decimal(10, 2), decimal(10, 2), decimal(10, 2));
+drop function if exists insert_tbl_aussertarifliche(varchar(32), integer, date);
 drop function if exists insert_tbl_hat_private_krankenversicherung(integer, varchar(32), varchar(128), decimal(6, 2), date);
 drop function if exists insert_tbl_ist_Minijobber(integer, varchar(32), boolean, date);
 drop function if exists insert_tbl_hat_gesetzliche_Krankenversicherung(integer, varchar(32), boolean, date);
@@ -220,6 +228,10 @@ drop function if exists insert_tbl_hat_x_kinder_unter_25(integer, varchar(32), i
 drop function if exists insert_tbl_wohnt_in_sachsen(integer, varchar(32), boolean, date);
 drop function if exists insert_tbl_hat_gesetzliche_arbeitslosenversicherung(integer, varchar(32), date);
 drop function if exists insert_tbl_hat_gesetzliche_rentenversicherung(integer, varchar(32), date);
+drop function if exists insert_tbl_ist_anderweitig_versichert(integer, varchar(32), varchar(128), varchar(16), date);
+
+-- Loeschung der Stored Procedure fuer Use Case "Eintrag Verguetungsbestandteil fuer aussertariflicher Mitarbeiter"
+drop function if exists insert_aussertarifliche_verguetungsbestandteile(integer, varchar(32), varchar(64), decimal(8, 2), date);
 
 -- Loeschung der Stored Procedure für Use Case "Update Adresse Mitarbeiter"
 drop function if exists update_adresse(integer, varchar(32), date, date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128));
@@ -811,8 +823,9 @@ create table Verguetungsbestandteile(
 	Verguetungsbestandteil_ID serial primary key,
 	Mandant_ID integer not null,
 	Verguetungsbestandteil varchar(64) not null,
-	monatlich boolean not null,
-	unique(Mandant_ID, Verguetungsbestandteil, monatlich),
+	Auszahlungsmonat varchar(16) not null check(Auszahlungsmonat in ('jeden Monat', 'Januar', 'Februar', 'Maerz', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 
+																	 'Oktober', 'November', 'Dezember')),
+	unique(Mandant_ID, Verguetungsbestandteil, Auszahlungsmonat),
 	constraint fk_verguetungsbestandteile_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
@@ -822,7 +835,7 @@ create policy FilterMandant_verguetungsbestandteile
     on Verguetungsbestandteile
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
-create table hat_Verguetungsbestandteil(
+create table hat_Verguetungsbestandteil_Tarif(
 	Tarif_ID integer not null,
 	Verguetungsbestandteil_ID integer not null,
 	Mandant_ID integer not null,
@@ -830,19 +843,19 @@ create table hat_Verguetungsbestandteil(
 	Datum_Von date not null,
 	Datum_Bis date not null,
 	primary key(Tarif_ID, Verguetungsbestandteil_ID, Datum_Bis),
-	constraint fk_hatverguetungsbestandteil_verguetungsbestandteile
+	constraint fk_hatverguetungsbestandteiltarif_verguetungsbestandteile
     	foreign key (Verguetungsbestandteil_ID) 
     		references Verguetungsbestandteile(Verguetungsbestandteil_ID),
-    constraint fk_hatverguetungsbestandteil_tarif
+    constraint fk_hatverguetungsbestandteiltarif_tarif
 		foreign key (Tarif_ID) 
 			references Tarife(Tarif_ID),
-	constraint fk_hatverguetungsbestandteil_mandanten
+	constraint fk_hatverguetungsbestandteiltarif_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
-alter table hat_Verguetungsbestandteil enable row level security;
-create policy FilterMandant_hatverguetungsbestandteil
-    on hat_Verguetungsbestandteil
+alter table hat_Verguetungsbestandteil_Tarif enable row level security;
+create policy FilterMandant_hatverguetungsbestandteiltarif
+    on hat_Verguetungsbestandteil_Tarif
     using (Mandant_ID = current_setting('app.current_tenant')::int); 
 
 create table hat_Tarif (
@@ -873,9 +886,6 @@ create table Aussertarifliche (
 	Mandant_ID integer not null,
 	Datum_Von date not null,
 	Datum_Bis date not null,
-	Grundgehalt_monat decimal(10, 2) not null,
-	Weihnachtsgeld decimal(10,2) not null,
-	Urlaubsgeld decimal(10, 2) not null,
 	unique(Mitarbeiter_ID, Datum_Bis),
 	constraint fk_aussertarifliche_mitarbeiter
 		foreign key (Mitarbeiter_ID)
@@ -888,6 +898,66 @@ alter table Aussertarifliche enable row level security;
 create policy FilterMandant_aussertarifliche
     on Aussertarifliche
     using (Mandant_ID = current_setting('app.current_tenant')::int);
+
+create table hat_Verguetungsbestandteil_AT(
+	Aussertarif_ID integer not null,
+	Verguetungsbestandteil_ID integer not null,
+	Mandant_ID integer not null,
+	Betrag decimal(8, 2) not null,
+	Datum_Von date not null,
+	Datum_Bis date not null,
+	primary key(Aussertarif_ID, Verguetungsbestandteil_ID, Datum_Bis),
+	constraint fk_hatverguetungsbestandteilat_verguetungsbestandteile
+    	foreign key (Verguetungsbestandteil_ID) 
+    		references Verguetungsbestandteile(Verguetungsbestandteil_ID),
+    constraint fk_hatverguetungsbestandteilat_aussertarifliche
+		foreign key (Aussertarif_ID) 
+			references Aussertarifliche(Aussertarif_ID),
+	constraint fk_hatverguetungsbestandteilat_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table hat_Verguetungsbestandteil_AT enable row level security;
+create policy FilterMandant_hatverguetungsbestandteilat
+    on hat_Verguetungsbestandteil_AT
+    using (Mandant_ID = current_setting('app.current_tenant')::int); 
+
+create table gemeldete_Krankenkassen(
+	gemeldete_Krankenkasse_ID serial primary key,
+	Mandant_ID integer not null,
+	gemeldete_Krankenkasse varchar(128) not null,
+	Krankenkassenkuerzel varchar(16) not null,
+	unique (Mandant_ID, gemeldete_Krankenkasse),
+	constraint fk_gemeldetekrankenkassen_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table gemeldete_Krankenkassen enable row level security;
+create policy FilterMandant_gemeldetekrankenkassen
+    on gemeldete_Krankenkassen
+    using (Mandant_ID = current_setting('app.current_tenant')::int); 
+   
+create table ist_anderweitig_versichert(
+	Mitarbeiter_ID integer not null,
+	gemeldete_Krankenkasse_ID integer not null,
+	Mandant_ID integer not null,
+	Datum_Von date not null,
+	Datum_Bis date not null,
+	primary key (Mitarbeiter_ID, Datum_Bis),
+	constraint fk_istanderweitigversichert_mitarbeiter
+		foreign key (Mitarbeiter_ID)
+			references Mitarbeiter(Mitarbeiter_ID),
+	constraint fk_istanderweitigversichert_gemeldetekrankenkassen
+		foreign key (gemeldete_Krankenkasse_ID)
+			references gemeldete_Krankenkassen(gemeldete_Krankenkasse_ID),
+	constraint fk_istanderweitigversichert_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table ist_anderweitig_versichert enable row level security;
+create policy FilterMandant_istanderweitigversichert
+    on ist_anderweitig_versichert
+    using (Mandant_ID = current_setting('app.current_tenant')::int); 
    
 create table Privatkrankenkassen(
 	Privatkrankenkasse_ID serial primary key,
@@ -1084,7 +1154,7 @@ create table Umlagen (
 	U2_Umlagesatz_in_Prozent decimal(5, 3) not null,
 	Insolvenzgeldumlagesatz_in_Prozent decimal(5, 3) not null,
 	privat_gesetzlich_oder_anders varchar(16) not null check(privat_gesetzlich_oder_anders in ('privat', 'gesetzlich', 'anders')),
-	unique(Mandant_ID, U1_Umlagesatz_in_Prozent, U2_Umlagesatz_in_Prozent, Insolvenzgeldumlagesatz_in_Prozent),
+	unique(Mandant_ID, U1_Umlagesatz_in_Prozent, U2_Umlagesatz_in_Prozent, Insolvenzgeldumlagesatz_in_Prozent, privat_gesetzlich_oder_anders),
 	constraint fk_gkvzusatzbeitraege_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
@@ -1136,6 +1206,28 @@ create table hat_Umlagen_privat (
 alter table hat_Umlagen_privat enable row level security;
 create policy FilterMandant_hatumlagenprivat
     on hat_Umlagen_privat
+    using (Mandant_ID = current_setting('app.current_tenant')::int);
+   
+create table hat_Umlagen_anderweitig (
+	gemeldete_Krankenkasse_ID integer not null,
+	Umlage_ID integer not null,
+	Mandant_ID integer not null,
+	Datum_Von date not null,
+	Datum_Bis date not null,
+	primary key (gemeldete_Krankenkasse_ID, Datum_Bis),
+	constraint fk_hatumlagenanderweitig_gemeldetekrankenkassen
+		foreign key (gemeldete_Krankenkasse_ID)
+			references gemeldete_Krankenkassen(gemeldete_Krankenkasse_ID),
+	constraint fk_hatumlagenanderweitig_umlagen
+		foreign key (Umlage_ID)
+			references Umlagen(Umlage_ID),
+	constraint fk_hatumlagenanderweitig_mandanten
+		foreign key (Mandant_ID) 
+			references Mandanten(Mandant_ID)
+);
+alter table hat_Umlagen_anderweitig enable row level security;
+create policy FilterMandant_hatumlagenanderweitig 
+    on hat_Umlagen_anderweitig
     using (Mandant_ID = current_setting('app.current_tenant')::int);
    
 create table Anzahl_Kinder_unter_25 (
@@ -1906,8 +1998,82 @@ begin
    		
 	end if;
     
-   	-- Datensatz in Assoziation 'hat_Umlagen_gesetzlich', welche die Tabellen 'Privatkrankenkassen' und 'Umlagen' verbindet, eintragen
+   	-- Datensatz in Assoziation 'hat_Umlagen_privat', welche die Tabellen 'Privatkrankenkassen' und 'Umlagen' verbindet, eintragen
     insert into hat_Umlagen_privat(Privatkrankenkasse_ID, Umlage_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_krankenkasse_id, v_umlage_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
+
+    set role postgres;
+
+end;
+$$
+language plpgsql;
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------
+-- Stored Procedure für Use Case "Eintrag neue gemeldete Krankenkasse fuer anderweitig Versicherte"
+
+/*
+ * Funktion trägt neue Daten einer privaten Krankenkasse mit dessen Umlagesaetze ein.
+ */
+create or replace function insert_gemeldete_Krankenkasse(
+	p_mandant_id integer,
+	p_krankenkasse varchar(128),
+	p_krankenkassenkuerzel varchar(16),
+	p_u1_umlagesatz_in_prozent decimal(5, 3),
+	p_u2_umlagesatz_in_prozent decimal(5, 3),
+	p_insolvenzgeldumlagesatz_in_prozent decimal(5, 3),
+	p_anders varchar(16),
+	p_eintragungsdatum date
+) returns void as
+$$
+declare
+	v_krankenkasse_id integer;
+	v_umlage_id integer;
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+   
+    -- Pruefen, ob gemeldete Krankenkasse bereits vorhanden ist...
+   	execute 'SELECT gemeldete_krankenkasse_id FROM gemeldete_krankenkassen WHERE gemeldete_krankenkasse = $1' into v_krankenkasse_id using p_krankenkasse;
+    
+    -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden muessen, ...
+    if v_krankenkasse_id is not null then
+    
+		set role postgres;
+		raise exception 'Gemeldete Krankenkasse ''%'' ist bereits vorhanden! Übergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_gemeldete_Krankenkasse''-Funktion!', p_krankenkasse;   
+    
+	--... ansonsten neue Krankenkasse eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_Umlagen_anderweitig' benoetigt
+	else
+	
+		insert into gemeldete_Krankenkassen(Mandant_ID, gemeldete_Krankenkasse, Krankenkassenkuerzel)
+    		values(p_mandant_id, p_krankenkasse, p_krankenkassenkuerzel);
+    
+		execute 'SELECT gemeldete_krankenkasse_id FROM gemeldete_krankenkassen WHERE gemeldete_krankenkasse = $1' into v_krankenkasse_id using p_krankenkasse;
+	
+	end if;
+   	
+   	-- Pruefen, ob die Umlagesaetze bereits vorhanden sind...
+   	execute 'SELECT umlage_id FROM umlagen WHERE u1_umlagesatz_in_prozent = $1 AND u2_umlagesatz_in_prozent = $2 AND insolvenzgeldumlagesatz_in_prozent = $3 AND privat_gesetzlich_oder_anders = $4'
+	   		into v_umlage_id using p_u1_umlagesatz_in_prozent, p_u2_umlagesatz_in_prozent, p_insolvenzgeldumlagesatz_in_prozent, p_anders;
+	
+	-- ... falls nicht, dann eintragen
+   	if v_umlage_id is null then
+		
+		insert into Umlagen(Mandant_ID, U1_Umlagesatz_in_Prozent, U2_Umlagesatz_in_Prozent, Insolvenzgeldumlagesatz_in_Prozent, privat_gesetzlich_oder_anders)
+   			values (p_mandant_id, p_u1_umlagesatz_in_prozent, p_u2_umlagesatz_in_prozent, p_insolvenzgeldumlagesatz_in_prozent, p_anders);
+   		
+   		-- Nochmal v_umlage_id ziehen, da diese als Schluessel fuer die Assoziation 'hat_Umlagen_gesetzlich' benoetigt wird
+   		execute 'SELECT umlage_id FROM umlagen WHERE u1_umlagesatz_in_prozent = $1 AND u2_umlagesatz_in_prozent = $2 AND insolvenzgeldumlagesatz_in_prozent = $3 AND privat_gesetzlich_oder_anders = $4'
+	   		into v_umlage_id using p_u1_umlagesatz_in_prozent, p_u2_umlagesatz_in_prozent, p_insolvenzgeldumlagesatz_in_prozent, p_anders;
+   		
+	end if;
+    
+   	-- Datensatz in Assoziation 'hat_Umlagen_anders', welche die Tabellen 'gemeldete_Krankenkassen' und 'Umlagen' verbindet, eintragen
+    insert into hat_Umlagen_anderweitig(gemeldete_Krankenkasse_ID, Umlage_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_krankenkasse_id, v_umlage_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
 
     set role postgres;
@@ -2489,7 +2655,7 @@ language plpgsql;
 create or replace function insert_verguetungsbestandteile(
 	p_mandant_id integer,
 	p_verguetungsbestandteil varchar(64),
-	monatlich boolean
+	p_auszahlungsmonat varchar(16)
 ) returns void as
 $$
 begin
@@ -2498,16 +2664,17 @@ begin
     execute 'SET app.current_tenant=' || p_mandant_id;
 
     insert into 
-   		Verguetungsbestandteile(Mandant_ID, Verguetungsbestandteil, monatlich)
+   		Verguetungsbestandteile(Mandant_ID, Verguetungsbestandteil, Auszahlungsmonat)
    	values 
-   		(p_mandant_id, p_verguetungsbestandteil, monatlich);
+   		(p_mandant_id, p_verguetungsbestandteil, p_auszahlungsmonat);
     
     set role postgres;
    
 exception
     when unique_violation then
         raise notice 'Verguetungsbestandteil ''%'' bereits vorhanden!', p_verguetungsbestandteil;
-           
+    when check_violation then
+        raise exception 'Auszahlungsmonat ''%'' nicht vorhanden! Bitte wählen Sie zwischen folgenden Moeglichkeiten: ''jeden Monat'', ''Januar'', ''Februar'', ''Maerz'', ''April'', ''Mai'', ''Juni'', ''Juli'', ''August'', ''September'', ''Oktober'', ''November'', ''Dezember''!', p_auszahlungsmonat;    
 end;
 $$
 language plpgsql;
@@ -2563,7 +2730,6 @@ language plpgsql;
  * Funktion verknuepft Tarif mit (diversen) Verguetungsbestandteilen- Darunter fallen neben Monatsgehalt, Weihnachtsgeld etc. auch Beamtenbeihilfen, da der Staat verpflichtet ist, 
  * Beamten Beihilfen zu zahlen z.B. für (private) Krankenversicherung, Kinder etc..
  */
-	
 create or replace function insert_tarifliche_verguetungsbestandteile(
 	p_mandant_id integer,
 	p_tarifbezeichnung varchar(16),
@@ -2589,7 +2755,7 @@ begin
 		raise exception 'Bitte erst Verguetungsbestandteil ''%'' anlegen!', p_Verguetungsbestandteil;
 	end if;
 
-	-- Tarif_ID ziehen, da diese benoetigt wird, um einen Datensatz in der Assoziation 'hat_Verguetungsbestandteil' anzulegen
+	-- Tarif_ID ziehen, da diese benoetigt wird, um einen Datensatz in der Assoziation 'hat_Verguetungsbestandteil_Tarif' anzulegen
 	execute 'SELECT tarif_id FROM tarife WHERE tarifbezeichnung = $1' into v_tarif_id using p_tarifbezeichnung;
 
 	-- ... falls Tarif nicht vorhanden ist, dann Meldung ausgeben, dass dieser erst hinterlegt werden muss!
@@ -2598,7 +2764,7 @@ begin
 		raise exception 'Bitte erst Tarif ''%'' anlegen!', p_tarifbezeichnung;
 	end if;
 	
-    insert into hat_Verguetungsbestandteil(Tarif_ID, Verguetungsbestandteil_ID, Mandant_ID, Betrag, Datum_Von, Datum_Bis) 
+    insert into hat_Verguetungsbestandteil_Tarif(Tarif_ID, Verguetungsbestandteil_ID, Mandant_ID, Betrag, Datum_Von, Datum_Bis) 
    		values (v_tarif_id, v_verguetungsbestandteil_id, p_mandant_id, p_betrag, p_eintragungsdatum, '9999-12-31');
    	
    	set role postgres;
@@ -2610,6 +2776,11 @@ exception
 end;
 $$
 language plpgsql;
+
+
+
+
+
 
 
 
@@ -3096,7 +3267,8 @@ create or replace function insert_mitarbeiterdaten(
 	-- Bereich 'Arbeitslosenversicherung'
 	p_arbeitslosenversichert boolean,
 	-- Bereich 'Rentenversicherung'
-	p_rentenversichert boolean
+	p_rentenversichert boolean,
+	p_anderweitig_versichert boolean
 ) returns void as
 $$
 begin
@@ -3179,10 +3351,7 @@ begin
 	if p_tarifbeschaeftigt is false then
 		perform insert_tbl_Aussertarifliche(p_personalnummer, 
 											p_mandant_id, 
-											p_eintrittsdatum, 
-											p_grundgehalt_monat_aussertariflich, 
-											p_weihnachtsgeld_aussertariflich, 
-											p_urlaubsgeld_aussertariflich);
+											p_eintrittsdatum);
 	end if;
 	
 	if p_privat_krankenversichert then
@@ -3213,6 +3382,10 @@ begin
 	end if;
 	
 	set role postgres;
+
+	if p_anderweitig_versichert then
+		perform insert_tbl_ist_anderweitig_versichert(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
+	end if;
 
 end;
 $$
@@ -3869,10 +4042,7 @@ language plpgsql;
 create or replace function insert_tbl_aussertarifliche (
 	p_personalnummer varchar(32),
 	p_mandant_id integer,
-	p_eintrittsdatum date, 
-	p_grundgehalt_monat decimal(10, 2),
-	p_weihnachtsgeld decimal(10,2),
-	p_urlaubsgeld decimal(10, 2)
+	p_eintrittsdatum date
 ) returns void as
 $$
 declare
@@ -3885,15 +4055,15 @@ begin
     execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
 
     insert into 
-   		Aussertarifliche(Mitarbeiter_ID, Mandant_ID, Datum_Von, Datum_Bis, Grundgehalt_monat, Weihnachtsgeld, Urlaubsgeld)
+   		Aussertarifliche(Mitarbeiter_ID, Mandant_ID, Datum_Von, Datum_Bis)
    	values 
-   		(v_mitarbeiter_ID, p_mandant_id, p_eintrittsdatum, '9999-12-31', p_grundgehalt_monat, p_weihnachtsgeld, p_urlaubsgeld);
-   	
-    exception
-        when unique_violation then
-            raise notice 'Diese Verguetungszahlen sind bereits vorhanden!';
+   		(v_mitarbeiter_ID, p_mandant_id, p_eintrittsdatum, '9999-12-31');
     
     set role postgres;
+exception
+    when unique_violation then
+    	set role postgres;
+        raise notice 'Mitarbeiter bereits als Aussertariflicher eingetragen!';
 
 end;
 $$
@@ -4198,6 +4368,51 @@ $$
 language plpgsql;
 
 /*
+ * Funktion trägt die Daten in die Assoziation "ist_anderweitig_versichert" ein
+ */
+create or replace function insert_tbl_ist_anderweitig_versichert(
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
+	p_krankenkasse varchar(128),
+	p_krankenkassenkuerzel varchar(16),
+	p_eintrittsdatum date
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+	v_krankenkasse_id integer;
+begin
+	
+	set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+		
+	-- Pruefen, ob Krankenkasse bereits vorhanden ist...
+	execute 'SELECT gemeldete_krankenkasse_id FROM gemeldete_krankenkassen WHERE gemeldete_krankenkasse = $1 AND krankenkassenkuerzel = $2'
+		into v_krankenkasse_id using p_krankenkasse, p_krankenkassenkuerzel;
+    
+    -- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Krankenkasse hinterlegt werden muss!
+    if v_krankenkasse_ID is null then
+		set role postgres;
+		raise exception 'Diese Krankenkasse ''%'' ist noch nicht hinterlegt! Bitte tragen Sie zuerst die Krankenkasse ein!', p_krankenkasse;   
+    end if;
+   
+    execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
+    
+    insert into ist_anderweitig_versichert(Mitarbeiter_ID, gemeldete_Krankenkasse_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_mitarbeiter_id, v_krankenkasse_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+	
+   	set role postgres;
+
+exception
+    when unique_violation then
+    	set role postgres;
+        raise notice 'Mitarbeiter ist bereits aktuell in Krankenkasse ''%'' vermerkt!', p_krankenkasse;
+   	
+end;
+$$
+language plpgsql;
+
+/*
  * Funktion trägt die Daten in die Assoziation "ist_Minijobber" ein
  */
 create or replace function insert_tbl_ist_Minijobber(
@@ -4240,6 +4455,73 @@ exception
     	set role postgres;
         raise notice 'Es ist bereits vermerkt, dass der Mitarbeiter Minijobber ist!';
    	
+end;
+$$
+language plpgsql;
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------
+-- Stored Procedure fuer Use Case "Eintrag Verguetungsbestandteil fuer aussertariflicher Mitarbeiter"
+/*
+ * Funktion verknuepft aussertariflichen Mitarbeiter mit (diversen) Verguetungsbestandteilen- Darunter fallen neben Monatsgehalt, Weihnachtsgeld etc. auch Beamtenbeihilfen, da der Staat verpflichtet ist, 
+ * Beamten Beihilfen zu zahlen z.B. für (private) Krankenversicherung, Kinder etc..
+ */
+create or replace function insert_aussertarifliche_verguetungsbestandteile(
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
+	p_Verguetungsbestandteil varchar(64),
+	p_betrag decimal(8, 2),
+	p_eintragungsdatum date
+) returns void as
+$$
+declare
+	v_mitarbeiter_id integer;
+	v_aussertarifliche_id integer;
+	v_verguetungsbestandteil_id integer;
+begin
+    
+    set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+	-- Pruefen, ob Verguetungsbestandteil bereits in Tabelle 'monatliche_Beihilfen' hinterlegt ist
+	execute 'SELECT verguetungsbestandteil_id FROM verguetungsbestandteile WHERE Verguetungsbestandteil = $1' into v_verguetungsbestandteil_id using p_Verguetungsbestandteil;
+
+	-- ... und falls nicht, dann Meldung ausgeben, dass dieser Verguetungsbestandteil erst hinterlegt werden muss!
+	if v_verguetungsbestandteil_id is null then
+		set role postgres;
+		raise exception 'Bitte erst Verguetungsbestandteil ''%'' anlegen!', p_Verguetungsbestandteil;
+	end if;
+
+	-- Mitarbeiter_ID ziehen, da diese als Vorbereitung benoetigt wird, um einen Datensatz in der Assoziation 'hat_Verguetungsbestandteil_AT' anzulegen
+	execute 'SELECT mitarbeiter_id FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_id using p_personalnummer;
+
+	-- ... falls Mitarbeiter nicht vorhanden ist, dann Meldung ausgeben, dass dieser erst hinterlegt werden muss!
+	if v_mitarbeiter_id is null then
+		set role postgres;
+		raise exception 'Bitte erst Mitarbeiter ''%'' anlegen!', p_personalnummer;
+	end if;
+
+	-- Aussertarif_ID ziehen, da diese benoetigt wird, um einen Datensatz in der Assoziation 'hat_Verguetungsbestandteil_AT' anzulegen
+	execute 'SELECT aussertarif_id FROM aussertarifliche WHERE mitarbeiter_ID = $1 AND Datum_Bis = ''9999-12-31''' into v_aussertarifliche_id using v_mitarbeiter_id;
+
+	-- ... falls Mitarbeiter nicht als aussertariflicher Mitarbeiter vorhanden ist, dann Meldung ausgeben, dass dieser erst hinterlegt werden muss!
+	if v_aussertarifliche_id is null then
+		set role postgres;
+		raise exception 'Mitarbeiter ''%'' ist nicht als aussertariflicher Beschaeftigter hinterlegt!', p_personalnummer;
+	end if;
+	
+    insert into hat_Verguetungsbestandteil_AT(Aussertarif_ID, Verguetungsbestandteil_ID, Mandant_ID, Betrag, Datum_Von, Datum_Bis) 
+   		values (v_aussertarifliche_id, v_verguetungsbestandteil_id, p_mandant_id, p_betrag, p_eintragungsdatum, '9999-12-31');
+   	
+   	set role postgres;
+
+exception
+    when unique_violation then
+        raise notice 'Aussertariflicher Mitarbeiter ''%'' hat bereits aktuellen Verguetungsbestandteil ''%''!', p_personalnummer, p_Verguetungsbestandteil;
+
 end;
 $$
 language plpgsql;

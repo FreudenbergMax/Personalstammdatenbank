@@ -33,6 +33,12 @@ select * from umlagen;
 select * from hat_Umlagen_privat;
 select * from hat_Privatkrankenkasse;
 
+select insert_gemeldete_Krankenkasse(1, 'Beispielkrankenkasse', 'BK', 2.41, 0.77, 0.06, 'anders', '2023-12-15');
+select * from gemeldete_krankenkassen;
+select * from umlagen;
+select * from hat_Umlagen_anderweitig;
+select * from ist_anderweitig_versichert;
+
 select insert_anzahl_kinder_an_pv_beitrag(1, 0, 1.7, 68000.00, 72000.45, '2023-12-15');
 select insert_anzahl_kinder_an_pv_beitrag(1, 1, 1.9, 68000.00, 72000.45, '2023-12-15');
 select * from Anzahl_Kinder_unter_25;
@@ -61,12 +67,12 @@ select * from hat_gesetzliche_Rentenversicherung;
 
 select insert_gewerkschaft(1, 'Verdi');
 select insert_Tarif(1, 'A5-1', 'Verdi');
-select insert_verguetungsbestandteile(1, 'Grundgehalt', true);
+select insert_verguetungsbestandteile(1, 'Grundgehalt', 'jeden Monat');
 select insert_tarifliche_verguetungsbestandteile(1, 'A5-1', 'Grundgehalt', 4215.76, '2024-01-01');
 select * from Tarife;
 select * from Gewerkschaften;
 select * from verguetungsbestandteile;
-select * from hat_verguetungsbestandteil;
+select * from hat_verguetungsbestandteil_tarif;
 select * from hat_Tarif;
 select * from Aussertarifliche;
 
@@ -100,7 +106,7 @@ select insert_jobtitel(1, 'Personalcontroller');
 select insert_erfahrungsstufe (1, 'Junior');
 select * from jobtitel;
 select * from erfahrungsstufen;
-select * from hat_jobtitel;.
+select * from hat_jobtitel;
 
 select insert_gesellschaft(1, 'Bundesdruckerei GmbH', 'BDr GmbH');
 select * from gesellschaften;
@@ -118,10 +124,10 @@ select * from unfallversicherungsbeitraege;
 
 select insert_mitarbeiterdaten(-- Tabelle Mitarbeiter
 							   1,								-- Mandant_ID 
-							   'M100002',						-- Personalnummer 
-							   'Erika',							-- Vorname
+							   'M100001',						-- Personalnummer 
+							   'Max',							-- Vorname
 							   '',								-- Zweitname
-							   'Musterfrau',					-- Nachname
+							   'Mustermann',					-- Nachname
 							   '1992-12-12',					-- Geburtsdatum
 							   '2024-01-01',					-- Eintrittsdatum
 							   '11 111 111 111',				-- Steuernummer
@@ -157,28 +163,34 @@ select insert_mitarbeiterdaten(-- Tabelle Mitarbeiter
 							   -- Bereich 'Gesellschaft'
 							   'Bundesdruckerei GmbH',			-- Gesellschaft
 							   -- Bereich 'Entgelt'	
-							   true,							-- tarifbeschaeftigt?		
-							   'A5-1',							-- Tarif
-							   3500.25,							-- Grundgehalt
-							   0,								-- Weihnachtsgeld
-							   0,								-- Urlaubsgeld
+							   false,							-- tarifbeschaeftigt?		
+							   null,							-- Tarif
+							   null,							-- Grundgehalt
+							   null,								-- Weihnachtsgeld
+							   null,								-- Urlaubsgeld
 							   -- Bereich 'Kranken- und Pflegeversicherung'
-							   true,							-- privat krankenversichert
+							   false,							-- privat krankenversichert
 							   200.25,							-- Zuschuss private Krankenversicherung
 							   false,							-- ist Minijobber?
 							   false,							-- kurzfristig beschaeftigt?
 							   false,							-- gesetzlich krankenversichert?
 							   false,							-- ermaessigter KV_Beitragssatz?
-							   'BARMER',						-- Mitglied Krankenkasse (vollständiger Name)
-							   'BAR',							-- Mitglied Krankenkasse (Abkürzung)
+							   'Beispielkrankenkasse',			-- Mitglied Krankenkasse (vollständiger Name)
+							   'BK',							-- Mitglied Krankenkasse (Abkürzung)
 							   0,								-- Anzahl Kinder
-							   true,							-- wohnhaft Sachsen?
+							   false,							-- wohnhaft Sachsen?
 							   -- Bereich 'Arbeitslosenversicherung'
-							   true,							-- Arbeitslosenversichert?
+							   false,							-- Arbeitslosenversichert?
 							   -- Bereich 'Rentenversicherung'
-							   true								-- Rentenversichert?
+							   false,							-- Rentenversichert?
+							   true								-- anderweitig_versichert?
 							   );
-					  
+
+select insert_aussertarifliche_verguetungsbestandteile(1, 'M100002', 'Grundgehalt', 125321.15, '2024-01-01');
+select * from aussertarifliche;	
+select * from verguetungsbestandteile;
+select * from hat_verguetungsbestandteil_at;
+
 select update_adresse(1, 'M100002', '2025-12-31', '2026-01-01', 'Hofzeichendamm', '5', '13125', 'Berlin', 'Berlin', 'Deutschland');
 
 select update_mitarbeiterentlassung(1, 'M100002', '2026-12-31', 'Umsatzrueckgang');
