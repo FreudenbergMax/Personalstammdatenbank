@@ -108,7 +108,7 @@ class Nutzer:
     def abfrage_ausfuehren(self, abfrage):
         """
         Methode übermittelt ein SQL-Befehl an die Datenbank, wo sie ausgeführt und das Ergebnis zurückgegeben wird.
-        :param abfrage: enthaelt den SQL-SELECT-Befehl, der an die Stored Procedure 'select_ausfuehren' uebergeben wird.
+        :param abfrage: enthaelt den SQL-SELECT-Befehl.
         :return: Ergebnis der Datenbankabfrage
         """
         conn = self._datenbankbverbindung_aufbauen()
@@ -130,6 +130,172 @@ class Nutzer:
 
         return ergebnis
 
+    def insert_krankenversicherungsbeitraege(self, neuanlage_krankenversicherungsbeitraege):
+        """
+        Diese Methode überträgt die eingetragenen Krankenversicherungsbeitraege (im Rahmen der Bachelorarbeit
+        dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
+        'insert_krankenversicherungsbeitraege' aufgerufen wird.
+        :param neuanlage_krankenversicherungsbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen
+        werden sollen.
+        """
+        conn = self._datenbankbverbindung_aufbauen()
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Übertrag in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"Sozialversicherungsdaten/{neuanlage_krankenversicherungsbeitraege}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle 'Neuanlage Krankenversicherungsbeitraege.xlsx' pruefen
+        ermaessigter_beitragssatz = self._existenz_boolean_daten_feststellen(liste_ma_daten[0],
+                                                                             'ermaessigter Beitragssatz',
+                                                                             True)
+        an_gkv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[1],
+                                                                            99,
+                                                                            'Arbeitnehmerbeitrag GKV in Prozent',
+                                                                            True)
+        ag_gkv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2],
+                                                                            99,
+                                                                            'Arbeitgeberbeitrag GKV in Prozent',
+                                                                            True)
+        beitragsbemessungsgrenze_gkv_ost = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3],
+                                                                                   99999999,
+                                                                                   'Beitragsbemessungsgrenze GKV Ost',
+                                                                                   True)
+        beitragsbemessungsgrenze_gkv_west = self._existenz_zahlen_daten_feststellen(liste_ma_daten[4],
+                                                                                    99999999,
+                                                                                    'Beitragsbemessungsgrenze GKV West',
+                                                                                    True)
+        eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[5], 'Eintragungsdatum', True)
+
+
+        # Ein Cursor-Objekt erstellen
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_krankenversicherungsbeitraege', [self.mandant_id,
+                                                              ermaessigter_beitragssatz,
+                                                              an_gkv_beitrag_in_prozent,
+                                                              ag_gkv_beitrag_in_prozent,
+                                                              beitragsbemessungsgrenze_gkv_ost,
+                                                              beitragsbemessungsgrenze_gkv_west,
+                                                              eintragungsdatum])
+
+        # Commit der Änderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def insert_gesetzliche_krankenkasse(self, neuanlage_gesetzliche_krankenkasse):
+        """
+        Diese Methode uebertraegt die eingetragene gesetzliche Krankenkasse mit deren Zusatzbeitrag und Umlagen (im
+        Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
+        'insert_gesetzliche_Krankenkasse' aufgerufen wird.
+        :param neuanlage_gesetzliche_krankenkasse: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen
+        werden sollen.
+        """
+        conn = self._datenbankbverbindung_aufbauen()
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Übertrag in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"Sozialversicherungsdaten/{neuanlage_gesetzliche_krankenkasse}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle 'Neuanlage gesetzliche Krankenkasse.xlsx' pruefen
+        krankenkasse_voller_name = self._existenz_str_daten_feststellen(liste_ma_daten[0],
+                                                                        'Krankenkasse voller Name',
+                                                                        128,
+                                                                        True)
+        krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(liste_ma_daten[1],
+                                                                       'Krankenkasse Abkuerzung',
+                                                                       16,
+                                                                       True)
+        zusatzbeitrag = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2],
+                                                                99,
+                                                                'Zusatzbeitrag Krankenkasse',
+                                                                True)
+        u1_umlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3], 99, 'U1-Umlage', True)
+        u2_umlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[4], 99, 'U2-Umlage', True)
+        insolvenzgeldumlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[5],
+                                                                      99,
+                                                                      'Insolvenzgeldumlage',
+                                                                      True)
+        eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[6], 'Eintragungsdatum', True)
+
+        # Ein Cursor-Objekt erstellen
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_gesetzliche_Krankenkasse', [self.mandant_id,
+                                                         krankenkasse_voller_name,
+                                                         krankenkasse_abkuerzung,
+                                                         zusatzbeitrag,
+                                                         u1_umlage,
+                                                         u2_umlage,
+                                                         insolvenzgeldumlage,
+                                                         'gesetzlich',
+                                                         eintragungsdatum])
+
+        # Commit der Änderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def insert_private_krankenkasse(self, neuanlage_private_krankenkasse):
+        """
+        Diese Methode uebertraegt die eingetragene private Krankenkasse mit deren Zusatzbeitrag und Umlagen (im Rahmen
+        der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
+        'insert_private_Krankenkasse' aufgerufen wird.
+        :param neuanlage_private_krankenkasse: Name der Excel-Datei, dessen Mitarbeiterdaten in die Datenbank
+        eingetragen werden sollen.
+        """
+        conn = self._datenbankbverbindung_aufbauen()
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Übertrag in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"Sozialversicherungsdaten/{neuanlage_private_krankenkasse}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle 'Neuanlage gesetzliche Krankenkasse.xlsx' pruefen
+        krankenkasse_voller_name = self._existenz_str_daten_feststellen(liste_ma_daten[0],
+                                                                        'Krankenkasse voller Name',
+                                                                        128,
+                                                                        True)
+        krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(liste_ma_daten[1],
+                                                                       'Krankenkasse Abkuerzung',
+                                                                       16,
+                                                                       True)
+        u1_umlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2], 99, 'U1-Umlage', True)
+        u2_umlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3], 99, 'U2-Umlage', True)
+        insolvenzgeldumlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[4],
+                                                                      99,
+                                                                      'Insolvenzgeldumlage',
+                                                                      True)
+        eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[5], 'Eintragungsdatum', True)
+
+        # Ein Cursor-Objekt erstellen
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_private_Krankenkasse', [self.mandant_id,
+                                                     krankenkasse_voller_name,
+                                                     krankenkasse_abkuerzung,
+                                                     u1_umlage,
+                                                     u2_umlage,
+                                                     insolvenzgeldumlage,
+                                                     'privat',
+                                                     eintragungsdatum])
+
+        # Commit der Änderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
     def insert_neuer_mitarbeiter(self, mitarbeiterdaten):
         """
         Diese Methode überträgt die eingetragenen Mitarbeiterdaten (im Rahmen der Bachelorarbeit
@@ -144,6 +310,7 @@ class Nutzer:
         df_ma_daten = pd.read_excel(f"Mitarbeiterdaten/{mitarbeiterdaten}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
+        # Daten aus importierter Excel-Tabelle 'Neuanlage Mitarbeiter.xlsx' pruefen
         personalnummer = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Personalnummer', 32, True)
         vorname = self._existenz_str_daten_feststellen(liste_ma_daten[1], 'Vorname', 64, True)
         zweitname = self._existenz_str_daten_feststellen(liste_ma_daten[2], 'Zweitname', 128, False)
@@ -319,7 +486,7 @@ class Nutzer:
         # Ein Cursor-Objekt erstellen
         cur = conn.cursor()
 
-        # Stored Procedure aufrufen
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
         cur.callproc('insert_mitarbeiterdaten', [self.mandant_id,
                                                  personalnummer,
                                                  vorname,
@@ -574,9 +741,8 @@ class Nutzer:
     def _existenz_boolean_daten_feststellen(self, boolean_daten, art, pflicht):
         """
             Methode stellt fest, ob optionale Daten vorliegen oder nicht und wenn ja, so sollen diese auf jeden Fall
-            als boolean-Datentyp mit zwei Nachkommastellen zurückgegeben werden. So soll sichergestellt werden, dass dem
-            Datenbanksystem die Daten in dem Datentyp übergeben werden, in der sie in der Personalstammdatenbank gespeichert
-            werden können.
+            als boolean-Datentyp zurückgegeben werden. So soll sichergestellt werden, dass dem Datenbanksystem die Daten
+            in dem Datentyp übergeben werden, in der sie in der Personalstammdatenbank gespeichert werden können.
             :param boolean_daten: wird untersucht, ob Daten darin enthalten sind
             :param art: gibt an, um was für Daten es sich handeln soll
             :param pflicht: boolean, der bei 'True' angibt, dass 'boolean_daten' kein leerer String sein darf
