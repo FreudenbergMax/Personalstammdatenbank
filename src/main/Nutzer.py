@@ -138,14 +138,13 @@ class Nutzer:
         :param neuanlage_krankenversicherungsbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen
         werden sollen.
         """
-        conn = self._datenbankbverbindung_aufbauen()
 
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Übertrag in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"Sozialversicherungsdaten/{neuanlage_krankenversicherungsbeitraege}",
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_krankenversicherungsbeitraege}",
                                     index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
-        # Daten aus importierter Excel-Tabelle 'Neuanlage Krankenversicherungsbeitraege.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '1 Krankenversicherungsbeitraege.xlsx' pruefen
         ermaessigter_beitragssatz = self._existenz_boolean_daten_feststellen(liste_ma_daten[0],
                                                                              'ermaessigter Beitragssatz',
                                                                              True)
@@ -167,8 +166,7 @@ class Nutzer:
                                                                                     True)
         eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[5], 'Eintragungsdatum', True)
 
-
-        # Ein Cursor-Objekt erstellen
+        conn = self._datenbankbverbindung_aufbauen()
         cur = conn.cursor()
 
         # Stored Procedure aufrufen und Daten an Datenbank uebergeben
@@ -180,7 +178,7 @@ class Nutzer:
                                                               beitragsbemessungsgrenze_gkv_west,
                                                               eintragungsdatum])
 
-        # Commit der Änderungen
+        # Commit der Aenderungen
         conn.commit()
 
         # Cursor und Konnektor zu Datenbank schließen
@@ -195,14 +193,13 @@ class Nutzer:
         :param neuanlage_gesetzliche_krankenkasse: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen
         werden sollen.
         """
-        conn = self._datenbankbverbindung_aufbauen()
 
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Übertrag in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"Sozialversicherungsdaten/{neuanlage_gesetzliche_krankenkasse}",
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_gesetzliche_krankenkasse}",
                                     index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
-        # Daten aus importierter Excel-Tabelle 'Neuanlage gesetzliche Krankenkasse.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '2 gesetzliche Krankenkasse.xlsx' pruefen
         krankenkasse_voller_name = self._existenz_str_daten_feststellen(liste_ma_daten[0],
                                                                         'Krankenkasse voller Name',
                                                                         128,
@@ -223,7 +220,7 @@ class Nutzer:
                                                                       True)
         eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[6], 'Eintragungsdatum', True)
 
-        # Ein Cursor-Objekt erstellen
+        conn = self._datenbankbverbindung_aufbauen()
         cur = conn.cursor()
 
         # Stored Procedure aufrufen und Daten an Datenbank uebergeben
@@ -237,7 +234,7 @@ class Nutzer:
                                                          'gesetzlich',
                                                          eintragungsdatum])
 
-        # Commit der Änderungen
+        # Commit der Aenderungen
         conn.commit()
 
         # Cursor und Konnektor zu Datenbank schließen
@@ -246,20 +243,19 @@ class Nutzer:
 
     def insert_private_krankenkasse(self, neuanlage_private_krankenkasse):
         """
-        Diese Methode uebertraegt die eingetragene private Krankenkasse mit deren Zusatzbeitrag und Umlagen (im Rahmen
+        Diese Methode uebertraegt die eingetragene private Krankenkasse mit deren Umlagen (im Rahmen
         der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
         'insert_private_Krankenkasse' aufgerufen wird.
-        :param neuanlage_private_krankenkasse: Name der Excel-Datei, dessen Mitarbeiterdaten in die Datenbank
+        :param neuanlage_private_krankenkasse: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
         """
-        conn = self._datenbankbverbindung_aufbauen()
 
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Übertrag in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"Sozialversicherungsdaten/{neuanlage_private_krankenkasse}",
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_private_krankenkasse}",
                                     index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
-        # Daten aus importierter Excel-Tabelle 'Neuanlage gesetzliche Krankenkasse.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '3 private Krankenkasse.xlsx' pruefen
         krankenkasse_voller_name = self._existenz_str_daten_feststellen(liste_ma_daten[0],
                                                                         'Krankenkasse voller Name',
                                                                         128,
@@ -276,7 +272,7 @@ class Nutzer:
                                                                       True)
         eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[5], 'Eintragungsdatum', True)
 
-        # Ein Cursor-Objekt erstellen
+        conn = self._datenbankbverbindung_aufbauen()
         cur = conn.cursor()
 
         # Stored Procedure aufrufen und Daten an Datenbank uebergeben
@@ -289,7 +285,410 @@ class Nutzer:
                                                      'privat',
                                                      eintragungsdatum])
 
-        # Commit der Änderungen
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def insert_gemeldete_krankenkasse(self, neuanlage_gemeldete_krankenkasse):
+        """
+        Diese Methode uebertraegt die eingetragene gemeldete Krankenkasse fuer Mitarbeiter, die anderweitig
+        krankenversichert sein muessen (z.B. Werkstudenten, unbezahlte Praktikanten etc.) mit deren Umlagen (im Rahmen
+        der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
+        'insert_gemeldete_Krankenkasse' aufgerufen wird.
+        :param neuanlage_gemeldete_krankenkasse: Name der Excel-Datei, dessen Daten in die Datenbank
+        eingetragen werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_gemeldete_krankenkasse}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '4 gemeldete Krankenkasse.xlsx' pruefen
+        krankenkasse_voller_name = self._existenz_str_daten_feststellen(liste_ma_daten[0],
+                                                                        'Krankenkasse voller Name',
+                                                                        128,
+                                                                        True)
+        krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(liste_ma_daten[1],
+                                                                       'Krankenkasse Abkuerzung',
+                                                                       16,
+                                                                       True)
+        u1_umlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2], 99, 'U1-Umlage', True)
+        u2_umlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3], 99, 'U2-Umlage', True)
+        insolvenzgeldumlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[4],
+                                                                      99,
+                                                                      'Insolvenzgeldumlage',
+                                                                      True)
+        eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[5], 'Eintragungsdatum', True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_gemeldete_Krankenkasse', [self.mandant_id,
+                                                       krankenkasse_voller_name,
+                                                       krankenkasse_abkuerzung,
+                                                       u1_umlage,
+                                                       u2_umlage,
+                                                       insolvenzgeldumlage,
+                                                       'anders',
+                                                       eintragungsdatum])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def insert_anzahl_kinder_an_pv_beitrag(self, neuanlage_anzahl_kinder):
+        """
+        Diese Methode uebertraegt die Anzahl der Kinder und der daraus resultierende Arbeitnehmerbeitrag zur
+        Pflegeversicherung (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in dem
+        der Stored Procedure 'insert_anzahl_kinder_an_pv_beitrag' aufgerufen wird.
+        :param neuanlage_anzahl_kinder: Name der Excel-Datei, dessen Daten in die Datenbank
+        eingetragen werden sollen.
+        """
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_anzahl_kinder}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '5 Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx' pruefen
+        anzahl_kinder = self._existenz_zahlen_daten_feststellen(liste_ma_daten[0], 99, 'Anzahl Kinder', True)
+        an_beitrag_pv_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[1],
+                                                                           99,
+                                                                           'AN-Beitrag PV in %',
+                                                                           True)
+        beitragsbemessungsgrenze_pv_ost = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2],
+                                                                                  99999999,
+                                                                                  'Beitragsbemessungsgrenze PV Ost',
+                                                                                  True)
+        beitragsbemessungsgrenze_pv_west = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3],
+                                                                                   99999999,
+                                                                                   'Beitragsbemessungsgrenze PV West',
+                                                                                   True)
+
+        eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[4], 'Eintragungsdatum', True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_anzahl_kinder_an_pv_beitrag', [self.mandant_id,
+                                                            anzahl_kinder,
+                                                            an_beitrag_pv_in_prozent,
+                                                            beitragsbemessungsgrenze_pv_ost,
+                                                            beitragsbemessungsgrenze_pv_west,
+                                                            eintragungsdatum])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def insert_wohnhaft_sachsen_ag_pv_beitrag(self, neuanlage_wohnhaft_sachsen):
+        """
+        Diese Methode uebertraegt den Arbeitgeberbeitrag zur Pflichtversicherung in Abhaengigkeit des Wohnortes
+        (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in dem
+        der Stored Procedure 'insert_Sachsen' aufgerufen wird.
+        :param neuanlage_wohnhaft_sachsen: Name der Excel-Datei, dessen Daten in die Datenbank
+        eingetragen werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_wohnhaft_sachsen}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '6 wohnhaft Sachsen Arbeitgeber PV-Beitrag.xlsx' pruefen
+        wohnhaft_sachsen = self._existenz_boolean_daten_feststellen(liste_ma_daten[0], 'wohnhaft_Sachsen', True)
+        ag_beitrag_pv_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[1],
+                                                                           99,
+                                                                           'AG-Beitrag PV in %',
+                                                                           True)
+        eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[2], 'Eintragungsdatum', True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_Sachsen', [self.mandant_id, wohnhaft_sachsen, ag_beitrag_pv_in_prozent, eintragungsdatum])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def insert_arbeitslosenversicherungsbeitraege(self, neuanlage_arbeitslosenversicherungsbeitraege):
+        """
+        Diese Methode uebertraegt die Arbeitslosenversicheurngsbeitragssaetze von Arbeitnehmer und Arbeitgeber sowie die
+        Beitragsbemessungsgrenzen (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in
+        dem der Stored Procedure 'insert_arbeitslosenversicherungsbeitraege' aufgerufen wird.
+        :param neuanlage_arbeitslosenversicherungsbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank
+        eingetragen werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_arbeitslosenversicherungsbeitraege}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '7 Arbeitslosenversicherungsbeitraege.xlsx' pruefen
+        an_beitrag_av_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[0],
+                                                                           99,
+                                                                           'AN-Beitrag AV in %',
+                                                                           True)
+        ag_beitrag_av_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[1],
+                                                                           99,
+                                                                           'AG-Beitrag AV in %',
+                                                                           True)
+        beitragsbemessungsgrenze_av_ost = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2],
+                                                                                  99999999,
+                                                                                  'Beitragsbemessungsgrenze AV Ost',
+                                                                                  True)
+        beitragsbemessungsgrenze_av_west = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3],
+                                                                                   99999999,
+                                                                                   'Beitragsbemessungsgrenze AV West',
+                                                                                   True)
+        eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[4], 'Eintragungsdatum', True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_arbeitslosenversicherungsbeitraege', [self.mandant_id,
+                                                                   an_beitrag_av_in_prozent,
+                                                                   ag_beitrag_av_in_prozent,
+                                                                   beitragsbemessungsgrenze_av_ost,
+                                                                   beitragsbemessungsgrenze_av_west,
+                                                                   eintragungsdatum])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def insert_rentenversicherungsbeitraege(self, neuanlage_rentenversicherungsbeitraege):
+        """
+        Diese Methode uebertraegt die Rentenversicherungsbeitragssaetze von Arbeitnehmer und Arbeitgeber sowie die
+        Beitragsbemessungsgrenzen (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in
+        dem der Stored Procedure 'insert_arbeitslosenversicherungsbeitraege' aufgerufen wird.
+        :param neuanlage_rentenversicherungsbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank
+        eingetragen werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_rentenversicherungsbeitraege}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '8 Rentenversicherungsbeitraege.xlsx' pruefen
+        an_beitrag_rv_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[0],
+                                                                           99,
+                                                                           'AN-Beitrag RV in %',
+                                                                           True)
+        ag_beitrag_rv_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[1],
+                                                                           99,
+                                                                           'AG-Beitrag RV in %',
+                                                                           True)
+        beitragsbemessungsgrenze_rv_ost = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2],
+                                                                                  99999999,
+                                                                                  'Beitragsbemessungsgrenze RV Ost',
+                                                                                  True)
+        beitragsbemessungsgrenze_rv_west = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3],
+                                                                                   99999999,
+                                                                                   'Beitragsbemessungsgrenze RV West',
+                                                                                   True)
+        eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[4], 'Eintragungsdatum', True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_rentenversicherungsbeitraege', [self.mandant_id,
+                                                             an_beitrag_rv_in_prozent,
+                                                             ag_beitrag_rv_in_prozent,
+                                                             beitragsbemessungsgrenze_rv_ost,
+                                                             beitragsbemessungsgrenze_rv_west,
+                                                             eintragungsdatum])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def insert_minijobbeitraege(self, neuanlage_minijobbeitraege):
+        """
+        Diese Methode uebertraegt Minijobbeitragssaetze von Arbeitnehmer und Arbeitgeber sowie die Umlagen und
+         Pauschalsteuer (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in
+        dem der Stored Procedure 'insert_Minijob' aufgerufen wird.
+        :param neuanlage_minijobbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank
+        eingetragen werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_minijobbeitraege}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '9 Minijobbeitraege.xlsx' pruefen
+        kurzfristig_beschaeftigt = self._existenz_boolean_daten_feststellen(liste_ma_daten[0],
+                                                                            'kurzfristige Minijobtaetigkeit?',
+                                                                            True)
+        ag_beitrag_kv_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[1],
+                                                                           99,
+                                                                           'AG-Beitrag KV Minijob in %',
+                                                                           True)
+        ag_beitrag_rv_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2],
+                                                                           99,
+                                                                           'AG-Beitrag RV Minijob in %',
+                                                                           True)
+        an_beitrag_rv_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3],
+                                                                           99,
+                                                                           'AN-Beitrag RV Minijob in %',
+                                                                           True)
+        u1_umlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[4], 99, 'U1-Umlage Minijob in %', True)
+        u2_umlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[5], 99, 'U2-Umlage Minijob in %', True)
+        insolvenzgeldumlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[6],
+                                                                      99,
+                                                                      'Insolvenzgeldumlage Minijob in %',
+                                                                      True)
+        pauschalsteuer = self._existenz_zahlen_daten_feststellen(liste_ma_daten[7],
+                                                                 99,
+                                                                 'Pauschalsteuer Minijob in %',
+                                                                 True)
+        eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[8], 'Eintragungsdatum', True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_Minijob', [self.mandant_id,
+                                        kurzfristig_beschaeftigt,
+                                        ag_beitrag_kv_in_prozent,
+                                        ag_beitrag_rv_in_prozent,
+                                        an_beitrag_rv_in_prozent,
+                                        u1_umlage,
+                                        u2_umlage,
+                                        insolvenzgeldumlage,
+                                        pauschalsteuer,
+                                        eintragungsdatum])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def insert_gewerkschaft(self, neuanlage_gewerkschaft):
+        """
+        Diese Methode uebertraegt den Namen der Gewerkschaft (im Rahmen der Bachelorarbeit dargestellt durch eine
+        Excel-Datei) in die Datenbank, in dem der Stored Procedure 'insert_tarif' aufgerufen wird.
+        :param neuanlage_gewerkschaft: Name der Excel-Datei, dessen Daten in die Datenbank
+        eingetragen werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert Entgeltdaten/{neuanlage_gewerkschaft}", index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '2 Tarif.xlsx' pruefen
+        gewerkschaft = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Gewerkschaft', 64, True)
+        branche = self._existenz_str_daten_feststellen(liste_ma_daten[1], 'Branche', 64, True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_gewerkschaft', [self.mandant_id, gewerkschaft, branche])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def insert_tarif(self, neuanlage_tarif):
+        """
+        Diese Methode uebertraegt den Namen eines Tarifs und verknuepft diese mit der Gewerkschaft (im Rahmen der
+        Bachelorarbeit dargestellt durch eine Excel-Datei), die fuer diese zustaendig ist, in die Datenbank, in dem der
+        Stored Procedure 'insert_Tarif' aufgerufen wird.
+        :param neuanlage_tarif: Name der Excel-Datei, dessen Daten in die Datenbank
+        eingetragen werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert Entgeltdaten/{neuanlage_tarif}", index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '2 Tarif.xlsx' pruefen
+        tarifbezeichnung = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Tarifbezeichnung', 16, True)
+        gewerkschaft = self._existenz_str_daten_feststellen(liste_ma_daten[1], 'Gewerkschaft', 64, True)
+        branche = self._existenz_str_daten_feststellen(liste_ma_daten[2], 'Branche', 64, True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_tarif', [self.mandant_id, tarifbezeichnung, gewerkschaft, branche])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def insert_verguetungsbestandteil(self, neuanlage_verguetungsbestandteil):
+        """
+        Diese Methode uebertraegt einen Verguetungsbestandteil wie bspw. Grundgehalt, Urlaubsgeld etc. und verknuepft
+        sie mit dem entsprechenden Tarif (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei), in die
+        Datenbank, in dem die Stored Procedures 'insert_verguetungsbestandteil' und '' aufgerufen wird.
+        :param neuanlage_verguetungsbestandteil: Name der Excel-Datei, dessen Daten in die Datenbank
+        eingetragen werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert Entgeltdaten/{neuanlage_verguetungsbestandteil}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '3 Verguetungsbestandteil.xlsx' pruefen
+        verguetungsbestandteil = self._existenz_str_daten_feststellen(liste_ma_daten[0],
+                                                                      'Verguetungsbestandteil',
+                                                                      64,
+                                                                      True)
+        auszahlungsmonat = self._existenz_str_daten_feststellen(liste_ma_daten[1], 'Auszahlungsmonat', 16, True)
+        tarifbezeichnung = self._existenz_str_daten_feststellen(liste_ma_daten[2], 'Tarifbezeichnung', 16, True)
+        betrag = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3], 99999999, 'Betrag', True)
+        gueltig_ab = self._existenz_date_daten_feststellen(liste_ma_daten[4], 'Tarifentgelt gueltig ab', True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedures aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_verguetungsbestandteil', [self.mandant_id, verguetungsbestandteil, auszahlungsmonat])
+        cur.callproc('insert_tarifliches_verguetungsbestandteil', [self.mandant_id,
+                                                                   tarifbezeichnung,
+                                                                   verguetungsbestandteil,
+                                                                   betrag,
+                                                                   gueltig_ab])
+
+        # Commit der Aenderungen
         conn.commit()
 
         # Cursor und Konnektor zu Datenbank schließen
@@ -304,9 +703,8 @@ class Nutzer:
         :param mitarbeiterdaten: Name der Excel-Datei, dessen Mitarbeiterdaten in die Datenbank
         eingetragen werden sollen.
         """
-        conn = self._datenbankbverbindung_aufbauen()
 
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Übertrag in Liste "liste_ma_daten"
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
         df_ma_daten = pd.read_excel(f"Mitarbeiterdaten/{mitarbeiterdaten}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
@@ -483,7 +881,7 @@ class Nutzer:
                                                                                    'Beitragsbemessungsgrenze RV West',
                                                                                    False)
 
-        # Ein Cursor-Objekt erstellen
+        conn = self._datenbankbverbindung_aufbauen()
         cur = conn.cursor()
 
         # Stored Procedure aufrufen und Daten an Datenbank uebergeben
@@ -555,7 +953,7 @@ class Nutzer:
                                                  beitragsbemessungsgrenze_rv_west
                                                  ])
 
-        # Commit der Änderungen
+        # Commit der Aenderungen
         conn.commit()
 
         # Cursor und Konnektor zu Datenbank schließen
@@ -570,9 +968,8 @@ class Nutzer:
         :param adressdaten: Name der Excel-Datei, dessen Adressdaten in die Datenbank
         eingetragen werden sollen.
         """
-        conn = self._datenbankbverbindung_aufbauen()
 
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Übertrag in Liste "liste_ma_daten"
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
         df_ma_daten = pd.read_excel(f"Mitarbeiterdaten/{adressdaten}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
@@ -586,7 +983,7 @@ class Nutzer:
         region = self._existenz_str_daten_feststellen(liste_ma_daten[6], 'Region', 128, True)
         land = self._existenz_str_daten_feststellen(liste_ma_daten[7], 'Land', 128, True)
 
-        # Ein Cursor-Objekt erstellen
+        conn = self._datenbankbverbindung_aufbauen()
         cur = conn.cursor()
 
         # Stored Procedure aufrufen
@@ -602,7 +999,7 @@ class Nutzer:
                                         land
                                         ])
 
-        # Commit der Änderungen
+        conn = self._datenbankbverbindung_aufbauen()
         conn.commit()
 
         # Cursor und Konnektor zu Datenbank schließen
@@ -637,7 +1034,6 @@ class Nutzer:
         :param mitarbeiter: Name der Excel-Datei, die die Personalnummer des Mitarbeiters enthaelt, der entfernt
                             werden soll
         """
-        conn = self._datenbankbverbindung_aufbauen()
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Übertrag in Liste "liste_ma_daten"
         df_ma_daten = pd.read_excel(f"Mitarbeiterdaten/{mitarbeiter}", index_col='Daten', na_filter=False)
@@ -645,7 +1041,7 @@ class Nutzer:
 
         personalnummer = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Personalnummer', 32, True)
 
-        # Ein Cursor-Objekt erstellen
+        conn = self._datenbankbverbindung_aufbauen()
         cur = conn.cursor()
 
         # Stored Procedure aufrufen
