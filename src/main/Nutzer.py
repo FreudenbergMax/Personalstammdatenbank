@@ -130,6 +130,276 @@ class Nutzer:
 
         return ergebnis
 
+    def insert_geschlecht(self, neuanlage_geschlecht):
+        """
+        Diese Methode uebertraegt ein Geschlecht (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in
+        die Datenbank, in dem die Stored Procedure 'insert_geschlecht' aufgerufen wird.
+        :param neuanlage_geschlecht: Name der Excel-Datei, dessen Daten in die Datenbank
+        eingetragen werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/{neuanlage_geschlecht}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '1 Geschlecht.xlsx' pruefen
+        geschlecht = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Geschlecht', 32, True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_geschlecht', [self.mandant_id, geschlecht])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def insert_mitarbeitertyp(self, neuanlage_mitarbeitertyp):
+        """
+        Diese Methode uebertraegt ein Mitarbeitertyp wie bspw. 'Angestellter' oder 'Praktikant' (im Rahmen der
+        Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in dem die Stored Procedure
+        'insert_mitarbeitertyp' aufgerufen wird.
+        :param neuanlage_mitarbeitertyp: Name der Excel-Datei, dessen Daten in die Datenbank
+        eingetragen werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/{neuanlage_mitarbeitertyp}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '2 Mitarbeitertyp.xlsx' pruefen
+        mitarbeitertyp = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Geschlecht', 32, True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_mitarbeitertyp', [self.mandant_id, mitarbeitertyp])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def insert_steuerklasse(self, neuanlage_steuerklasse):
+        """
+        Diese Methode uebertraegt Steuerklasse (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die
+        Datenbank, in dem die Stored Procedure 'insert_steuerklasse' aufgerufen wird.
+        :param neuanlage_steuerklasse: Name der Excel-Datei, dessen Daten in die Datenbank
+        eingetragen werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/{neuanlage_steuerklasse}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '3 Steuerklasse.xlsx' pruefen
+        steuerklasse = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Steuerklasse', 1, True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_steuerklasse', [self.mandant_id, steuerklasse])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def insert_abteilung(self, neuanlage_abteilung):
+        """
+        Diese Methode uebertraegt eine Abteilung und deren Abkuerzung in die Datenbank (im Rahmen der Bachelorarbeit
+        dargestellt durch eine Excel-Datei), in dem die Stored Procedure 'insert_abteilung' aufgerufen wird.
+        :param neuanlage_abteilung: Name der Excel-Datei, dessen Daten in die Datenbank
+        eingetragen werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/{neuanlage_abteilung}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '4 Abteilung.xlsx' pruefen
+        abteilung = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Abteilung', 64, True)
+        abkuerzung = self._existenz_str_daten_feststellen(liste_ma_daten[1], 'Abteilungskuerzel', 16, True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_abteilung', [self.mandant_id, abteilung, abkuerzung])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def insert_jobtitel(self, neuanlage_jobtitel):
+        """
+        Diese Methode uebertraegt einen Jobtitel (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei),
+        in dem die Stored Procedure 'insert_jobtitel' aufgerufen wird.
+        :param neuanlage_jobtitel: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/{neuanlage_jobtitel}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '5 Jobtitel.xlsx' pruefen
+        jobtitel = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Jobtitel', 32, True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_jobtitel', [self.mandant_id, jobtitel])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def insert_erfahrungsstufe(self, neuanlage_erfahrungsstufe):
+        """
+        Diese Methode uebertraegt eine Erfahrungsstufe wie bspw. 'Junior', 'Senior' etc. (im Rahmen der Bachelorarbeit
+        dargestellt durch eine Excel-Datei), in dem die Stored Procedure 'insert_erfahrungsstufe' aufgerufen wird.
+        :param neuanlage_jobtitel: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/{neuanlage_erfahrungsstufe}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '6 Erfahrungsstufe.xlsx' pruefen
+        erfahrungsstufe = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Erfahrungsstufe', 32, True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_erfahrungsstufe', [self.mandant_id, erfahrungsstufe])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def insert_gesellschaft(self, neuanlage_gesellschaft):
+        """
+        Diese Methode uebertraegt eine Unternehmensgesellschaft und deren Abkuerzung in die Datenbank (im Rahmen der
+        Bachelorarbeit dargestellt durch eine Excel-Datei), in dem die Stored Procedure 'insert_gesellschaft' aufgerufen
+        wird.
+        :param neuanlage_gesellschaft: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/{neuanlage_gesellschaft}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '7 Gesellschaft.xlsx' pruefen
+        gesellschaft = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Gesellschaft', 128, True)
+        abkuerzung = self._existenz_str_daten_feststellen(liste_ma_daten[1], 'Gesellschaftskuerzel', 16, True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_gesellschaft', [self.mandant_id, gesellschaft, abkuerzung])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def insert_austrittsgrundkategorie(self, neuanlage_austrittsgrundkategorie):
+        """
+        Diese Methode uebertraegt eine Austrittsgrundkategorie wie bspw. 'betriebsbedingt' in die Datenbank (im Rahmen
+        der Bachelorarbeit dargestellt durch eine Excel-Datei), in dem die Stored Procedure
+        'insert_kategorien_austrittsgruende' aufgerufen wird.
+        :param neuanlage_austrittsgrundkategorie: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden
+        sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/{neuanlage_austrittsgrundkategorie}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '8 Austrittsgrundkategorie.xlsx' pruefen
+        austrittsgrundkategorie = self._existenz_str_daten_feststellen(liste_ma_daten[0],
+                                                                       'Austrittsgrundkategorie',
+                                                                       16,
+                                                                       True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_kategorien_austrittsgruende', [self.mandant_id, austrittsgrundkategorie])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def insert_austrittsgrund(self, neuanlage_austrittsgrund):
+        """
+        Diese Methode uebertraegt eine Austrittsgrund wie bspw. 'Umsatzrueckgang' in die Datenbank (im Rahmen
+        der Bachelorarbeit dargestellt durch eine Excel-Datei), in dem die Stored Procedure 'insert_austrittsgruende'
+        aufgerufen wird.
+        :param neuanlage_austrittsgrund: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/{neuanlage_austrittsgrund}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '9 Austrittsgrund.xlsx' pruefen
+        austrittsgrund = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Austrittsgrund', 16, True)
+        austrittsgrundkategorie = self._existenz_str_daten_feststellen(liste_ma_daten[1],
+                                                                       'Austrittsgrundkategorie',
+                                                                       16,
+                                                                       True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_austrittsgruende', [self.mandant_id, austrittsgrund, austrittsgrundkategorie])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
     def insert_krankenversicherungsbeitraege(self, neuanlage_krankenversicherungsbeitraege):
         """
         Diese Methode überträgt die eingetragenen Krankenversicherungsbeitraege (im Rahmen der Bachelorarbeit
@@ -593,6 +863,94 @@ class Nutzer:
         cur.close()
         conn.close()
 
+    def insert_berufsgenossenschaft(self, neuanlage_berufsgenossenschaft):
+        """
+        Diese Methode uebertraegt eine Berufsgenossenschaft in die Datenbank (im Rahmen der Bachelorarbeit dargestellt
+        durch eine Excel-Datei), in dem die Stored Procedure 'insert_berufsgenossenschaft' aufgerufen wird.
+        :param neuanlage_berufsgenossenschaft: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden
+        sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_berufsgenossenschaft}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '10 Berufsgenossenschaft.xlsx' pruefen
+        berufsgenossenschaft = self._existenz_str_daten_feststellen(liste_ma_daten[0],
+                                                                    'Berufsgenossenschaft',
+                                                                    128,
+                                                                    True)
+        abkuerzung = self._existenz_str_daten_feststellen(liste_ma_daten[1],
+                                                          'Berufsgenossenschaftskuerzel',
+                                                          16,
+                                                          True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_berufsgenossenschaft', [self.mandant_id, berufsgenossenschaft, abkuerzung])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def insert_unfallversicherungsbeitrag(self, neuanlage_unfallversicherungsbeitrag):
+        """
+        Diese Methode uebertraegt eine Berufsgenossenschaft in die Datenbank (im Rahmen der Bachelorarbeit dargestellt
+        durch eine Excel-Datei), in dem die Stored Procedure 'insert_unfallversicherungsbeitrag' aufgerufen wird.
+        :param neuanlage_unfallversicherungsbeitrag: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen
+        werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_unfallversicherungsbeitrag}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '11 Unfallversicherungsbeitrag.xlsx' pruefen
+        gesellschaft = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Gesellschaft', 128, True)
+        gesellschaftskuerzel = self._existenz_str_daten_feststellen(liste_ma_daten[1], 'Gesellschaftskuerzel', 16, True)
+        berufsgenossenschaft = self._existenz_str_daten_feststellen(liste_ma_daten[2],
+                                                                    'Berufsgenossenschaft',
+                                                                    128,
+                                                                    True)
+        berufsgenossenschaftskuerzel = self._existenz_str_daten_feststellen(liste_ma_daten[3],
+                                                                            'Berufsgenossenschaftskuerzel',
+                                                                            16,
+                                                                            True)
+        jahresbeitrag_unfallversicherung = self._existenz_zahlen_daten_feststellen(liste_ma_daten[4],
+                                                                                   9999999999,
+                                                                                   'Betrag',
+                                                                                   True)
+        beitragsjahrjahr_uv = self._existenz_zahlen_daten_feststellen(liste_ma_daten[5],
+                                                                      9999,
+                                                                      'Beitragsjahr Unfallversicherung',
+                                                                      True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_unfallversicherungsbeitrag', [self.mandant_id,
+                                                           gesellschaft,
+                                                           gesellschaftskuerzel,
+                                                           berufsgenossenschaft,
+                                                           berufsgenossenschaftskuerzel,
+                                                           jahresbeitrag_unfallversicherung,
+                                                           beitragsjahrjahr_uv])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
     def insert_gewerkschaft(self, neuanlage_gewerkschaft):
         """
         Diese Methode uebertraegt den Namen der Gewerkschaft (im Rahmen der Bachelorarbeit dargestellt durch eine
@@ -657,7 +1015,7 @@ class Nutzer:
         """
         Diese Methode uebertraegt einen Verguetungsbestandteil wie bspw. Grundgehalt, Urlaubsgeld etc. und verknuepft
         sie mit dem entsprechenden Tarif (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei), in die
-        Datenbank, in dem die Stored Procedures 'insert_verguetungsbestandteil' und '' aufgerufen wird.
+        Datenbank, in dem die Stored Procedure 'insert_verguetungsbestandteil' aufgerufen wird.
         :param neuanlage_verguetungsbestandteil: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
         """
@@ -680,11 +1038,11 @@ class Nutzer:
         conn = self._datenbankbverbindung_aufbauen()
         cur = conn.cursor()
 
-        # Stored Procedures aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_verguetungsbestandteil', [self.mandant_id, verguetungsbestandteil, auszahlungsmonat])
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
         cur.callproc('insert_tarifliches_verguetungsbestandteil', [self.mandant_id,
-                                                                   tarifbezeichnung,
                                                                    verguetungsbestandteil,
+                                                                   auszahlungsmonat,
+                                                                   tarifbezeichnung,
                                                                    betrag,
                                                                    gueltig_ab])
 
@@ -1127,7 +1485,7 @@ class Nutzer:
         elif zahlen_daten > hoechstbetrag:
             raise (ValueError(f"'{art}' ist mit '{zahlen_daten}' hoeher als der zulaessige Maximalbetrag von "
                               f"'{hoechstbetrag}'!"))
-        elif art == 'Anzahl Kinder':
+        elif art == 'Anzahl Kinder' or art == 'Beitragsjahr Unfallversicherung':
             zahlen_daten = int(zahlen_daten)
         else:
             zahlen_daten = round(decimal.Decimal(zahlen_daten), 2)
