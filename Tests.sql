@@ -65,17 +65,6 @@ select * from Rentenversicherungsbeitraege;
 select * from hat_RV_Beitraege;
 select * from hat_gesetzliche_Rentenversicherung;
 
-select insert_gewerkschaft(1, 'Verdi');
-select insert_Tarif(1, 'A5-1', 'Verdi');
-select insert_verguetungsbestandteile(1, 'Grundgehalt', 'jeden Monat');
-select insert_tarifliche_verguetungsbestandteile(1, 'A5-1', 'Grundgehalt', 4215.76, '2024-01-01');
-select * from Tarife;
-select * from Gewerkschaften;
-select * from verguetungsbestandteile;
-select * from hat_verguetungsbestandteil_tarif;
-select * from hat_Tarif;
-select * from Aussertarifliche;
-
 select insert_Minijob(1, false, 13.0, 15, 3.6, 1.1, 0.24, 0.06, 2.0, '2023-12-15');
 select insert_Minijob(1, true, 0, 0, 0, 1.1, 0.24, 0.06, 0, '2023-12-15');
 select * from minijobs;
@@ -83,10 +72,15 @@ select * from pauschalabgaben;
 select * from hat_Pauschalabgaben;
 select * from ist_minijobber;
 
-
-select insert_steuerklasse(1, '1');
-select * from steuerklassen;
-select * from in_steuerklasse;
+select insert_gewerkschaft(1, 'Verdi', 'Druck');
+select insert_Tarif(1, 'A5-1', 'Verdi', 'Druck');
+select insert_tarifliches_verguetungsbestandteil(1, 'Grundgehalt', 'jeden Monat', 'A5-1', 4215.76, '2024-01-01');
+select * from Tarife;
+select * from Gewerkschaften;
+select * from verguetungsbestandteile;
+select * from hat_verguetungsbestandteil_tarif;
+select * from hat_Tarif;
+select * from Aussertarifliche;
 
 select insert_geschlecht(1, 'maennlich');
 select * from geschlechter;
@@ -96,9 +90,11 @@ select insert_mitarbeitertyp(1, 'Angestellter');
 select * from mitarbeitertypen;
 select * from ist_mitarbeitertyp;
 
+select insert_steuerklasse(1, '1');
+select * from steuerklassen;
+select * from in_steuerklasse;
+
 select insert_abteilung(1, 'Human Resources Personalcontrolling', 'HR PC');
-select insert_abteilung(1, 'Human Resources', 'HR');
-select update_erstelle_abteilungshierarchie(1, 'Human Resources Personalcontrolling', 'Human Resources');
 select * from abteilungen;
 select * from eingesetzt_in;
 
@@ -117,8 +113,9 @@ select insert_austrittsgruende(1, 'Umsatzrueckgang', 'betriebsbedingt');
 select * from kategorien_austrittsgruende;
 select * from austrittsgruende;
 
-select insert_berufsgenossenschaft(1, 'Berufsgenossenschaft Genussmittel', 'BGN');
-select insert_unfallversicherungsbeitrag(1, 'Bundesdruckerei GmbH', 'BDr GmbH', 'Berufsgenossenschaft Genussmittel', 'BGN', 100.75, 2023);
+select insert_berufsgenossenschaft(1, 'Berufsgenossenschaft Energie Textil Elektro Medienerzeugnisse', 'BG ETEM');
+select insert_unfallversicherungsbeitrag(1, 'Bundesdruckerei GmbH', 'BDr GmbH', 'Berufsgenossenschaft Energie Textil Elektro Medienerzeugnisse', 
+'BG ETEM', 100.75, 2023);
 select * from berufsgenossenschaften;
 select * from unfallversicherungsbeitraege;
 
@@ -193,8 +190,10 @@ select * from hat_verguetungsbestandteil_at;
 
 select update_adresse(1, 'M100002', '2025-12-31', '2026-01-01', 'Hofzeichendamm', '5', '13125', 'Berlin', 'Berlin', 'Deutschland');
 
+--select insert_abteilung(1, 'Human Resources', 'HR');
 select update_mitarbeiterentlassung(1, 'M100002', '2026-12-31', 'Umsatzrueckgang');
 
+select update_erstelle_abteilungshierarchie(1, 'Human Resources Personalcontrolling', 'Human Resources');
 
 select delete_mitarbeiterdaten(1, 'M100002');
 
