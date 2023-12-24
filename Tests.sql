@@ -16,7 +16,7 @@ select * from Krankenversicherungen;
 select * from GKV_Beitraege;
 select * from hat_GKV_Beitraege;
 select * from hat_gesetzliche_Krankenversicherung;
-select update_krankenversicherungsbeitraege(1, false, 7.8, 7.8, 80000, 82000.75,'2024-12-31', '2025-01-01');
+
 
 
 select insert_gesetzliche_Krankenkasse(1, 'Kaufmaennische Krankenkasse', 'KKH', 1.7, 1.6, 0.44, 0.06, 'gesetzlich', '2023-12-15');
@@ -160,27 +160,24 @@ select insert_mitarbeiterdaten(-- Tabelle Mitarbeiter
 							   -- Bereich 'Gesellschaft'
 							   'Bundesdruckerei GmbH',			-- Gesellschaft
 							   -- Bereich 'Entgelt'	
-							   false,							-- tarifbeschaeftigt?		
-							   null,							-- Tarif
-							   null,							-- Grundgehalt
-							   null,								-- Weihnachtsgeld
-							   null,								-- Urlaubsgeld
+							   true,							-- tarifbeschaeftigt?		
+							   'A5-1',							-- Tarif
 							   -- Bereich 'Kranken- und Pflegeversicherung'
+							   false,							-- kurzfristig beschaeftigt?
+							   'Kaufmaennische Krankenkasse',	-- Mitglied Krankenkasse (vollständiger Name)
+							   'KKH',							-- Mitglied Krankenkasse (Abkürzung)
+							   true,							-- gesetzlich krankenversichert?
+							   false,							-- ermaessigter KV_Beitragssatz?
+							   0,								-- Anzahl Kinder
+							   false,							-- wohnhaft Sachsen?
 							   false,							-- privat krankenversichert
 							   200.25,							-- Zuschuss private Krankenversicherung
 							   false,							-- ist Minijobber?
-							   false,							-- kurzfristig beschaeftigt?
-							   false,							-- gesetzlich krankenversichert?
-							   false,							-- ermaessigter KV_Beitragssatz?
-							   'Beispielkrankenkasse',			-- Mitglied Krankenkasse (vollständiger Name)
-							   'BK',							-- Mitglied Krankenkasse (Abkürzung)
-							   0,								-- Anzahl Kinder
-							   false,							-- wohnhaft Sachsen?
+							   false,							-- anderweitig_versichert?
 							   -- Bereich 'Arbeitslosenversicherung'
-							   false,							-- Arbeitslosenversichert?
+							   true,							-- Arbeitslosenversichert?
 							   -- Bereich 'Rentenversicherung'
-							   false,							-- Rentenversichert?
-							   true								-- anderweitig_versichert?
+							   true							-- Rentenversichert?
 							   );
 
 select insert_aussertarifliche_verguetungsbestandteile(1, 'M100002', 'Grundgehalt', 125321.15, '2024-01-01');
@@ -194,6 +191,8 @@ select update_adresse(1, 'M100002', '2025-12-31', '2026-01-01', 'Hofzeichendamm'
 select update_mitarbeiterentlassung(1, 'M100002', '2026-12-31', 'Umsatzrueckgang');
 
 select update_erstelle_abteilungshierarchie(1, 'Human Resources Personalcontrolling', 'Human Resources');
+
+select update_krankenversicherungsbeitraege(1, false, 7.8, 7.8, 80000, 82000.75,'2024-12-31', '2025-01-01');
 
 select delete_mitarbeiterdaten(1, 'M100002');
 

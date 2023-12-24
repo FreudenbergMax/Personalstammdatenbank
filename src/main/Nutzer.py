@@ -1063,10 +1063,11 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"Mitarbeiterdaten/{mitarbeiterdaten}", index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/{mitarbeiterdaten}",
+                                    index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
-        # Daten aus importierter Excel-Tabelle 'Neuanlage Mitarbeiter.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '10 Mitarbeiter.xlsx' pruefen
         personalnummer = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Personalnummer', 32, True)
         vorname = self._existenz_str_daten_feststellen(liste_ma_daten[1], 'Vorname', 64, True)
         zweitname = self._existenz_str_daten_feststellen(liste_ma_daten[2], 'Zweitname', 128, False)
@@ -1074,170 +1075,129 @@ class Nutzer:
         geburtsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[4], 'Geburtsdatum', True)
         eintrittsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[5], 'Eintrittsdatum', True)
         steuernummer = self._existenz_str_daten_feststellen(liste_ma_daten[6], 'Steuernummer', 32, False)
-        sozialversicherungsnummer = self._existenz_str_daten_feststellen(liste_ma_daten[7], 'Sozialversicherungsnummer',
-                                                                         32, False)
+        sozialversicherungsnummer = self._existenz_str_daten_feststellen(liste_ma_daten[7],
+                                                                         'Sozialversicherungsnummer',
+                                                                         32,
+                                                                         False)
         iban = self._existenz_str_daten_feststellen(liste_ma_daten[8], 'IBAN', 32, False)
-        private_telefonnummer = self._existenz_str_daten_feststellen(liste_ma_daten[9], 'private Telefonnummer',
-                                                                     16, False)
+        private_telefonnummer = self._existenz_str_daten_feststellen(liste_ma_daten[9],
+                                                                     'private Telefonnummer',
+                                                                     16,
+                                                                     False)
         private_email = self._existenz_str_daten_feststellen(liste_ma_daten[10], 'private E-Mail', 64, True)
-        dienstliche_telefonnummer = self._existenz_str_daten_feststellen(liste_ma_daten[11], 'dienstliche '
-                                                                                             'Telefonnummer', 16, False)
+        dienstliche_telefonnummer = self._existenz_str_daten_feststellen(liste_ma_daten[11],
+                                                                         'dienstliche Telefonnummer',
+                                                                         16,
+                                                                         False)
         dienstliche_email = self._existenz_str_daten_feststellen(liste_ma_daten[12], 'dienstliche E-Mail', 64, False)
-        austrittsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[13], 'Austrittsdatum', False)
+        befristet_bis = self._existenz_date_daten_feststellen(liste_ma_daten[13], 'Befristet Bis', False)
+
         strasse = self._existenz_str_daten_feststellen(liste_ma_daten[14], 'Strasse', 64, True)
         hausnummer = self._existenz_str_daten_feststellen(liste_ma_daten[15], 'Hausnummer', 8, True)
         postleitzahl = self._existenz_str_daten_feststellen(liste_ma_daten[16], 'Postleitzahl', 16, True)
         stadt = self._existenz_str_daten_feststellen(liste_ma_daten[17], 'Stadt', 128, True)
         region = self._existenz_str_daten_feststellen(liste_ma_daten[18], 'Region', 128, True)
         land = self._existenz_str_daten_feststellen(liste_ma_daten[19], 'Land', 128, True)
+
         geschlecht = self._existenz_str_daten_feststellen(liste_ma_daten[20], 'Geschlecht', 32, False)
+
         mitarbeitertyp = self._existenz_str_daten_feststellen(liste_ma_daten[21], 'Mitarbeitertyp', 32, False)
+
         steuerklasse = self._existenz_str_daten_feststellen(liste_ma_daten[22], 'Steuerklasse', 1, False)
-        wochenarbeitsstunden = self._existenz_zahlen_daten_feststellen(liste_ma_daten[23], 50, 'Wochenarbeitsstunden',
+
+        wochenarbeitsstunden = self._existenz_zahlen_daten_feststellen(liste_ma_daten[23],
+                                                                       48,
+                                                                       'Wochenarbeitsstunden',
                                                                        False)
+
         abteilung = self._existenz_str_daten_feststellen(liste_ma_daten[24], 'Abteilung', 64, False)
         abteilungskuerzel = self._existenz_str_daten_feststellen(liste_ma_daten[25], 'Abteilungskuerzel', 16, False)
+
         fuehrungskraft = self._existenz_boolean_daten_feststellen(liste_ma_daten[26], 'Fuehrungskraft', False)
         jobtitel = self._existenz_str_daten_feststellen(liste_ma_daten[27], 'Jobtitel', 32, False)
         erfahrungsstufe = self._existenz_str_daten_feststellen(liste_ma_daten[28], 'Erfahrungsstufe', 32, False)
-        gesellschaft = self._existenz_str_daten_feststellen(liste_ma_daten[29], 'Gesellschaft', 128, False)
-        abk_gesellschaft = self._existenz_str_daten_feststellen(liste_ma_daten[30], 'Abk. Gesellschaft', 16, False)
 
-        tarifbeschaeftigt = self._existenz_boolean_daten_feststellen(liste_ma_daten[31], 'tarifbeschaeftigt', False)
+        gesellschaft = self._existenz_str_daten_feststellen(liste_ma_daten[29], 'Gesellschaft', 128, False)
+
+        tarifbeschaeftigt = self._existenz_boolean_daten_feststellen(liste_ma_daten[30], 'tarifbeschaeftigt', False)
         if tarifbeschaeftigt:
-            gewerkschaft = self._existenz_str_daten_feststellen(liste_ma_daten[32], 'Gewerkschaft', 64, False)
-            tarif = self._existenz_str_daten_feststellen(liste_ma_daten[33], 'Tarif', 16, False)
+            tarif = self._existenz_str_daten_feststellen(liste_ma_daten[31], 'Tarif', 16, True)
         else:
-            gewerkschaft = None
             tarif = None
 
-        grundgehalt_monat = self._existenz_zahlen_daten_feststellen(liste_ma_daten[34],
-                                                                    99999999,
-                                                                    'Grundgehalt monatlich',
-                                                                    False)
-        weihnachtsgeld = self._existenz_zahlen_daten_feststellen(liste_ma_daten[35],
-                                                                 99999999,
-                                                                 'Weihnachtsgeld',
-                                                                 False)
-        urlaubsgeld = self._existenz_zahlen_daten_feststellen(liste_ma_daten[36],
-                                                              99999999,
-                                                              'Urlaubsgeld',
-                                                              False)
-
-        privat_krankenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[37],
-                                                                            'privat Krankenversichert?',
+        kurzfristig_beschaeftigt = self._existenz_boolean_daten_feststellen(liste_ma_daten[32],
+                                                                            'Kurzfristig_beschaeftigt?',
                                                                             False)
 
-        # Arbeitgeberbeitraege fuer privat Versicherte
-        ag_zuschuss_krankenversicherung = self._existenz_zahlen_daten_feststellen(liste_ma_daten[38],
-                                                                                  99999999,
-                                                                                  'AG-Zuschuss Krankenversicherung',
-                                                                                  False)
-        ag_zuschuss_zusatzbeitrag = self._existenz_zahlen_daten_feststellen(liste_ma_daten[39],
-                                                                            99999999,
-                                                                            'AG-Zuschuss Zusatzbeitrag',
-                                                                            False)
-        ag_zuschuss_pflegeversicherung = self._existenz_zahlen_daten_feststellen(liste_ma_daten[40],
-                                                                                 99999999,
-                                                                                 'AG-Zuschuss Pflegeversicherung',
-                                                                                 False)
+        bezeichnung_krankenkasse = self._existenz_str_daten_feststellen(liste_ma_daten[33],
+                                                                        'Bezeichnung Krankenkasse',
+                                                                        128,
+                                                                        False)
 
-        gesetzlich_krankenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[41],
+        abkuerzung_krankenkasse = self._existenz_str_daten_feststellen(liste_ma_daten[34],
+                                                                       'Abkuerzung Krankenkasse',
+                                                                       16,
+                                                                       False)
+
+        gesetzlich_krankenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[35],
                                                                                 'gesetzlich Krankenversichert?',
                                                                                 False)
 
-        # Ein Mitarbeiter kann zur selben Zeit entweder gesetzlich oder privat krankenversichert sein, niemals
-        # beides gleichzeitig!
-        if privat_krankenversichert and gesetzlich_krankenversichert:
-            raise (ValueError(f"Der Mitarbeiter '{personalnummer}' kann nicht gleichzeitig gesetzlich und"
-                              f"privat versichert sein!"))
+        ermaessigter_gkv_beitragssatz = self._existenz_boolean_daten_feststellen(liste_ma_daten[36],
+                                                                                'ermaessigter GKV-Beitragssatz?',
+                                                                                False)
 
-        # Beitraege fuer gesetzliche Kranken- und Pflege-Versicherungen
-        ag_krankenversicherungsbeitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[42],
-                                                                                            99,
-                                                                                            'AG-Beitrag GKV',
-                                                                                            False)
-        an_krankenversicherungsbeitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[43],
-                                                                                            99,
-                                                                                            'AN-Beitrag GKV',
-                                                                                            False)
-        beitragsbemessungsgrenze_kv_ost = self._existenz_zahlen_daten_feststellen(liste_ma_daten[44],
-                                                                                  99999999,
-                                                                                  'Beitragsbemessungsgrenze GKV Ost',
-                                                                                  False)
-        beitragsbemessungsgrenze_kv_west = self._existenz_zahlen_daten_feststellen(liste_ma_daten[45],
-                                                                                   99999999,
-                                                                                   'Beitragsbemessungsgrenze GKV West',
-                                                                                   False)
-        bezeichnung_gesetzliche_krankenkasse = self._existenz_str_daten_feststellen(liste_ma_daten[46],
-                                                                                    'Bezeichnung ges. Krankenkasse',
-                                                                                    128,
-                                                                                    False)
-        abkuerzung_gesetzliche_krankenkasse = self._existenz_str_daten_feststellen(liste_ma_daten[47],
-                                                                                   'Abkuerzung ges. Krankenkasse',
-                                                                                   16,
-                                                                                   False)
-        gkv_zusatzbeitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[48],
-                                                                               99,
-                                                                               'GKV Zusatzbeitrag in %',
-                                                                               False)
-        anzahl_kinder = self._existenz_zahlen_daten_feststellen(liste_ma_daten[49], 99, 'Anzahl Kinder', False)
-        an_anteil_pv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[50],
-                                                                                  99,
-                                                                                  'AN-Anteil Pflegeversicherung in %',
-                                                                                  False)
-        beitragsbemessungsgrenze_pv_ost = self._existenz_zahlen_daten_feststellen(liste_ma_daten[51],
-                                                                                  99999999,
-                                                                                  'Beitragsbemessungsgrenze PV Ost',
-                                                                                  False)
-        beitragsbemessungsgrenze_pv_west = self._existenz_zahlen_daten_feststellen(liste_ma_daten[52],
-                                                                                   99999999,
-                                                                                   'Beitragsbemessungsgrenze PV West',
-                                                                                   False)
-        wohnhaft_sachsen = self._existenz_boolean_daten_feststellen(liste_ma_daten[53], 'wohnhaft Sachsen', False)
-        ag_anteil_pv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[54],
-                                                                                  99,
-                                                                                  'AG-Anteil Pflegeversicherung in %',
-                                                                                  False)
+        anzahl_kinder = self._existenz_zahlen_daten_feststellen(liste_ma_daten[37], 99, 'Anzahl Kinder', False)
+
+        wohnhaft_sachsen = self._existenz_boolean_daten_feststellen(liste_ma_daten[38], 'wohnhaft Sachsen', False)
+
+        privat_krankenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[39],
+                                                                            'privat Krankenversichert?',
+                                                                            False)
+
+        ag_zuschuss_private_krankenversicherung = self._existenz_zahlen_daten_feststellen(liste_ma_daten[40],
+                                                                                          99999999,
+                                                                                          'AG-Zuschuss PKV',
+                                                                                          False)
+
+        minijob = self._existenz_boolean_daten_feststellen(liste_ma_daten[41], 'Minijob?', False)
+
+        anderweitig_versichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[42],
+                                                                          'anderweitig_versichert?',
+                                                                          False)
+
+        # Ein Mitarbeiter darf nur entweder gesetzlich krankenversicht ODER privat versichert mit Anspruch auf
+        # Arbeitgeberzuschuss ODER Minijobber ODER anderweitig versichert (z.B. kruzfristig Beschaeftigte, Werkstudenten
+        # etc.) Es darf also nur genau eines der vier boolean-Variablen 'True' sein
+        true_zaehler = 0
+
+        # Anzahl der 'True'-Werte zaehlen
+        for i in [gesetzlich_krankenversichert, privat_krankenversichert, minijob, anderweitig_versichert]:
+            if i:
+                true_zaehler += 1
+
+        if true_zaehler != 1:
+            raise (ValueError(f"Ein Mitarbeiter kann nur gesetzlich oder privat krankenversichert oder Minijobber oder "
+                              f"anderweitig versichert sein. Sie haben {true_zaehler} Angaben bejaht. Das ist falsch!"))
+
+        # Ein kurzfristig Beschaeftigter ist entweder anderweitig versichert oder Minijobber. Niemals ist er beim
+        # Arbeitgeber gesetzlich versichert oder privat versichert mit Anspruch auf AG-Zuschuss
+        if kurzfristig_beschaeftigt and gesetzlich_krankenversichert:
+            raise (ValueError(f"Sie haben angegeben, dass dieser Mitarbeiter kurzfristig beschaeftigt und gleichzeitig"
+                              f"bei Ihnen gesetzlich versichert ist. Das ist rechtlich nicht moeglich!"))
+
+        if kurzfristig_beschaeftigt and privat_krankenversichert:
+            raise (ValueError(f"Sie haben angegeben, dass dieser Mitarbeiter kurzfristig beschaeftigt und gleichzeitig"
+                              f"bei Ihnen privat versichert ist und somit Anspruch auf Arbeitgeberzuschuss hat. "
+                              f"Das ist rechtlich nicht moeglich!"))
+
         # Werte für gesetzliche Arbeitslosenversicherung
-        arbeitslosenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[55],
+        arbeitslosenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[43],
                                                                           'arbeitslosenversichert?',
                                                                           False)
-        ag_anteil_av_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[56],
-                                                                                  99,
-                                                                                  'AG-Anteil Arbeitslosenvers. in %',
-                                                                                  False)
-        an_anteil_av_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[57],
-                                                                                  99,
-                                                                                  'AN-Anteil Arbeitslosenvers. in %',
-                                                                                  False)
-        beitragsbemessungsgrenze_av_ost = self._existenz_zahlen_daten_feststellen(liste_ma_daten[58],
-                                                                                  99999999,
-                                                                                  'Beitragsbemessungsgrenze AV Ost',
-                                                                                  False)
-        beitragsbemessungsgrenze_av_west = self._existenz_zahlen_daten_feststellen(liste_ma_daten[59],
-                                                                                   99999999,
-                                                                                   'Beitragsbemessungsgrenze AV West',
-                                                                                   False)
 
         # Werte für gesetzliche Rentenversicherung
-        rentenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[60], 'rentenversichert?', False)
-        ag_anteil_rv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[61],
-                                                                                  99,
-                                                                                  'AG-Anteil Rentenversicherung in %',
-                                                                                  False)
-        an_anteil_rv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[62],
-                                                                                  99,
-                                                                                  'AN-Anteil Rentenversicherung in %',
-                                                                                  False)
-        beitragsbemessungsgrenze_rv_ost = self._existenz_zahlen_daten_feststellen(liste_ma_daten[63],
-                                                                                  99999999,
-                                                                                  'Beitragsbemessungsgrenze RV Ost',
-                                                                                  False)
-        beitragsbemessungsgrenze_rv_west = self._existenz_zahlen_daten_feststellen(liste_ma_daten[64],
-                                                                                   99999999,
-                                                                                   'Beitragsbemessungsgrenze RV West',
-                                                                                   False)
+        rentenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[44], 'rentenversichert?', False)
 
         conn = self._datenbankbverbindung_aufbauen()
         cur = conn.cursor()
@@ -1257,7 +1217,7 @@ class Nutzer:
                                                  private_email,
                                                  dienstliche_telefonnummer,
                                                  dienstliche_email,
-                                                 austrittsdatum,
+                                                 befristet_bis,
                                                  strasse,
                                                  hausnummer,
                                                  postleitzahl,
@@ -1274,42 +1234,21 @@ class Nutzer:
                                                  jobtitel,
                                                  erfahrungsstufe,
                                                  gesellschaft,
-                                                 abk_gesellschaft,
                                                  tarifbeschaeftigt,
-                                                 gewerkschaft,
                                                  tarif,
-                                                 grundgehalt_monat,
-                                                 weihnachtsgeld,
-                                                 urlaubsgeld,
-                                                 privat_krankenversichert,
-                                                 ag_zuschuss_krankenversicherung,
-                                                 ag_zuschuss_zusatzbeitrag,
-                                                 ag_zuschuss_pflegeversicherung,
+                                                 kurzfristig_beschaeftigt,
+                                                 bezeichnung_krankenkasse,
+                                                 abkuerzung_krankenkasse,
                                                  gesetzlich_krankenversichert,
-                                                 ag_krankenversicherungsbeitrag_in_prozent,
-                                                 an_krankenversicherungsbeitrag_in_prozent,
-                                                 beitragsbemessungsgrenze_kv_ost,
-                                                 beitragsbemessungsgrenze_kv_west,
-                                                 bezeichnung_gesetzliche_krankenkasse,
-                                                 abkuerzung_gesetzliche_krankenkasse,
-                                                 gkv_zusatzbeitrag_in_prozent,
+                                                 ermaessigter_gkv_beitragssatz,
                                                  anzahl_kinder,
-                                                 an_anteil_pv_beitrag_in_prozent,
-                                                 beitragsbemessungsgrenze_pv_ost,
-                                                 beitragsbemessungsgrenze_pv_west,
                                                  wohnhaft_sachsen,
-                                                 ag_anteil_pv_beitrag_in_prozent,
+                                                 privat_krankenversichert,
+                                                 ag_zuschuss_private_krankenversicherung,
+                                                 minijob,
+                                                 anderweitig_versichert,
                                                  arbeitslosenversichert,
-                                                 ag_anteil_av_beitrag_in_prozent,
-                                                 an_anteil_av_beitrag_in_prozent,
-                                                 beitragsbemessungsgrenze_av_ost,
-                                                 beitragsbemessungsgrenze_av_west,
-                                                 rentenversichert,
-                                                 ag_anteil_rv_beitrag_in_prozent,
-                                                 an_anteil_rv_beitrag_in_prozent,
-                                                 beitragsbemessungsgrenze_rv_ost,
-                                                 beitragsbemessungsgrenze_rv_west
-                                                 ])
+                                                 rentenversichert])
 
         # Commit der Aenderungen
         conn.commit()
@@ -1318,18 +1257,21 @@ class Nutzer:
         cur.close()
         conn.close()
 
-    def update_adresse(self, adressdaten):
+    def update_adresse(self, update_adressdaten):
         """
         Diese Methode überträgt die neue Adresse eines Mitarbeiters (im Rahmen der Bachelorarbeit
         dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
         'update_adresse' aufgerufen wird.
-        :param adressdaten: Name der Excel-Datei, dessen Adressdaten in die Datenbank
+        :param update_adressdaten: Name der Excel-Datei, dessen Adressdaten in die Datenbank
         eingetragen werden sollen.
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"Mitarbeiterdaten/{adressdaten}", index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"update personenbezogene Daten/{update_adressdaten}",
+                                    index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '1 Update Adresse.xlsx' pruefen
 
         personalnummer = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Personalnummer', 32, True)
         neuer_eintrag_gueltig_ab = self._existenz_date_daten_feststellen(liste_ma_daten[1], 'Gueltig ab', True)
@@ -1347,8 +1289,8 @@ class Nutzer:
         # Stored Procedure aufrufen
         cur.callproc('update_adresse', [self.mandant_id,
                                         personalnummer,
-                                        neuer_eintrag_gueltig_ab,
                                         alter_eintrag_gueltig_bis,
+                                        neuer_eintrag_gueltig_ab,
                                         strasse,
                                         hausnummer,
                                         postleitzahl,

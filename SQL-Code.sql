@@ -195,10 +195,10 @@ drop function if exists insert_berufsgenossenschaft(integer, varchar(128), varch
 drop function if exists insert_unfallversicherungsbeitrag(integer, varchar(128), varchar (16), varchar(128), varchar(16), decimal(12, 2), integer);
 
 -- Loeschung der Stored Procedures für Use Case "Eintrag neuer Mitarbeiter"
-drop function if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), varchar(32), varchar(16), varchar(64), 
-varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), varchar(32), varchar(32), char(1), decimal(4, 2), varchar(64), varchar(16), 
-boolean, varchar(32), varchar(32), varchar(128), boolean, varchar(16), decimal(10, 2), decimal(10,2), decimal(10, 2), boolean, decimal(6, 2), boolean, boolean, boolean, boolean, varchar(128), 
-varchar(16), integer, boolean, boolean, boolean, boolean);
+drop function if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), varchar(32), 
+varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), varchar(32), varchar(32), 
+char(1), decimal(4, 2), varchar(64), varchar(16), boolean, varchar(32), varchar(32), varchar(128), boolean, varchar(16), boolean, varchar(128), varchar(16), 
+boolean, boolean, integer, boolean, boolean, decimal(6, 2), boolean, boolean, boolean, boolean);
 drop function if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date,  varchar(32), varchar(32), 
 varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date);
 drop function if exists insert_tbl_laender(integer, varchar(128));
@@ -3223,25 +3223,22 @@ create or replace function insert_mitarbeiterdaten(
 	-- Bereich 'Entgelt'
 	p_tarifbeschaeftigt boolean,
 	p_tarifbezeichnung varchar(16),
-	p_grundgehalt_monat decimal(10, 2),
-	p_weihnachtsgeld decimal(10,2),
-	p_urlaubsgeld decimal(10, 2),
 	-- Bereich 'Kranken- und Pflegeversicherung'
+	p_ist_kurzfristig_beschaeftigt boolean,
+	p_krankenkasse varchar(128),
+	p_krankenkassenkuerzel varchar(16),
+	p_gesetzlich_krankenversichert boolean,
+	p_ermaessigter_kv_beitrag boolean,
+	p_anzahl_kinder integer,
+	p_in_sachsen boolean,
 	p_privat_krankenversichert boolean,
 	p_ag_zuschuss_krankenversicherung decimal(6, 2),
 	p_ist_minijobber boolean,
-	p_ist_kurzfristig_beschaeftigt boolean,
-	p_gesetzlich_krankenversichert boolean,
-	p_ermaessigter_kv_beitrag boolean,
-	p_krankenkasse varchar(128),
-	p_krankenkassenkuerzel varchar(16),
-	p_anzahl_kinder integer,
-	p_in_sachsen boolean,
+	p_anderweitig_versichert boolean,
 	-- Bereich 'Arbeitslosenversicherung'
 	p_arbeitslosenversichert boolean,
 	-- Bereich 'Rentenversicherung'
-	p_rentenversichert boolean,
-	p_anderweitig_versichert boolean
+	p_rentenversichert boolean
 ) returns void as
 $$
 begin
@@ -3278,6 +3275,7 @@ begin
 		perform insert_tbl_strassenbezeichnungen(p_mandant_id, p_strasse, p_hausnummer, p_postleitzahl);
 		perform insert_tbl_wohnt_in(p_mandant_id, p_personalnummer, p_strasse, p_hausnummer, p_eintrittsdatum);
 	end if;
+	
 	
 	-- Sofern p_geschlecht nicht 'null' ist, den Bereich 'Geschlecht' mit Daten befüllen
 	if p_geschlecht is not null then
@@ -3327,7 +3325,19 @@ begin
 											p_eintrittsdatum);
 	end if;
 	
-	if p_privat_krankenversichert then
+	-- Man kann niemals über den Arbeitgeber gesetzlich kranken- und pflegeversichert sein, wenn man kurzfristig beschaeftigt ist.
+	-- Der kurzfristig Beschaeftigte muss sich anderweitig um Krankenversicherung kuemmern
+	if p_gesetzlich_krankenversichert and p_ist_kurzfristig_beschaeftigt is false then
+	
+		perform insert_tbl_hat_gesetzliche_Krankenversicherung(p_mandant_id, p_personalnummer, p_ermaessigter_kv_beitrag, p_eintrittsdatum);
+		perform insert_tbl_ist_in_gkv(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
+		perform insert_tbl_hat_x_kinder_unter_25(p_mandant_id, p_personalnummer, p_anzahl_kinder, p_eintrittsdatum);
+		perform insert_tbl_wohnt_in_sachsen(p_mandant_id, p_personalnummer, p_in_sachsen, p_eintrittsdatum);									  
+
+	end if;
+	
+	-- Ein kurzfristig Beschaeftigter ist niemals privat ueber den Arbeitgeber versichert (womit auch kein Anspruch auf Arbeitgeberzuschuss einhergeht)
+	if p_privat_krankenversichert and p_ist_kurzfristig_beschaeftigt is false then
 		perform insert_tbl_hat_private_krankenversicherung(p_mandant_id, p_personalnummer, p_krankenkasse, p_ag_zuschuss_krankenversicherung, p_eintrittsdatum);
 	end if;
 
@@ -3335,15 +3345,10 @@ begin
 		perform insert_tbl_ist_Minijobber(p_mandant_id, p_personalnummer, p_ist_kurzfristig_beschaeftigt, p_eintrittsdatum);
 	end if;
 
-	-- if-Bedingung für kurzfristig BEschaeftigte, denn die zahlen keine SV, aber Umlagen!
-	
-	if p_gesetzlich_krankenversichert then
-	
-		perform insert_tbl_hat_gesetzliche_Krankenversicherung(p_mandant_id, p_personalnummer, p_ermaessigter_kv_beitrag, p_eintrittsdatum);
-		perform insert_tbl_ist_in_gkv(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
-		perform insert_tbl_hat_x_kinder_unter_25(p_mandant_id, p_personalnummer, p_anzahl_kinder, p_eintrittsdatum);
-		perform insert_tbl_wohnt_in_sachsen(p_mandant_id, p_personalnummer, p_in_sachsen, p_eintrittsdatum);									  
-
+	-- if-Bedingung für kurzfristig beschaeftigte Nicht-Minijobber, denn die zahlen keine SV, aber Umlagen! Das der Kurzfristig Beschaeftigte aber
+	-- aber anderweitig krankenversichert ist, dass muss der Arbeitgeber sicherstellen, weswegen die Krankenkasse vermerkt wird 
+	if p_anderweitig_versichert then
+		perform insert_tbl_ist_anderweitig_versichert(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
 	end if;
 
 	if p_arbeitslosenversichert and p_ist_kurzfristig_beschaeftigt is not true then
@@ -3355,10 +3360,6 @@ begin
 	end if;
 	
 	set role postgres;
-
-	if p_anderweitig_versichert then
-		perform insert_tbl_ist_anderweitig_versichert(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
-	end if;
 
 end;
 $$
@@ -4156,7 +4157,7 @@ begin
 	execute 'SET app.current_tenant=' || p_mandant_id;
 		
 	-- Pruefen, ob Krankenkasse bereits vorhanden ist...
-	execute 'SELECT gesetzliche_krankenkasse_id FROM gesetzliche_krankenkassen WHERE krankenkasse = $1 AND krankenkassenkuerzel = $2'
+	execute 'SELECT gesetzliche_krankenkasse_id FROM gesetzliche_krankenkassen WHERE krankenkasse_gesetzlich = $1 AND krankenkassenkuerzel = $2'
 		into v_krankenkasse_id using p_krankenkasse, p_krankenkassenkuerzel;
     
     -- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Krankenkasse hinterlegt werden muss!
@@ -4167,7 +4168,7 @@ begin
    
     execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
     
-    insert into ist_in_GKV(Mitarbeiter_ID, Krankenkasse_ID, Mandant_ID, Datum_Von, Datum_Bis)
+    insert into ist_in_GKV(Mitarbeiter_ID, gesetzliche_Krankenkasse_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_Krankenkasse_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
 	
    	set role postgres;

@@ -32,7 +32,8 @@ testfirma.get_nutzer("M100001").insert_gewerkschaft('1 Gewerkschaft.xlsx')
 testfirma.get_nutzer("M100001").insert_tarif('2 Tarif.xlsx')
 testfirma.get_nutzer("M100001").insert_verguetungsbestandteil('3 Verguetungsbestandteil.xlsx')
 
-
+# zentrale Funktion: neuen Mitarbeiter anlegen!
+testfirma.get_nutzer("M100001").insert_neuer_mitarbeiter('10 Mitarbeiter.xlsx')
 
 
 
