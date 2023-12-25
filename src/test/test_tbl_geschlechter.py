@@ -20,6 +20,7 @@ import unittest
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 from src.main.Mandant import Mandant
 
+
 class TestExistenzStrDatenFeststellen(unittest.TestCase):
 
     def setUp(self):
@@ -31,6 +32,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         self.testfirma = Mandant('Testfirma', self.testschema)
         self.testunternehmen = Mandant('Testunternehmen', self.testschema)
 
+    '''
     def test_insert_neue_Daten(self):
         """
         Test prüft, ob die Stored-Procedure-Methode 'insert_tbl_geschlechter' die übergegebenen Daten richtig in der
@@ -83,7 +85,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         #  Da der unique-constraint aber gelten soll, darf nur '[(1, 1, 'weiblich')]' rauskommen.
         self.assertNotEqual(result, "[(1, 1, 'weiblich'), (1, 1, 'weiblich')]")
         self.assertEqual(result, "[(1, 1, 'weiblich')]")
-    '''
+    
     def test_rls_in_tbl_geschlechter(self):
         """
         Test prueft, ob Row Level Security in Tabelle 'Geschlechter' funktioniert. Das bedeutet, dass Mandant

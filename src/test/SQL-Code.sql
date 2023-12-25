@@ -198,7 +198,7 @@ drop function if exists insert_unfallversicherungsbeitrag(integer, varchar(128),
 drop function if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), varchar(32), 
 varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), varchar(32), varchar(32), 
 char(1), decimal(4, 2), varchar(64), varchar(16), boolean, varchar(32), varchar(32), varchar(128), boolean, varchar(16), boolean, varchar(128), varchar(16), 
-boolean, boolean, integer, boolean, boolean, decimal(6, 2), boolean, boolean, boolean, boolean);
+boolean, boolean, integer, boolean, boolean, decimal(6, 2), decimal(6, 2), boolean, boolean, boolean, boolean);
 drop function if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date,  varchar(32), varchar(32), 
 varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date);
 drop function if exists insert_tbl_laender(integer, varchar(128));
@@ -977,6 +977,7 @@ create table hat_Privatkrankenkasse(
 	Privatkrankenkasse_ID integer not null,
 	Mandant_ID integer not null,
 	AG_Zuschuss_private_Krankenversicherung decimal(6, 2) not null,
+	AG_Zuschuss_private_Pflegeversicherung decimal(6, 2) not null,
 	Datum_Von date not null,
 	Datum_Bis date not null,
 	primary key (Mitarbeiter_ID, Datum_Bis),
@@ -3233,6 +3234,7 @@ create or replace function insert_mitarbeiterdaten(
 	p_in_sachsen boolean,
 	p_privat_krankenversichert boolean,
 	p_ag_zuschuss_krankenversicherung decimal(6, 2),
+	p_ag_zuschuss_pflegeversicherung decimal(6, 2),
 	p_ist_minijobber boolean,
 	p_anderweitig_versichert boolean,
 	-- Bereich 'Arbeitslosenversicherung'
@@ -3338,7 +3340,7 @@ begin
 	
 	-- Ein kurzfristig Beschaeftigter ist niemals privat ueber den Arbeitgeber versichert (womit auch kein Anspruch auf Arbeitgeberzuschuss einhergeht)
 	if p_privat_krankenversichert and p_ist_kurzfristig_beschaeftigt is false then
-		perform insert_tbl_hat_private_krankenversicherung(p_mandant_id, p_personalnummer, p_krankenkasse, p_ag_zuschuss_krankenversicherung, p_eintrittsdatum);
+		perform insert_tbl_hat_private_krankenversicherung(p_mandant_id, p_personalnummer, p_krankenkasse, p_ag_zuschuss_krankenversicherung, p_ag_zuschuss_krankenversicherung, p_eintrittsdatum);
 	end if;
 
 	if p_ist_minijobber then
@@ -4051,6 +4053,7 @@ create or replace function insert_tbl_hat_private_krankenversicherung(
 	p_personalnummer varchar(32),
 	p_krankenkasse varchar(128),
 	p_ag_zuschuss_krankenversicherung decimal(6, 2),
+	p_ag_zuschuss_pflegeversicherung decimal(6, 2),
 	p_eintrittsdatum date
 ) returns void as
 $$
@@ -4081,8 +4084,8 @@ begin
     end if;
    	
    	-- Assoziation 'hat_Privatkrankenkasse', welche die Tabellen 'Mitarbeiter' und 'Privatkrankenkassen' miteinander verknuepft, mit Daten befuellen
-    insert into hat_Privatkrankenkasse(Mitarbeiter_ID, Privatkrankenkasse_ID, Mandant_ID, AG_Zuschuss_private_Krankenversicherung, Datum_Von, Datum_Bis)
-   		values (v_mitarbeiter_id, v_privatkrankenkasse_id, p_mandant_id, p_ag_zuschuss_krankenversicherung, p_eintrittsdatum, '9999-12-31');
+    insert into hat_Privatkrankenkasse(Mitarbeiter_ID, Privatkrankenkasse_ID, Mandant_ID, AG_Zuschuss_private_Krankenversicherung,, AG_Zuschuss_private_Pflegeversicherung Datum_Von, Datum_Bis)
+   		values (v_mitarbeiter_id, v_privatkrankenkasse_id, p_mandant_id, p_ag_zuschuss_krankenversicherung, p_ag_zuschuss_pflegeversicherung, p_eintrittsdatum, '9999-12-31');
 	
    	set role postgres;
    	

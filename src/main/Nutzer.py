@@ -1160,9 +1160,14 @@ class Nutzer:
                                                                                           'AG-Zuschuss PKV',
                                                                                           False)
 
-        minijob = self._existenz_boolean_daten_feststellen(liste_ma_daten[41], 'Minijob?', False)
+        ag_zuschuss_private_pflegeversicherung = self._existenz_zahlen_daten_feststellen(liste_ma_daten[41],
+                                                                                         99999999,
+                                                                                         'AG-Zuschuss PPV',
+                                                                                         False)
 
-        anderweitig_versichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[42],
+        minijob = self._existenz_boolean_daten_feststellen(liste_ma_daten[42], 'Minijob?', False)
+
+        anderweitig_versichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[43],
                                                                           'anderweitig_versichert?',
                                                                           False)
 
@@ -1192,12 +1197,12 @@ class Nutzer:
                               f"Das ist rechtlich nicht moeglich!"))
 
         # Werte für gesetzliche Arbeitslosenversicherung
-        arbeitslosenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[43],
+        arbeitslosenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[44],
                                                                           'arbeitslosenversichert?',
                                                                           False)
 
         # Werte für gesetzliche Rentenversicherung
-        rentenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[44], 'rentenversichert?', False)
+        rentenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[45], 'rentenversichert?', False)
 
         conn = self._datenbankbverbindung_aufbauen()
         cur = conn.cursor()
@@ -1245,6 +1250,7 @@ class Nutzer:
                                                  wohnhaft_sachsen,
                                                  privat_krankenversichert,
                                                  ag_zuschuss_private_krankenversicherung,
+                                                 ag_zuschuss_private_pflegeversicherung,
                                                  minijob,
                                                  anderweitig_versichert,
                                                  arbeitslosenversichert,
