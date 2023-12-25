@@ -7,8 +7,8 @@ SET app.current_tenant=2;
 
 set role postgres;
 select mandant_anlegen('beispielfirma');
-select mandant_anlegen('testu');
-select nutzer_anlegen(1, 'M00001', 'Max', 'Mustermann');
+--select mandant_anlegen('testu');
+--select nutzer_anlegen(1, 'M00001', 'Max', 'Mustermann');
 
 select insert_krankenversicherungsbeitraege(1, false, 7.3, 7.3, 68000.00, 72000.45, '2023-12-15');
 select insert_krankenversicherungsbeitraege(1, true, 7.0, 7.0, 68000.00, 72000.45, '2023-12-15');
@@ -123,7 +123,7 @@ select insert_mitarbeiterdaten(-- Tabelle Mitarbeiter
 							   1,								-- Mandant_ID 
 							   'M100001',						-- Personalnummer 
 							   'Max',							-- Vorname
-							   '',								-- Zweitname
+							   null,								-- Zweitname
 							   'Mustermann',					-- Nachname
 							   '1992-12-12',					-- Geburtsdatum
 							   '2024-01-01',					-- Eintrittsdatum
@@ -180,15 +180,15 @@ select insert_mitarbeiterdaten(-- Tabelle Mitarbeiter
 							   true							-- Rentenversichert?
 							   );
 
-select insert_aussertarifliche_verguetungsbestandteile(1, 'M100002', 'Grundgehalt', 125321.15, '2024-01-01');
+select insert_aussertarifliche_verguetungsbestandteil(1, 'M100002', 'Grundgehalt', 125321.15, '2024-01-01');
 select * from aussertarifliche;	
 select * from verguetungsbestandteile;
 select * from hat_verguetungsbestandteil_at;
 
-select update_adresse(1, 'M100002', '2025-12-31', '2026-01-01', 'Hofzeichendamm', '5', '13125', 'Berlin', 'Berlin', 'Deutschland');
+select update_adresse(1, 'M100001', '2025-12-31', '2026-01-01', 'Hofzeichendamm', '5', '13125', 'Berlin', 'Berlin', 'Deutschland');
 
 --select insert_abteilung(1, 'Human Resources', 'HR');
-select update_mitarbeiterentlassung(1, 'M100002', '2026-12-31', 'Umsatzrueckgang');
+select update_mitarbeiterentlassung(1, 'M100001', '2026-12-31', 'Umsatzrueckgang');
 
 select update_erstelle_abteilungshierarchie(1, 'Human Resources Personalcontrolling', 'Human Resources');
 
@@ -255,20 +255,17 @@ select * from gewerkschaften;
 select * from tarife;
 select * from hat_tarif;
 select * from verguetungen;
-select * from hat_Verguetung;
 select * from Aussertarifliche;
 
--- Bereich 'Kranken- und Pflegeversicherung'
-select * from privat_krankenversicherte;
 
 
 select * from anzahl_kinder_unter_25;
-select * from hat_x_kinder_unter25;
+select * from hat_x_kinder_unter_25;
 select * from an_pflegeversicherungsbeitraege_gesetzlich;
 select * from hat_gesetzlichen_AN_PV_Beitragssatz;
 select * from wohnhaft_sachsen;
 select * from wohnt_in_sachsen;
-select * from ag_pflegeversicherungsbeitraege_gesetzlich apg ;
+select * from ag_pflegeversicherungsbeitraege_gesetzlich;
 select * from hat_gesetzlichen_ag_pv_beitragssatz; 
 
 -- Bereich 'Rentenversicherung'

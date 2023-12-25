@@ -5,9 +5,11 @@ testfirma.nutzer_anlegen("M100001", "Erika", "Musterfrau")
 
 # personenbezogene Daten eingeben
 testfirma.get_nutzer("M100001").insert_geschlecht('1 Geschlecht.xlsx')
+
 testfirma.get_nutzer("M100001").insert_mitarbeitertyp('2 Mitarbeitertyp.xlsx')
 testfirma.get_nutzer("M100001").insert_steuerklasse('3 Steuerklasse.xlsx')
-testfirma.get_nutzer("M100001").insert_abteilung('4 Abteilung.xlsx')
+testfirma.get_nutzer("M100001").insert_abteilung('4.1 Abteilung.xlsx')
+testfirma.get_nutzer("M100001").insert_abteilung('4.2 Abteilung.xlsx')
 testfirma.get_nutzer("M100001").insert_jobtitel('5 Jobtitel.xlsx')
 testfirma.get_nutzer("M100001").insert_erfahrungsstufe('6 Erfahrungsstufe.xlsx')
 testfirma.get_nutzer("M100001").insert_gesellschaft('7 Gesellschaft.xlsx')
@@ -33,48 +35,25 @@ testfirma.get_nutzer("M100001").insert_tarif('2 Tarif.xlsx')
 testfirma.get_nutzer("M100001").insert_verguetungsbestandteil('3 Verguetungsbestandteil.xlsx')
 
 # zentrale Funktion: neuen Mitarbeiter anlegen!
-testfirma.get_nutzer("M100001").insert_neuer_mitarbeiter('10 Mitarbeiter.xlsx')
+#testfirma.get_nutzer("M100001").insert_neuer_mitarbeiter('10.1 Mitarbeiter.xlsx')
+testfirma.get_nutzer("M100001").insert_neuer_mitarbeiter('10.2 Mitarbeiter.xlsx')
 
+# Entgeltbestandteil fuer aussertariflichen Mitarbeiter anlegen
+testfirma.get_nutzer("M100001").insert_aussertariflicher_verguetungsbestandteil('11 aussertariflicher Verguetungsbestandteil.xlsx')
 
+# Update personenbezogene Daten
+testfirma.get_nutzer("M100001").update_adresse('1 Update Adresse.xlsx')
+testfirma.get_nutzer("M100001").update_mitarbeiterentlassung('2 Update Mitarbeiterentlassung.xlsx')
+testfirma.get_nutzer("M100001").update_erstelle_abteilungshierarchie('3 Update Abteilungshierarchie.xlsx')
 
+# Update Sozialversicherungsdaten
+testfirma.get_nutzer("M100001").update_krankenversicherungsbeitraege('1 Krankenversicherungsbeitraege.xlsx')
 
+#select update_krankenversicherungsbeitraege(1, false, 7.8, 7.8, 80000, 82000.75,'2024-12-31', '2025-01-01');
 
-#testfirma.get_nutzer("M100001").insert_neuer_mitarbeiter('Neuanlage Mitarbeiter1.xlsx')
-#testfirma.get_nutzer("M100001").update_adresse('Update Adresse.xlsx')
+# Delete Daten
+#testfirma.get_nutzer("M100001").delete_mitarbeiterdaten('Personalnummer.xlsx')
 #testfirma.get_nutzer("M100001").delete_mandantendaten()
-#testfirma.get_nutzer("M100001").delete_mitarbeiterdaten('Delete Mitarbeiterdaten.xlsx')
-
-'''
-testfirma.get_nutzer("M100001").insert_neuer_mitarbeiter('Erika Musterfrau.xlsx')
-
-testu = Mandant("testu")
-testu.nutzer_anlegen("P666", "Erik", "Testu")
-testu.get_nutzer("P666").insert_neuer_mitarbeiter('Erik Testu.xlsx')
-
-print("Mandant-ID testu:", testu.get_mandant_id())
-print(testu.get_nutzer("P666").abfrage_ausfuehren("SELECT "
-                                            "mitarbeiter.mandant_id, "
-                                            "mitarbeiter.personalnummer, "
-                                            "Vorname,"
-                                            "Nachname,"
-                                            "Gesellschaft "
-                                            "FROM "
-                                            "mitarbeiter "
-                                            "INNER JOIN in_gesellschaft ON mitarbeiter.mitarbeiter_id = in_gesellschaft.mitarbeiter_id "
-                                            "INNER JOIN gesellschaften ON gesellschaften.gesellschaft_id = in_gesellschaft.gesellschaft_id;"))
-
-print("Mandant-ID testfirma:", testfirma.get_mandant_id())
-print(testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT "
-                                                   "mitarbeiter.mandant_id, "
-                                                   "mitarbeiter.personalnummer, "
-                                                   "Vorname,"
-                                                   "Nachname,"
-                                                   "Gesellschaft "
-                                                   "FROM "
-                                                   "mitarbeiter "
-                                                   "INNER JOIN in_gesellschaft ON mitarbeiter.mitarbeiter_id = in_gesellschaft.mitarbeiter_id "
-                                                   "INNER JOIN gesellschaften ON gesellschaften.gesellschaft_id = in_gesellschaft.gesellschaft_id;"))
-'''
 
 
 

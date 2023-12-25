@@ -228,7 +228,7 @@ drop function if exists insert_tbl_hat_gesetzliche_rentenversicherung(integer, v
 drop function if exists insert_tbl_ist_anderweitig_versichert(integer, varchar(32), varchar(128), varchar(16), date);
 
 -- Loeschung der Stored Procedure fuer Use Case "Eintrag Verguetungsbestandteil fuer aussertariflicher Mitarbeiter"
-drop function if exists insert_aussertarifliche_verguetungsbestandteile(integer, varchar(32), varchar(64), decimal(8, 2), date);
+drop function if exists insert_aussertarifliche_verguetungsbestandteil(integer, varchar(32), varchar(64), decimal(8, 2), date);
 
 -- Loeschung der Stored Procedure für Use Case "Update Adresse Mitarbeiter"
 drop function if exists update_adresse(integer, varchar(32), date, date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128));
@@ -4443,7 +4443,7 @@ language plpgsql;
  * Funktion verknuepft aussertariflichen Mitarbeiter mit (diversen) Verguetungsbestandteilen- Darunter fallen neben Monatsgehalt, Weihnachtsgeld etc. auch Beamtenbeihilfen, da der Staat verpflichtet ist, 
  * Beamten Beihilfen zu zahlen z.B. für (private) Krankenversicherung, Kinder etc..
  */
-create or replace function insert_aussertarifliche_verguetungsbestandteile(
+create or replace function insert_aussertarifliche_verguetungsbestandteil(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_Verguetungsbestandteil varchar(64),
@@ -4609,30 +4609,33 @@ begin
 	end if;
 	
 	-- Austrittsgrund mit Mitarbeiter verknuepfen
-	execute 'UPDATE mitarbeiter SET austrittsdatum = $1, austrittsgrund_id = $2 WHERE personalnummer = $3' 
-		using p_letzter_arbeitstag, v_austrittsgrund_id, p_personalnummer;
-	/*
+	execute 'UPDATE mitarbeiter SET austrittsdatum = $1, austrittsgrund_id = $2 WHERE personalnummer = $3' using p_letzter_arbeitstag, v_austrittsgrund_id, p_personalnummer;
+	
 	-- in allen Assoziationstabellen muss fuer den aktuellen Eintrag in Spalte "Bis_Datum" das '9999-12-31' durch den letzten Arbeitstag ersetzt werden
+	execute 'UPDATE Aussertarifliche SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE hat_tarif SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;	
+	execute 'UPDATE wohnt_in SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE hat_geschlecht SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE ist_mitarbeitertyp SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE in_gesellschaft SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE in_steuerklasse SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE arbeitet_x_wochenstunden SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE arbeitet_x_wochenstunden SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE hat_jobtitel SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	execute 'UPDATE Aussertarifliche SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	execute 'UPDATE hat_tarif SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	execute 'UPDATE wohnt_in SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	execute 'UPDATE in_gesellschaft SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	execute 'UPDATE hat_geschlecht SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	execute 'UPDATE ist_mitarbeitertyp SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	execute 'UPDATE privat_krankenversicherte SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	--execute 'UPDATE ist_minijobber SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	execute 'UPDATE hat_gesetzliche_krankenversicherung SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE ist_minijobber SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE ist_anderweitig_versichert SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE hat_privatkrankenkasse SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE ist_in_gkv SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE hat_gesetzliche_krankenversicherung SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE hat_x_kinder_unter_25 SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE wohnt_in_sachsen SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE hat_gesetzliche_arbeitslosenversicherung SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE hat_gesetzliche_Rentenversicherung SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	--execute 'UPDATE ist_in_Unfallversicherung SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	*/
+	execute 'UPDATE in_Steuerklasse SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE arbeitet_x_wochenstunden SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE eingesetzt_in SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE hat_Jobtitel SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+
    	set role postgres;
    	
 end;
@@ -4817,6 +4820,7 @@ create or replace function delete_mitarbeiterdaten(
 $$
 declare
 	v_mitarbeiter_id integer;
+	v_aussertarif_id integer;
 begin
 	
 	set session role tenant_user;
@@ -4830,8 +4834,16 @@ begin
 	end if;
 	
 	-- personenbezogene Mitarbeiterdaten aus Bereich 'Entgelt' entfernen
+
+	-- Es muss geprueft werden, ob der Mitarbeiter aussertariflich angestellt war. Falls ja, muss neben den Eintraegen in der Tabelle
+	-- 'Aussertarif' auch die Eintraege in der Assoziation 'hat_verguetungsbestandteil_at' entfernt werden. Dort ist der Schluessel 
+	-- fuer den Mitarbeiter aber nicht mehr 'Mitarbeiter_ID', sondern 'Aussertarif_ID'. 
+	execute 'SELECT aussertarif_id FROM aussertarifliche WHERE mitarbeiter_ID = $1' into v_aussertarif_id using v_mitarbeiter_id;
+	if v_aussertarif_id is not null then
+		execute 'DELETE FROM hat_verguetungsbestandteil_at WHERE aussertarif_id = $1' using v_aussertarif_id;
+		execute 'DELETE FROM aussertarifliche WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+	end if;
 	execute 'DELETE FROM hat_tarif WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
-	execute 'DELETE FROM aussertarifliche WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 	
 	-- personenbezogene Mitarbeiterdaten aus Bereich 'Adresse' entfernen
 	execute 'DELETE FROM wohnt_in WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;

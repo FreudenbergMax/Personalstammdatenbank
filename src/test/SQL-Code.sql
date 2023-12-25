@@ -157,10 +157,9 @@ drop function if exists insert_rentenversicherungsbeitraege(integer, decimal(5, 
 drop function if exists insert_Minijob(integer, boolean, decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), date);
 
 -- Loeschung der Stored Procedures für Use Case "Eintrag neuer Tarif mit Verguetung"
-drop function if exists insert_gewerkschaft(integer, varchar(64));
-drop function if exists insert_Tarif(integer, varchar(16), varchar(64));
-drop function if exists insert_verguetungsbestandteile(integer, varchar(64), varchar(16));
-drop function if exists insert_tarifliche_verguetungsbestandteile(integer, varchar(16), varchar(64), decimal(8, 2), date);
+drop function if exists insert_gewerkschaft(integer, varchar(64), varchar(64));
+drop function if exists insert_tarif(integer, varchar(16), varchar(64), varchar(64));
+drop function if exists insert_tarifliches_verguetungsbestandteil(integer, varchar(64), varchar(16), varchar(16), decimal(10, 2), date);
 
 -- Loeschung der Stored Procedure fuer Use Case "Eintrag neues Geschlecht"
 drop function if exists insert_geschlecht(integer, varchar(32));
@@ -183,23 +182,23 @@ drop function if exists insert_erfahrungsstufe(integer, varchar(32));
 -- Loeschung Stored Procedure fuer Use Case "Eintrag neue Gesellschaft" 
 drop function if exists insert_gesellschaft(integer, varchar(128), varchar (16));
 
--- Loeschung Stored Procedure fuer Use Case "Eintrag neue Berufsgenossenschaft" 
-drop function if exists insert_berufsgenossenschaft(integer, varchar(128), varchar(16));
-
---Loeschung Stored Procedure fuer Use Case "Eintrag neue Unfallversicherungsbeitraege" 
-drop function if exists insert_unfallversicherungsbeitrag(integer, varchar(128), varchar (16), varchar(128), varchar(16), decimal(12, 2), integer);
-
 -- Loeschung der Stored Procedure fuer Use Case "Eintrag neue Austrittsgrundkategorie" 
 drop function if exists insert_kategorien_austrittsgruende(integer, varchar(16));
 
 -- Loeschung der Stored Procedure fuer Use Case "Eintrag neuer Austrittsgrund" 
 drop function if exists insert_austrittsgruende(integer, varchar(32), varchar(16));
 
+-- Loeschung Stored Procedure fuer Use Case "Eintrag neue Berufsgenossenschaft" 
+drop function if exists insert_berufsgenossenschaft(integer, varchar(128), varchar(16));
+
+--Loeschung Stored Procedure fuer Use Case "Eintrag neue Unfallversicherungsbeitraege" 
+drop function if exists insert_unfallversicherungsbeitrag(integer, varchar(128), varchar (16), varchar(128), varchar(16), decimal(12, 2), integer);
+
 -- Loeschung der Stored Procedures für Use Case "Eintrag neuer Mitarbeiter"
-drop function if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), varchar(32), varchar(16), varchar(64), 
-varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), varchar(32), varchar(32), char(1), decimal(4, 2), varchar(64), varchar(16), 
-boolean, varchar(32), varchar(32), varchar(128), boolean, varchar(16), decimal(10, 2), decimal(10,2), decimal(10, 2), boolean, decimal(6, 2), boolean, boolean, boolean, boolean, varchar(128), 
-varchar(16), integer, boolean, boolean, boolean, boolean);
+drop function if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), varchar(32), 
+varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), varchar(32), varchar(32), 
+char(1), decimal(4, 2), varchar(64), varchar(16), boolean, varchar(32), varchar(32), varchar(128), boolean, varchar(16), boolean, varchar(128), varchar(16), 
+boolean, boolean, integer, boolean, boolean, decimal(6, 2), boolean, boolean, boolean, boolean);
 drop function if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date,  varchar(32), varchar(32), 
 varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date);
 drop function if exists insert_tbl_laender(integer, varchar(128));
@@ -229,7 +228,7 @@ drop function if exists insert_tbl_hat_gesetzliche_rentenversicherung(integer, v
 drop function if exists insert_tbl_ist_anderweitig_versichert(integer, varchar(32), varchar(128), varchar(16), date);
 
 -- Loeschung der Stored Procedure fuer Use Case "Eintrag Verguetungsbestandteil fuer aussertariflicher Mitarbeiter"
-drop function if exists insert_aussertarifliche_verguetungsbestandteile(integer, varchar(32), varchar(64), decimal(8, 2), date);
+drop function if exists insert_aussertarifliche_verguetungsbestandteil(integer, varchar(32), varchar(64), decimal(8, 2), date);
 
 -- Loeschung der Stored Procedure für Use Case "Update Adresse Mitarbeiter"
 drop function if exists update_adresse(integer, varchar(32), date, date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128));
@@ -789,7 +788,8 @@ create table Gewerkschaften (
 	Gewerkschaft_ID serial primary key,
 	Mandant_ID integer not null,
 	Gewerkschaft varchar(64) not null,
-	unique (Mandant_ID, Gewerkschaft),
+	Branche varchar(64) not null,
+	unique (Mandant_ID, Gewerkschaft, Branche),
 	constraint fk_gewerkschaften_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
@@ -837,7 +837,7 @@ create table hat_Verguetungsbestandteil_Tarif(
 	Tarif_ID integer not null,
 	Verguetungsbestandteil_ID integer not null,
 	Mandant_ID integer not null,
-	Betrag decimal(8, 2) not null,
+	Betrag decimal(10, 2) not null,
 	Datum_Von date not null,
 	Datum_Bis date not null,
 	primary key(Tarif_ID, Verguetungsbestandteil_ID, Datum_Bis),
@@ -2624,7 +2624,8 @@ language plpgsql;
  */
 create or replace function insert_gewerkschaft(
 	p_mandant_id integer,
-	p_gewerkschaft varchar(64)
+	p_gewerkschaft varchar(64),
+	p_branche varchar(64)
 ) returns void as
 $$
 begin
@@ -2633,9 +2634,9 @@ begin
     execute 'SET app.current_tenant=' || p_mandant_id;
 
     insert into 
-   		Gewerkschaften(Mandant_ID, Gewerkschaft)
+   		Gewerkschaften(Mandant_ID, Gewerkschaft, Branche)
    	values 
-   		(p_mandant_id, p_gewerkschaft);
+   		(p_mandant_id, p_gewerkschaft, p_branche);
     
     set role postgres;
    
@@ -2648,42 +2649,13 @@ $$
 language plpgsql;
 
 /*
- * Funktion trägt neue Daten in Tabelle 'Verguetungsbestandteile' ein.
- */
-create or replace function insert_verguetungsbestandteile(
-	p_mandant_id integer,
-	p_verguetungsbestandteil varchar(64),
-	p_auszahlungsmonat varchar(16)
-) returns void as
-$$
-begin
-    
-    set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    insert into 
-   		Verguetungsbestandteile(Mandant_ID, Verguetungsbestandteil, Auszahlungsmonat)
-   	values 
-   		(p_mandant_id, p_verguetungsbestandteil, p_auszahlungsmonat);
-    
-    set role postgres;
-   
-exception
-    when unique_violation then
-        raise notice 'Verguetungsbestandteil ''%'' bereits vorhanden!', p_verguetungsbestandteil;
-    when check_violation then
-        raise exception 'Auszahlungsmonat ''%'' nicht vorhanden! Bitte wählen Sie zwischen folgenden Moeglichkeiten: ''jeden Monat'', ''Januar'', ''Februar'', ''Maerz'', ''April'', ''Mai'', ''Juni'', ''Juli'', ''August'', ''September'', ''Oktober'', ''November'', ''Dezember''!', p_auszahlungsmonat;    
-end;
-$$
-language plpgsql;
-
-/*
  * Funktion trägt neue Tarif-Daten ein.
  */
-create or replace function insert_Tarif(
+create or replace function insert_tarif(
 	p_mandant_id integer,
 	p_tarifbezeichnung varchar(16),
-	p_gewerkschaft varchar(64)
+	p_gewerkschaft varchar(64),
+	p_branche varchar(64)
 ) returns void as
 $$
 declare
@@ -2695,7 +2667,8 @@ begin
     execute 'SET app.current_tenant=' || p_mandant_id;
     
    	-- Pruefen, ob Gewerkschaft bereits vorhanden ist...
-   	execute 'SELECT gewerkschaft_id FROM gewerkschaften WHERE gewerkschaft = $1' into v_gewerkschaft_id using p_gewerkschaft;
+   	execute 'SELECT gewerkschaft_id FROM gewerkschaften WHERE gewerkschaft = $1 AND branche = $2' 
+   		into v_gewerkschaft_id using p_gewerkschaft, p_branche;
     
     -- ... und falls sie noch nicht existiert, dann Meldung ausgeben
     if v_gewerkschaft_id is null then
@@ -2728,12 +2701,13 @@ language plpgsql;
  * Funktion verknuepft Tarif mit (diversen) Verguetungsbestandteilen- Darunter fallen neben Monatsgehalt, Weihnachtsgeld etc. auch Beamtenbeihilfen, da der Staat verpflichtet ist, 
  * Beamten Beihilfen zu zahlen z.B. für (private) Krankenversicherung, Kinder etc..
  */
-create or replace function insert_tarifliche_verguetungsbestandteile(
+create or replace function insert_tarifliches_verguetungsbestandteil(
 	p_mandant_id integer,
-	p_tarifbezeichnung varchar(16),
 	p_Verguetungsbestandteil varchar(64),
-	p_betrag decimal(8, 2),
-	p_eintragungsdatum date
+	p_auszahlungsmonat varchar(16),
+	p_tarifbezeichnung varchar(16),
+	p_betrag decimal(10, 2),
+	p_gueltig_ab date
 ) returns void as
 $$
 declare
@@ -2744,14 +2718,11 @@ begin
     set session role tenant_user;
 	execute 'SET app.current_tenant=' || p_mandant_id;
 	
-	-- Pruefen, ob Verguetungsbestandteil bereits in Tabelle 'monatliche_Beihilfen' hinterlegt ist
-	execute 'SELECT verguetungsbestandteil_id FROM verguetungsbestandteile WHERE Verguetungsbestandteil = $1' into v_verguetungsbestandteil_id using p_Verguetungsbestandteil;
+	insert into Verguetungsbestandteile(Mandant_ID, Verguetungsbestandteil, Auszahlungsmonat) values (p_mandant_id, p_verguetungsbestandteil, p_auszahlungsmonat);
 
-	-- ... und falls nicht, dann Meldung ausgeben, dass dieser Verguetungsbestandteil erst hinterlegt werden muss!
-	if v_verguetungsbestandteil_id is null then
-		set role postgres;
-		raise exception 'Bitte erst Verguetungsbestandteil ''%'' anlegen!', p_Verguetungsbestandteil;
-	end if;
+	execute 'SELECT verguetungsbestandteil_id FROM verguetungsbestandteile WHERE Verguetungsbestandteil = $1' 
+		into v_verguetungsbestandteil_id using p_Verguetungsbestandteil;
+
 
 	-- Tarif_ID ziehen, da diese benoetigt wird, um einen Datensatz in der Assoziation 'hat_Verguetungsbestandteil_Tarif' anzulegen
 	execute 'SELECT tarif_id FROM tarife WHERE tarifbezeichnung = $1' into v_tarif_id using p_tarifbezeichnung;
@@ -2763,13 +2734,15 @@ begin
 	end if;
 	
     insert into hat_Verguetungsbestandteil_Tarif(Tarif_ID, Verguetungsbestandteil_ID, Mandant_ID, Betrag, Datum_Von, Datum_Bis) 
-   		values (v_tarif_id, v_verguetungsbestandteil_id, p_mandant_id, p_betrag, p_eintragungsdatum, '9999-12-31');
+   		values (v_tarif_id, v_verguetungsbestandteil_id, p_mandant_id, p_betrag, p_gueltig_ab, '9999-12-31');
    	
    	set role postgres;
 
 exception
     when unique_violation then
-        raise notice 'Tarif ''%'' hat bereits Verguetungsbestandteil ''%''!', p_tarifbezeichnung, p_Verguetungsbestandteil;
+        raise notice 'Tarif ''%'' oder Verguetungsbestandteil ''%'' bereits vorhanden!', p_tarifbezeichnung, p_Verguetungsbestandteil;
+    when check_violation then
+        raise exception 'Auszahlungsmonat ''%'' nicht vorhanden! Bitte wählen Sie zwischen folgenden Moeglichkeiten: ''jeden Monat'', ''Januar'', ''Februar'', ''Maerz'', ''April'', ''Mai'', ''Juni'', ''Juli'', ''August'', ''September'', ''Oktober'', ''November'', ''Dezember''!', p_auszahlungsmonat;    
 
 end;
 $$
@@ -3030,6 +3003,83 @@ language plpgsql;
 
 
 ----------------------------------------------------------------------------------------------------------------
+-- Stored Procedure fuer Use Case "Eintrag neue Austrottsgrundkategorie" 
+/*
+ * Funktion trägt die Daten in die Tabelle "Kategorien_Austrittsgruende" ein
+ */
+create or replace function insert_kategorien_austrittsgruende(
+	p_mandant_id integer,
+	p_austrittsgrundkategorie varchar(16)
+) returns void as
+$$
+begin
+
+	set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Kategorien_Austrittsgruende(Mandant_ID, Austrittsgrundkategorie) 
+   	values 
+   		(p_mandant_id, p_austrittsgrundkategorie);
+
+    set role postgres;
+
+exception
+    when unique_violation then
+        raise notice 'Austrittsgrundkategorie ''%'' bereits vorhanden!', p_austrittsgrundkategorie;
+    when check_violation then
+    	set role postgres;
+    	raise exception 'Fuer Geschlechter sind nur folgende Werte erlaubt: ''verhaltensbedingt'', ''personenbedingt'', ''betriebsbedingt''!';
+
+end;
+$$
+language plpgsql;
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------
+-- Stored Procedure fuer Use Case "Eintrag neuer Austrittsgrund" 
+/*
+ * Funktion trägt die Daten in die Tabelle "Austrittsgruende" ein
+ */
+create or replace function insert_austrittsgruende(
+	p_mandant_id integer,
+	p_austrittsgrund varchar(32),
+	p_austrittsgrundkategorie varchar(16)
+) returns void as
+$$
+declare
+	v_kategorie_austrittsgruende_id integer;
+begin
+
+	set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    execute 'SELECT kategorie_austrittsgruende_id FROM kategorien_austrittsgruende WHERE austrittsgrundkategorie = $1' 
+   		into v_kategorie_austrittsgruende_id using p_austrittsgrundkategorie;
+    
+   	insert into 
+   		Austrittsgruende(Mandant_ID, Austrittsgrund, Kategorie_Austrittsgruende_ID) 
+   	values 
+   		(p_mandant_id, p_austrittsgrund, v_kategorie_austrittsgruende_id);
+
+    set role postgres;
+ 
+exception
+    when unique_violation then
+        raise notice 'Austrittsgrund ''%'' bereits vorhanden!', p_austrittsgrund;
+
+end;
+$$
+language plpgsql;
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------
 --Stored Procedure fuer Use Case "Eintrag neue Berufsgenossenschaft" 
 /*
  * Funktion trägt neue Daten in Tabelle 'Berufsgenossenschaften' ein.
@@ -3124,81 +3174,6 @@ language plpgsql;
 
 
 ----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Eintrag neue Austrottsgrundkategorie" 
-/*
- * Funktion trägt die Daten in die Tabelle "Kategorien_Austrittsgruende" ein
- */
-create or replace function insert_kategorien_austrittsgruende(
-	p_mandant_id integer,
-	p_austrittsgrundkategorie varchar(16)
-) returns void as
-$$
-begin
-
-	set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    insert into 
-   		Kategorien_Austrittsgruende(Mandant_ID, Austrittsgrundkategorie) 
-   	values 
-   		(p_mandant_id, p_austrittsgrundkategorie);
-
-    set role postgres;
-
-exception
-    when unique_violation then
-        raise notice 'Austrittsgrundkategorie ''%'' bereits vorhanden!', p_austrittsgrundkategorie;
-    when check_violation then
-    	set role postgres;
-    	raise exception 'Fuer Geschlechter sind nur folgende Werte erlaubt: ''verhaltensbedingt'', ''personenbedingt'', ''betriebsbedingt''!';
-
-end;
-$$
-language plpgsql;
-
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Eintrag neuer Austrittsgrund" 
-/*
- * Funktion trägt die Daten in die Tabelle "Austrittsgruende" ein
- */
-create or replace function insert_austrittsgruende(
-	p_mandant_id integer,
-	p_austrittsgrund varchar(32),
-	p_austrittsgrundkategorie varchar(16)
-) returns void as
-$$
-declare
-	v_kategorie_austrittsgruende_id integer;
-begin
-
-	set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    execute 'SELECT kategorie_austrittsgruende_id FROM kategorien_austrittsgruende WHERE austrittsgrundkategorie = $1' 
-   		into v_kategorie_austrittsgruende_id using p_austrittsgrundkategorie;
-    
-   	insert into 
-   		Austrittsgruende(Mandant_ID, Austrittsgrund, Kategorie_Austrittsgruende_ID) 
-   	values 
-   		(p_mandant_id, p_austrittsgrund, v_kategorie_austrittsgruende_id);
-
-    set role postgres;
- 
-exception
-    when unique_violation then
-        raise notice 'Austrittsgrund ''%'' bereits vorhanden!', p_austrittsgrund;
-
-end;
-$$
-language plpgsql;
-
-
-
-----------------------------------------------------------------------------------------------------------------
 -- Stored Procedures für Use Case "Eintrag neuer Mitarbeiter"
 
 /*
@@ -3248,25 +3223,22 @@ create or replace function insert_mitarbeiterdaten(
 	-- Bereich 'Entgelt'
 	p_tarifbeschaeftigt boolean,
 	p_tarifbezeichnung varchar(16),
-	p_grundgehalt_monat decimal(10, 2),
-	p_weihnachtsgeld decimal(10,2),
-	p_urlaubsgeld decimal(10, 2),
 	-- Bereich 'Kranken- und Pflegeversicherung'
+	p_ist_kurzfristig_beschaeftigt boolean,
+	p_krankenkasse varchar(128),
+	p_krankenkassenkuerzel varchar(16),
+	p_gesetzlich_krankenversichert boolean,
+	p_ermaessigter_kv_beitrag boolean,
+	p_anzahl_kinder integer,
+	p_in_sachsen boolean,
 	p_privat_krankenversichert boolean,
 	p_ag_zuschuss_krankenversicherung decimal(6, 2),
 	p_ist_minijobber boolean,
-	p_ist_kurzfristig_beschaeftigt boolean,
-	p_gesetzlich_krankenversichert boolean,
-	p_ermaessigter_kv_beitrag boolean,
-	p_krankenkasse varchar(128),
-	p_krankenkassenkuerzel varchar(16),
-	p_anzahl_kinder integer,
-	p_in_sachsen boolean,
+	p_anderweitig_versichert boolean,
 	-- Bereich 'Arbeitslosenversicherung'
 	p_arbeitslosenversichert boolean,
 	-- Bereich 'Rentenversicherung'
-	p_rentenversichert boolean,
-	p_anderweitig_versichert boolean
+	p_rentenversichert boolean
 ) returns void as
 $$
 begin
@@ -3303,6 +3275,7 @@ begin
 		perform insert_tbl_strassenbezeichnungen(p_mandant_id, p_strasse, p_hausnummer, p_postleitzahl);
 		perform insert_tbl_wohnt_in(p_mandant_id, p_personalnummer, p_strasse, p_hausnummer, p_eintrittsdatum);
 	end if;
+	
 	
 	-- Sofern p_geschlecht nicht 'null' ist, den Bereich 'Geschlecht' mit Daten befüllen
 	if p_geschlecht is not null then
@@ -3352,7 +3325,19 @@ begin
 											p_eintrittsdatum);
 	end if;
 	
-	if p_privat_krankenversichert then
+	-- Man kann niemals über den Arbeitgeber gesetzlich kranken- und pflegeversichert sein, wenn man kurzfristig beschaeftigt ist.
+	-- Der kurzfristig Beschaeftigte muss sich anderweitig um Krankenversicherung kuemmern
+	if p_gesetzlich_krankenversichert and p_ist_kurzfristig_beschaeftigt is false then
+	
+		perform insert_tbl_hat_gesetzliche_Krankenversicherung(p_mandant_id, p_personalnummer, p_ermaessigter_kv_beitrag, p_eintrittsdatum);
+		perform insert_tbl_ist_in_gkv(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
+		perform insert_tbl_hat_x_kinder_unter_25(p_mandant_id, p_personalnummer, p_anzahl_kinder, p_eintrittsdatum);
+		perform insert_tbl_wohnt_in_sachsen(p_mandant_id, p_personalnummer, p_in_sachsen, p_eintrittsdatum);									  
+
+	end if;
+	
+	-- Ein kurzfristig Beschaeftigter ist niemals privat ueber den Arbeitgeber versichert (womit auch kein Anspruch auf Arbeitgeberzuschuss einhergeht)
+	if p_privat_krankenversichert and p_ist_kurzfristig_beschaeftigt is false then
 		perform insert_tbl_hat_private_krankenversicherung(p_mandant_id, p_personalnummer, p_krankenkasse, p_ag_zuschuss_krankenversicherung, p_eintrittsdatum);
 	end if;
 
@@ -3360,15 +3345,10 @@ begin
 		perform insert_tbl_ist_Minijobber(p_mandant_id, p_personalnummer, p_ist_kurzfristig_beschaeftigt, p_eintrittsdatum);
 	end if;
 
-	-- if-Bedingung für kurzfristig BEschaeftigte, denn die zahlen keine SV, aber Umlagen!
-	
-	if p_gesetzlich_krankenversichert then
-	
-		perform insert_tbl_hat_gesetzliche_Krankenversicherung(p_mandant_id, p_personalnummer, p_ermaessigter_kv_beitrag, p_eintrittsdatum);
-		perform insert_tbl_ist_in_gkv(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
-		perform insert_tbl_hat_x_kinder_unter_25(p_mandant_id, p_personalnummer, p_anzahl_kinder, p_eintrittsdatum);
-		perform insert_tbl_wohnt_in_sachsen(p_mandant_id, p_personalnummer, p_in_sachsen, p_eintrittsdatum);									  
-
+	-- if-Bedingung für kurzfristig beschaeftigte Nicht-Minijobber, denn die zahlen keine SV, aber Umlagen! Das der Kurzfristig Beschaeftigte aber
+	-- aber anderweitig krankenversichert ist, dass muss der Arbeitgeber sicherstellen, weswegen die Krankenkasse vermerkt wird 
+	if p_anderweitig_versichert then
+		perform insert_tbl_ist_anderweitig_versichert(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
 	end if;
 
 	if p_arbeitslosenversichert and p_ist_kurzfristig_beschaeftigt is not true then
@@ -3380,10 +3360,6 @@ begin
 	end if;
 	
 	set role postgres;
-
-	if p_anderweitig_versichert then
-		perform insert_tbl_ist_anderweitig_versichert(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
-	end if;
 
 end;
 $$
@@ -4181,7 +4157,7 @@ begin
 	execute 'SET app.current_tenant=' || p_mandant_id;
 		
 	-- Pruefen, ob Krankenkasse bereits vorhanden ist...
-	execute 'SELECT gesetzliche_krankenkasse_id FROM gesetzliche_krankenkassen WHERE krankenkasse = $1 AND krankenkassenkuerzel = $2'
+	execute 'SELECT gesetzliche_krankenkasse_id FROM gesetzliche_krankenkassen WHERE krankenkasse_gesetzlich = $1 AND krankenkassenkuerzel = $2'
 		into v_krankenkasse_id using p_krankenkasse, p_krankenkassenkuerzel;
     
     -- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Krankenkasse hinterlegt werden muss!
@@ -4192,7 +4168,7 @@ begin
    
     execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
     
-    insert into ist_in_GKV(Mitarbeiter_ID, Krankenkasse_ID, Mandant_ID, Datum_Von, Datum_Bis)
+    insert into ist_in_GKV(Mitarbeiter_ID, gesetzliche_Krankenkasse_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_Krankenkasse_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
 	
    	set role postgres;
@@ -4467,7 +4443,7 @@ language plpgsql;
  * Funktion verknuepft aussertariflichen Mitarbeiter mit (diversen) Verguetungsbestandteilen- Darunter fallen neben Monatsgehalt, Weihnachtsgeld etc. auch Beamtenbeihilfen, da der Staat verpflichtet ist, 
  * Beamten Beihilfen zu zahlen z.B. für (private) Krankenversicherung, Kinder etc..
  */
-create or replace function insert_aussertarifliche_verguetungsbestandteile(
+create or replace function insert_aussertarifliche_verguetungsbestandteil(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_Verguetungsbestandteil varchar(64),
@@ -4633,30 +4609,33 @@ begin
 	end if;
 	
 	-- Austrittsgrund mit Mitarbeiter verknuepfen
-	execute 'UPDATE mitarbeiter SET austrittsdatum = $1, austrittsgrund_id = $2 WHERE personalnummer = $3' 
-		using p_letzter_arbeitstag, v_austrittsgrund_id, p_personalnummer;
-	/*
+	execute 'UPDATE mitarbeiter SET austrittsdatum = $1, austrittsgrund_id = $2 WHERE personalnummer = $3' using p_letzter_arbeitstag, v_austrittsgrund_id, p_personalnummer;
+	
 	-- in allen Assoziationstabellen muss fuer den aktuellen Eintrag in Spalte "Bis_Datum" das '9999-12-31' durch den letzten Arbeitstag ersetzt werden
+	execute 'UPDATE Aussertarifliche SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE hat_tarif SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;	
+	execute 'UPDATE wohnt_in SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE hat_geschlecht SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE ist_mitarbeitertyp SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE in_gesellschaft SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE in_steuerklasse SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE arbeitet_x_wochenstunden SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE arbeitet_x_wochenstunden SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE hat_jobtitel SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	execute 'UPDATE Aussertarifliche SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	execute 'UPDATE hat_tarif SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	execute 'UPDATE wohnt_in SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	execute 'UPDATE in_gesellschaft SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	execute 'UPDATE hat_geschlecht SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	execute 'UPDATE ist_mitarbeitertyp SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	execute 'UPDATE privat_krankenversicherte SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	--execute 'UPDATE ist_minijobber SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	execute 'UPDATE hat_gesetzliche_krankenversicherung SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE ist_minijobber SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE ist_anderweitig_versichert SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE hat_privatkrankenkasse SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE ist_in_gkv SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE hat_gesetzliche_krankenversicherung SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE hat_x_kinder_unter_25 SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE wohnt_in_sachsen SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE hat_gesetzliche_arbeitslosenversicherung SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE hat_gesetzliche_Rentenversicherung SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	--execute 'UPDATE ist_in_Unfallversicherung SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	*/
+	execute 'UPDATE in_Steuerklasse SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE arbeitet_x_wochenstunden SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE eingesetzt_in SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE hat_Jobtitel SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+
    	set role postgres;
    	
 end;
@@ -4841,6 +4820,7 @@ create or replace function delete_mitarbeiterdaten(
 $$
 declare
 	v_mitarbeiter_id integer;
+	v_aussertarif_id integer;
 begin
 	
 	set session role tenant_user;
@@ -4854,32 +4834,43 @@ begin
 	end if;
 	
 	-- personenbezogene Mitarbeiterdaten aus Bereich 'Entgelt' entfernen
+
+	-- Es muss geprueft werden, ob der Mitarbeiter aussertariflich angestellt war. Falls ja, muss neben den Eintraegen in der Tabelle
+	-- 'Aussertarif' auch die Eintraege in der Assoziation 'hat_verguetungsbestandteil_at' entfernt werden. Dort ist der Schluessel 
+	-- fuer den Mitarbeiter aber nicht mehr 'Mitarbeiter_ID', sondern 'Aussertarif_ID'. 
+	execute 'SELECT aussertarif_id FROM aussertarifliche WHERE mitarbeiter_ID = $1' into v_aussertarif_id using v_mitarbeiter_id;
+	if v_aussertarif_id is not null then
+		execute 'DELETE FROM hat_verguetungsbestandteil_at WHERE aussertarif_id = $1' using v_aussertarif_id;
+		execute 'DELETE FROM aussertarifliche WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+	end if;
 	execute 'DELETE FROM hat_tarif WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 	
 	-- personenbezogene Mitarbeiterdaten aus Bereich 'Adresse' entfernen
 	execute 'DELETE FROM wohnt_in WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 
-	-- personenbezogene Mitarbeiterdaten aus Bereich 'Gesellschaften' entfernen
-	execute 'DELETE FROM in_gesellschaft WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
-	
 	-- personenbezogene Mitarbeiterdaten aus Bereich 'Geschlechter' entfernen
 	execute 'DELETE FROM hat_geschlecht WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
-	
+
 	-- personenbezogene Mitarbeiterdaten aus Bereich 'Mitarbeiteryp' entfernen
 	execute 'DELETE FROM ist_mitarbeitertyp WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 
+	-- personenbezogene Mitarbeiterdaten aus Bereich 'Gesellschaften' entfernen
+	execute 'DELETE FROM in_gesellschaft WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+
 	-- personenbezogene Mitarbeiterdaten aus Bereich 'Kranken- und Pflegeversicherung' entfernen
-	execute 'DELETE FROM privat_krankenversicherte WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
-	execute 'DELETE FROM hat_kvbeitraege WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+	execute 'DELETE FROM ist_minijobber WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+	execute 'DELETE FROM ist_anderweitig_versichert WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+	execute 'DELETE FROM hat_privatkrankenkasse WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 	execute 'DELETE FROM ist_in_gkv WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+	execute 'DELETE FROM hat_gesetzliche_krankenversicherung WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 	execute 'DELETE FROM hat_x_kinder_unter_25 WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 	execute 'DELETE FROM wohnt_in_sachsen WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 
 	-- personenbezogene Mitarbeiterdaten aus Bereich 'Arbeitslosenversicherung' entfernen
-	execute 'DELETE FROM hat_avbeitraege WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+	execute 'DELETE FROM hat_gesetzliche_arbeitslosenversicherung WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 
 	-- personenbezogene Mitarbeiterdaten aus Bereich 'Rentenversicherung' entfernen
-	execute 'DELETE FROM hat_rvbeitraege WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+	execute 'DELETE FROM hat_gesetzliche_rentenversicherung WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 
 	-- personenbezogene Mitarbeiterdaten aus Bereich 'Steuerklasse' entfernen
 	execute 'DELETE FROM in_steuerklasse WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
@@ -4920,6 +4911,15 @@ begin
 	set session role tenant_user;
 	execute 'SET app.current_tenant=' || p_mandant_id;
 
+	-- Daten aus Bereich 'Entgelt' entfernen
+	execute 'DELETE FROM hat_verguetungsbestandteil_at WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM hat_verguetungsbestandteil_tarif WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM verguetungsbestandteile WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM aussertarifliche WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM hat_tarif WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM tarife WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM gewerkschaften WHERE mandant_id = $1' using p_mandant_id;
+
 	-- Daten aus Bereich 'Adresse' entfernen
 	execute 'DELETE FROM wohnt_in WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM strassenbezeichnungen WHERE mandant_id = $1' using p_mandant_id;
@@ -4935,6 +4935,60 @@ begin
 	-- Daten aus Bereich 'Mitarbeiteryp' entfernen
 	execute 'DELETE FROM ist_mitarbeitertyp WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM mitarbeitertypen WHERE mandant_id = $1' using p_mandant_id;
+
+	-- Daten aus Bereich 'Gesellschaften' entfernen
+	execute 'DELETE FROM in_gesellschaft WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM unfallversicherungsbeitraege WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM gesellschaften WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM berufsgenossenschaften WHERE mandant_id = $1' using p_mandant_id;
+
+	-- Daten aus Bereich 'Kranken- und Pflegeversicherung' entfernen
+	execute 'DELETE FROM ist_minijobber WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM hat_pauschalabgaben WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM minijobs WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM pauschalabgaben WHERE mandant_id = $1' using p_mandant_id;
+
+	execute 'DELETE FROM ist_anderweitig_versichert WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM hat_umlagen_anderweitig WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM gemeldete_krankenkassen WHERE mandant_id = $1' using p_mandant_id;
+
+	execute 'DELETE FROM hat_privatkrankenkasse WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM hat_umlagen_privat WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM privatkrankenkassen WHERE mandant_id = $1' using p_mandant_id;
+
+	execute 'DELETE FROM ist_in_gkv WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM hat_gkv_zusatzbeitrag WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM hat_umlagen_gesetzlich WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM gesetzliche_krankenkassen WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM gkv_zusatzbeitraege WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM umlagen WHERE mandant_id = $1' using p_mandant_id;
+	
+	execute 'DELETE FROM hat_gesetzliche_krankenversicherung WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM hat_gkv_beitraege WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM krankenversicherungen WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM gkv_beitraege WHERE mandant_id = $1' using p_mandant_id;
+
+	execute 'DELETE FROM hat_x_kinder_unter_25 WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM hat_gesetzlichen_an_pv_beitragssatz WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM anzahl_kinder_unter_25 WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM an_pflegeversicherungsbeitraege_gesetzlich WHERE mandant_id = $1' using p_mandant_id;
+	
+	execute 'DELETE FROM wohnt_in_sachsen WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM hat_gesetzlichen_ag_pv_beitragssatz WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM wohnhaft_sachsen WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM ag_pflegeversicherungsbeitraege_gesetzlich WHERE mandant_id = $1' using p_mandant_id;
+
+	-- Daten aus Bereich 'Arbeitslosenversicherung' entfernen
+	execute 'DELETE FROM hat_gesetzliche_arbeitslosenversicherung WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM hat_av_beitraege WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM arbeitslosenversicherungen WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM arbeitslosenversicherungsbeitraege WHERE mandant_id = $1' using p_mandant_id;
+
+	-- Daten aus Bereich 'Rentenversicherung' entfernen
+	execute 'DELETE FROM hat_gesetzliche_rentenversicherung WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM hat_rv_beitraege WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM rentenversicherungen WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM rentenversicherungsbeitraege WHERE mandant_id = $1' using p_mandant_id;
 
 	-- Daten aus Bereich 'Steuerklasse' entfernen
 	execute 'DELETE FROM in_steuerklasse WHERE mandant_id = $1' using p_mandant_id;
@@ -4952,48 +5006,6 @@ begin
 	execute 'DELETE FROM hat_jobtitel WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM jobtitel WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM erfahrungsstufen WHERE mandant_id = $1' using p_mandant_id;
-
-	-- Daten aus Bereich 'Gesellschaften' entfernen
-	execute 'DELETE FROM in_gesellschaft WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM gesellschaften WHERE mandant_id = $1' using p_mandant_id;
-
-	-- Daten aus Bereich 'Entgelt' entfernen
-	execute 'DELETE FROM hat_verguetung WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM hat_tarif WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM tarife WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM gewerkschaften WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM verguetungen WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM aussertarifliche WHERE mandant_id = $1' using p_mandant_id;
-
-	-- Daten aus Bereich 'Kranken- und Pflegeversicherung' entfernen
-	execute 'DELETE FROM privat_krankenversicherte WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM hat_kvbeitraege WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM krankenversicherungsbeitraege_gesetzlich WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM ist_in_gkv WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM hat_gkv_zusatzbeitrag WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM GKV_zusatzbeitraege WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM krankenkassen WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM hat_x_kinder_unter_25 WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM hat_gesetzlichen_an_pv_beitragssatz WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM an_pflegeversicherungsbeitraege_gesetzlich WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM anzahl_kinder_unter_25 WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM wohnt_in_sachsen WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM hat_gesetzlichen_ag_pv_beitragssatz WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM ag_pflegeversicherungsbeitraege_gesetzlich WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM wohnhaft_sachsen WHERE mandant_id = $1' using p_mandant_id;
-
-	-- Daten aus Bereich 'Arbeitslosenversicherung' entfernen
-	execute 'DELETE FROM hat_avbeitraege WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM arbeitslosenversicherungsbeitraege_gesetzlich WHERE mandant_id = $1' using p_mandant_id;
-
-	-- Daten aus Bereich 'Rentenversicherung' entfernen
-	execute 'DELETE FROM hat_rvbeitraege WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM rentenversicherungsbeitraege_gesetzlich WHERE mandant_id = $1' using p_mandant_id;
-
-
-
-
-
 
 	-- Daten aus zentraler Tabelle 'Mitarbeiter' entfernen
 	execute 'DELETE FROM mitarbeiter WHERE mandant_id = $1' using p_mandant_id;

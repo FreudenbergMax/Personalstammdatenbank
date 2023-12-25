@@ -280,7 +280,7 @@ class Nutzer:
         """
         Diese Methode uebertraegt eine Erfahrungsstufe wie bspw. 'Junior', 'Senior' etc. (im Rahmen der Bachelorarbeit
         dargestellt durch eine Excel-Datei), in dem die Stored Procedure 'insert_erfahrungsstufe' aufgerufen wird.
-        :param neuanlage_jobtitel: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
+        :param neuanlage_erfahrungsstufe: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
@@ -418,13 +418,13 @@ class Nutzer:
         ermaessigter_beitragssatz = self._existenz_boolean_daten_feststellen(liste_ma_daten[0],
                                                                              'ermaessigter Beitragssatz',
                                                                              True)
-        an_gkv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[1],
-                                                                            99,
-                                                                            'Arbeitnehmerbeitrag GKV in Prozent',
-                                                                            True)
-        ag_gkv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2],
+        ag_gkv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[1],
                                                                             99,
                                                                             'Arbeitgeberbeitrag GKV in Prozent',
+                                                                            True)
+        an_gkv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2],
+                                                                            99,
+                                                                            'Arbeitnehmerbeitrag GKV in Prozent',
                                                                             True)
         beitragsbemessungsgrenze_gkv_ost = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3],
                                                                                    99999999,
@@ -1144,8 +1144,8 @@ class Nutzer:
                                                                                 False)
 
         ermaessigter_gkv_beitragssatz = self._existenz_boolean_daten_feststellen(liste_ma_daten[36],
-                                                                                'ermaessigter GKV-Beitragssatz?',
-                                                                                False)
+                                                                                 'ermaessigter GKV-Beitragssatz?',
+                                                                                 False)
 
         anzahl_kinder = self._existenz_zahlen_daten_feststellen(liste_ma_daten[37], 99, 'Anzahl Kinder', False)
 
@@ -1257,6 +1257,49 @@ class Nutzer:
         cur.close()
         conn.close()
 
+    def insert_aussertariflicher_verguetungsbestandteil(self, neuanlage_aussertariflicher_verguetungsbestandteil):
+        """
+        Diese Methode uebertraegt einen Verguetungsbestandteil wie bspw. Grundgehalt, Urlaubsgeld etc. und verknuepft
+        sie mit dem entsprechenden aussertariflich angestellten Mitarbeiter (im Rahmen der Bachelorarbeit dargestellt
+        durch eine Excel-Datei), in die Datenbank, in dem die Stored Procedure
+        'insert_aussertarifliche_verguetungsbestandteil' aufgerufen wird.
+        :param neuanlage_aussertariflicher_verguetungsbestandteil: Name der Excel-Datei, dessen Daten in die Datenbank
+        eingetragen werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/"
+                                    f"{neuanlage_aussertariflicher_verguetungsbestandteil}",
+                                    index_col='Daten',
+                                    na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '3 Verguetungsbestandteil.xlsx' pruefen
+        personalnummer = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Personalnummer', 32, True)
+        verguetungsbestandteil = self._existenz_str_daten_feststellen(liste_ma_daten[1],
+                                                                      'Verguetungsbestandteil',
+                                                                      64,
+                                                                      True)
+        betrag = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2], 99999999, 'Betrag', True)
+        gueltig_ab = self._existenz_date_daten_feststellen(liste_ma_daten[3], 'Entgelt gueltig ab', True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc('insert_aussertarifliche_verguetungsbestandteil', [self.mandant_id,
+                                                                        personalnummer,
+                                                                        verguetungsbestandteil,
+                                                                        betrag,
+                                                                        gueltig_ab])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
     def update_adresse(self, update_adressdaten):
         """
         Diese Methode überträgt die neue Adresse eines Mitarbeiters (im Rahmen der Bachelorarbeit
@@ -1272,7 +1315,6 @@ class Nutzer:
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '1 Update Adresse.xlsx' pruefen
-
         personalnummer = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Personalnummer', 32, True)
         neuer_eintrag_gueltig_ab = self._existenz_date_daten_feststellen(liste_ma_daten[1], 'Gueltig ab', True)
         alter_eintrag_gueltig_bis = self._vorherigen_tag_berechnen(neuer_eintrag_gueltig_ab)
@@ -1286,7 +1328,7 @@ class Nutzer:
         conn = self._datenbankbverbindung_aufbauen()
         cur = conn.cursor()
 
-        # Stored Procedure aufrufen
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
         cur.callproc('update_adresse', [self.mandant_id,
                                         personalnummer,
                                         alter_eintrag_gueltig_bis,
@@ -1296,10 +1338,164 @@ class Nutzer:
                                         postleitzahl,
                                         stadt,
                                         region,
-                                        land
-                                        ])
+                                        land])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def update_mitarbeiterentlassung(self, update_mitarbeiterentlassung):
+        """
+        Diese Methode traegt die Entlassung und dessen Grund in die Datenbank (im Rahmen der Bachelorarbeit
+        dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
+        'update_adresse' aufgerufen wird.
+        :param update_mitarbeiterentlassung: Name der Excel-Datei, dessen Daten in die Datenbank
+        eingetragen werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"update personenbezogene Daten/{update_mitarbeiterentlassung}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '2 Update Mitarbeiterentlassung.xlsx' pruefen
+        personalnummer = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Personalnummer', 32, True)
+        letzter_arbeitstag = self._existenz_date_daten_feststellen(liste_ma_daten[1], 'letzter Arbeitstag', True)
+        austrittsgrund = self._existenz_str_daten_feststellen(liste_ma_daten[2], 'Austrittsgrund', 16, True)
 
         conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen
+        cur.callproc('update_mitarbeiterentlassung', [self.mandant_id,
+                                                      personalnummer,
+                                                      letzter_arbeitstag,
+                                                      austrittsgrund
+                                                      ])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def update_erstelle_abteilungshierarchie(self, update_abteilungshierarchie):
+        """
+        Diese Methode ordnet in der Datenbanke eine Abteilung einer anderen unter (im Rahmen der Bachelorarbeit
+        dargestellt durch eine Excel-Datei), in dem der Stored Procedure
+        'update_erstelle_abteilungshierarchie' aufgerufen wird.
+        :param update_abteilungshierarchie: Name der Excel-Datei, dessen Daten in die Datenbank
+        eingetragen werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"update personenbezogene Daten/{update_abteilungshierarchie}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '3 Update Abteilungshierarchie.xlsx' pruefen
+        abteilung_unter = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'untergeordnete Abteilung', 64, True)
+        abteilung_ueber = self._existenz_str_daten_feststellen(liste_ma_daten[1], 'uebergeordnete Abteilung', 64, True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen
+        cur.callproc('update_erstelle_abteilungshierarchie', [self.mandant_id,
+                                                              abteilung_unter,
+                                                              abteilung_ueber])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def update_krankenversicherungsbeitraege(self, update_krankenversicherungsbeitraege):
+        """
+        Diese Methode ordnet in der Datenbanke eine Abteilung einer anderen unter (im Rahmen der Bachelorarbeit
+        dargestellt durch eine Excel-Datei), in dem der Stored Procedure
+        'update_erstelle_abteilungshierarchie' aufgerufen wird.
+        :param update_krankenversicherungsbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank
+        eingetragen werden sollen.
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"update Sozialversicherungsdaten/{update_krankenversicherungsbeitraege}",
+                                    index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle '1 Krankenversicherungsbeitraege.xlsx' pruefen
+        ermaessigter_beitragssatz = self._existenz_boolean_daten_feststellen(liste_ma_daten[0],
+                                                                             'ermaessigter Beitragssatz',
+                                                                             True)
+        ag_gkv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[1],
+                                                                            99,
+                                                                            'Arbeitgeberbeitrag GKV in Prozent',
+                                                                            True)
+        an_gkv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2],
+                                                                            99,
+                                                                            'Arbeitnehmerbeitrag GKV in Prozent',
+                                                                            True)
+        beitragsbemessungsgrenze_gkv_ost = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3],
+                                                                                   99999999,
+                                                                                   'Beitragsbemessungsgrenze GKV Ost',
+                                                                                   True)
+        beitragsbemessungsgrenze_gkv_west = self._existenz_zahlen_daten_feststellen(liste_ma_daten[4],
+                                                                                    99999999,
+                                                                                    'Beitragsbemessungsgrenze GKV West',
+                                                                                    True)
+        neuer_eintrag_gueltig_ab = self._existenz_date_daten_feststellen(liste_ma_daten[5], 'Gueltig ab', True)
+        alter_eintrag_gueltig_bis = self._vorherigen_tag_berechnen(neuer_eintrag_gueltig_ab)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen
+        cur.callproc('update_krankenversicherungsbeitraege', [self.mandant_id,
+                                                              ermaessigter_beitragssatz,
+                                                              ag_gkv_beitrag_in_prozent,
+                                                              an_gkv_beitrag_in_prozent,
+                                                              beitragsbemessungsgrenze_gkv_ost,
+                                                              beitragsbemessungsgrenze_gkv_west,
+                                                              alter_eintrag_gueltig_bis,
+                                                              neuer_eintrag_gueltig_ab])
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def delete_mitarbeiterdaten(self, mitarbeiter):
+        """
+        Methode ruft die Stored Procedure 'delete_mitarbeiterdaten' auf, welche alle personenbezogenen Daten
+        eines Mitarbeiters aus den Assoziationstabellen, der Tabelle 'Privat_Krankenversicherte' und der
+        zentralen Tabelle entfernt
+        :param mitarbeiter: Name der Excel-Datei, die die Personalnummer des Mitarbeiters enthaelt, der entfernt
+                            werden soll
+        """
+
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Übertrag in Liste "liste_ma_daten"
+        df_ma_daten = pd.read_excel(f"delete personenbezogene Daten/{mitarbeiter}", index_col='Daten', na_filter=False)
+        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+
+        # Daten aus importierter Excel-Tabelle 'Personalnummer.xlsx' pruefen
+        personalnummer = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Personalnummer', 32, True)
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        # Stored Procedure aufrufen
+        cur.callproc('delete_mitarbeiterdaten', [self.mandant_id, personalnummer])
+
+        # Commit der Änderungen
         conn.commit()
 
         # Cursor und Konnektor zu Datenbank schließen
@@ -1318,34 +1514,6 @@ class Nutzer:
 
         # Stored Procedure aufrufen
         cur.callproc('delete_mandantendaten', [self.mandant_id])
-
-        # Commit der Änderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
-
-    def delete_mitarbeiterdaten(self, mitarbeiter):
-        """
-        Methode ruft die Stored Procedure 'delete_mitarbeiterdaten' auf, welche alle personenbezogenen Daten
-        eines Mitarbeiters aus den Assoziationstabellen, der Tabelle 'Privat_Krankenversicherte' und der
-        zentralen Tabelle entfernt
-        :param mitarbeiter: Name der Excel-Datei, die die Personalnummer des Mitarbeiters enthaelt, der entfernt
-                            werden soll
-        """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Übertrag in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"Mitarbeiterdaten/{mitarbeiter}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
-
-        personalnummer = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Personalnummer', 32, True)
-
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
-
-        # Stored Procedure aufrufen
-        cur.callproc('delete_mitarbeiterdaten', [self.mandant_id, personalnummer])
 
         # Commit der Änderungen
         conn.commit()
@@ -1430,7 +1598,7 @@ class Nutzer:
         elif art == 'Anzahl Kinder' or art == 'Beitragsjahr Unfallversicherung':
             zahlen_daten = int(zahlen_daten)
         else:
-            zahlen_daten = round(decimal.Decimal(zahlen_daten), 2)
+            zahlen_daten = round(decimal.Decimal(zahlen_daten), 3)
 
         return zahlen_daten
 
