@@ -43,13 +43,9 @@ class TestNutzerEntfernen(unittest.TestCase):
         # Zwischenprüfung, ob Nutzer in Datenbank angelegt ist
         select_query = "SELECT * FROM nutzer WHERE personalnummer = 'M100001'"
         self.cur.execute(select_query)
-        nutzer_id, mandant_id, personalnummer, vorname, nachname = self.cur.fetchall()[0]
+        daten = self.cur.fetchall()
 
-        self.assertEqual(nutzer_id, 1)
-        self.assertEqual(mandant_id, 1)
-        self.assertEqual(personalnummer, 'M100001')
-        self.assertEqual(vorname, 'Max')
-        self.assertEqual(nachname, 'Mustermann')
+        self.assertEqual(str(daten), "[(1, 1, 'M100001', 'Max', 'Mustermann')]")
 
         # Nutzer entfernen
         testfirma.nutzer_entfernen('M100001')
@@ -60,7 +56,7 @@ class TestNutzerEntfernen(unittest.TestCase):
         self.cur.execute(select_query)
         leere_liste = self.cur.fetchall()
 
-        self.assertEqual(leere_liste, list())
+        self.assertEqual(str(leere_liste), "[]")
 
     def test_nutzer_fremder_mandanten_aus_nutzerliste_entfernen(self):
         """
@@ -95,13 +91,9 @@ class TestNutzerEntfernen(unittest.TestCase):
         # Zwischenprüfung, ob Nutzer 'M1234' von Mandant B in Datenbank angelegt ist
         select_query = "SELECT * FROM nutzer WHERE personalnummer = 'M1234'"
         self.cur.execute(select_query)
-        nutzer_id, mandant_id, personalnummer, vorname, nachname = self.cur.fetchall()[0]
+        daten = self.cur.fetchall()
 
-        self.assertEqual(nutzer_id, 2)
-        self.assertEqual(mandant_id, 2)
-        self.assertEqual(personalnummer, 'M1234')
-        self.assertEqual(vorname, 'Erika')
-        self.assertEqual(nachname, 'Musterfrau')
+        self.assertEqual(str(daten), "[(2, 2, 'M1234', 'Erika', 'Musterfrau')]")
 
         # Mandant A versucht nun, Nutzer 'M1234' von Mandant B zu entfernen
         A.nutzer_entfernen('M1234')
@@ -110,13 +102,10 @@ class TestNutzerEntfernen(unittest.TestCase):
         # und die Datenbank muss die entsprechenden Daten ausgeben können
         select_query = "SELECT * FROM nutzer WHERE personalnummer = 'M1234'"
         self.cur.execute(select_query)
-        nutzer_id, mandant_id, personalnummer, vorname, nachname = self.cur.fetchall()[0]
+        daten = self.cur.fetchall()
 
-        self.assertEqual(nutzer_id, 2)
-        self.assertEqual(mandant_id, 2)
-        self.assertEqual(personalnummer, 'M1234')
-        self.assertEqual(vorname, 'Erika')
-        self.assertEqual(nachname, 'Musterfrau')
+        self.assertEqual(str(daten), "[(2, 2, 'M1234', 'Erika', 'Musterfrau')]")
+
 
     def tearDown(self):
         """

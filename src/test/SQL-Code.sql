@@ -4084,7 +4084,7 @@ begin
     end if;
    	
    	-- Assoziation 'hat_Privatkrankenkasse', welche die Tabellen 'Mitarbeiter' und 'Privatkrankenkassen' miteinander verknuepft, mit Daten befuellen
-    insert into hat_Privatkrankenkasse(Mitarbeiter_ID, Privatkrankenkasse_ID, Mandant_ID, AG_Zuschuss_private_Krankenversicherung,, AG_Zuschuss_private_Pflegeversicherung Datum_Von, Datum_Bis)
+    insert into hat_Privatkrankenkasse(Mitarbeiter_ID, Privatkrankenkasse_ID, Mandant_ID, AG_Zuschuss_private_Krankenversicherung, AG_Zuschuss_private_Pflegeversicherung, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_privatkrankenkasse_id, p_mandant_id, p_ag_zuschuss_krankenversicherung, p_ag_zuschuss_pflegeversicherung, p_eintrittsdatum, '9999-12-31');
 	
    	set role postgres;

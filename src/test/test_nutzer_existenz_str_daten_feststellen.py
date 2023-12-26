@@ -80,7 +80,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
     def test_zu_lange_zeichenkette(self):
         """
         Test prüft, ob die Methode 'existenz_str_daten_feststellen' eine ValueError-Exception wirft, wenn die
-        Zeichenekette länger ist als erlaubt.
+        Zeichenkette länger ist als erlaubt.
         """
         personalnummer = '0' + ('12345678' * 4)
 
@@ -90,10 +90,11 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
 
         self.assertEqual(str(context.exception), "'Personalnummer' darf höchstens 32 Zeichen lang sein. "
                                                  "Ihre Eingabe '012345678123456781234567812345678' besitzt 33 Zeichen!")
-
+    '''
     def tearDown(self):
         """
         Methode ruft Funktion 'test_tear_down' auf, welches das Datenbankschema 'temp_test_schema' mit allen Daten
         entfernt.
         """
         test_tear_down(self.conn, self.cur)
+    '''

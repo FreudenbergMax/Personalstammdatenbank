@@ -27,10 +27,9 @@ class TestNutzerAnlegen(unittest.TestCase):
         select_query = "SELECT vorname, nachname FROM nutzer WHERE vorname = 'Max' AND nachname = 'Mustermann'"
 
         self.cur.execute(select_query)
-        vorname, nachname = self.cur.fetchall()[0]
+        name = self.cur.fetchall()
 
-        self.assertEqual(vorname, 'Max')
-        self.assertEqual(nachname, 'Mustermann')
+        self.assertEqual(str(name), "[('Max', 'Mustermann')]")
 
     def test_nutzer_gleiche_personalnummer_in_datenbank(self):
         """

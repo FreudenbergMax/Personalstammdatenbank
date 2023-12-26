@@ -17,8 +17,7 @@ class TestNeuerMandant(unittest.TestCase):
         """
         Test prüft ab, ob ein neuer Mandant angelegt wird, sofern alle Bedingungen erfüllt sind.
         """
-        print(self.testschema)
-        print(type(self.testschema))
+
         testfirma = Mandant('beispielbetrieb', self.testschema)
 
         select_query = "SELECT * FROM mandanten WHERE firma = 'beispielbetrieb'"
@@ -26,11 +25,8 @@ class TestNeuerMandant(unittest.TestCase):
 
         # Ergebnisse abrufen
         ausgabe = self.cur.fetchall()
-        mandant_id = ausgabe[0][0]
-        name_neuer_mandant = ausgabe[0][1]
 
-        self.assertEqual(mandant_id, 1)
-        self.assertEqual(name_neuer_mandant, 'beispielbetrieb')
+        self.assertEqual(str(ausgabe), "[(1, 'beispielbetrieb')]")
 
     def test_weiterer_mandant_mit_gleichem_Namen_Exception(self):
         """

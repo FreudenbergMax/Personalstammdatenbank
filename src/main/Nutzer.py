@@ -65,22 +65,6 @@ class Nutzer:
     def get_nachname(self):
         return self.nachname
 
-    def _datenbankbverbindung_aufbauen(self):
-        """
-        Baut eine Connection zur Datenbank auf. Diese Methode wird jedes Mal aufgerufen, bevor mit der Datenbank
-        interagiert werden soll.
-        :return: conn-Variable, die die Verbindung zur Datenbank enthält
-        """
-        conn = psycopg2.connect(
-            host="localhost",
-            database="Personalstammdatenbank",
-            user="postgres",
-            password="@Postgres123",
-            port=5432
-        )
-
-        return conn
-
     def _in_datenbank_anlegen(self):
         """
         Methode ruft die Stored Procedure 'nutzer_anlegen' auf, welche die Daten des Nutzers in der
@@ -105,16 +89,18 @@ class Nutzer:
 
         return nutzer_id
 
-    def abfrage_ausfuehren(self, abfrage):
+    def abfrage_ausfuehren(self, abfrage, schema):
         """
         Methode übermittelt ein SQL-Befehl an die Datenbank, wo sie ausgeführt und das Ergebnis zurückgegeben wird.
         :param abfrage: enthaelt den SQL-SELECT-Befehl.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         :return: Ergebnis der Datenbankabfrage
         """
         conn = self._datenbankbverbindung_aufbauen()
 
         with conn.cursor() as cur:
-            cur.execute(f"SET role postgres;"
+            cur.execute(f"set search_path to {schema};"
+                        f"SET role postgres;"
                         f"SET session role tenant_user;"
                         # f"SET app.current_user_id='{self.mandant_id}';"
                         f"SET app.current_tenant='{self.mandant_id}';"
@@ -130,93 +116,57 @@ class Nutzer:
 
         return ergebnis
 
-    def insert_geschlecht(self, neuanlage_geschlecht):
+    def insert_geschlecht(self, neuanlage_geschlecht, schema='public'):
         """
         Diese Methode uebertraegt ein Geschlecht (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in
         die Datenbank, in dem die Stored Procedure 'insert_geschlecht' aufgerufen wird.
-        :param neuanlage_geschlecht: Name der Excel-Datei, dessen Daten in die Datenbank
-        eingetragen werden sollen.
+        :param neuanlage_geschlecht: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
 
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/{neuanlage_geschlecht}",
-                                    index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_geschlecht)
 
         # Daten aus importierter Excel-Tabelle '1 Geschlecht.xlsx' pruefen
-        geschlecht = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Geschlecht', 32, True)
+        geschlecht = self._existenz_str_daten_feststellen(daten[0], 'Geschlecht', 32, True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
+        export_daten = [self.mandant_id, geschlecht]
+        self._export_zu_db('insert_geschlecht', export_daten, schema)
 
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_geschlecht', [self.mandant_id, geschlecht])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
-
-    def insert_mitarbeitertyp(self, neuanlage_mitarbeitertyp):
+    def insert_mitarbeitertyp(self, neuanlage_mitarbeitertyp, schema='public'):
         """
         Diese Methode uebertraegt ein Mitarbeitertyp wie bspw. 'Angestellter' oder 'Praktikant' (im Rahmen der
         Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in dem die Stored Procedure
         'insert_mitarbeitertyp' aufgerufen wird.
-        :param neuanlage_mitarbeitertyp: Name der Excel-Datei, dessen Daten in die Datenbank
-        eingetragen werden sollen.
+        :param neuanlage_mitarbeitertyp: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
 
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/{neuanlage_mitarbeitertyp}",
-                                    index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_mitarbeitertyp)
 
         # Daten aus importierter Excel-Tabelle '2 Mitarbeitertyp.xlsx' pruefen
-        mitarbeitertyp = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Geschlecht', 32, True)
+        mitarbeitertyp = self._existenz_str_daten_feststellen(daten[0], 'Geschlecht', 32, True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
+        export_daten = [self.mandant_id, mitarbeitertyp]
+        self._export_zu_db('insert_mitarbeitertyp', export_daten, schema)
 
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_mitarbeitertyp', [self.mandant_id, mitarbeitertyp])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
-
-    def insert_steuerklasse(self, neuanlage_steuerklasse):
+    def insert_steuerklasse(self, neuanlage_steuerklasse, schema='public'):
         """
         Diese Methode uebertraegt Steuerklasse (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die
         Datenbank, in dem die Stored Procedure 'insert_steuerklasse' aufgerufen wird.
-        :param neuanlage_steuerklasse: Name der Excel-Datei, dessen Daten in die Datenbank
-        eingetragen werden sollen.
+        :param neuanlage_steuerklasse: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
 
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/{neuanlage_steuerklasse}",
-                                    index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_steuerklasse)
 
         # Daten aus importierter Excel-Tabelle '3 Steuerklasse.xlsx' pruefen
-        steuerklasse = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Steuerklasse', 1, True)
+        steuerklasse = self._existenz_str_daten_feststellen(daten[0], 'Steuerklasse', 1, True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
-
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_steuerklasse', [self.mandant_id, steuerklasse])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
+        export_daten = [self.mandant_id, steuerklasse]
+        self._export_zu_db('insert_steuerklasse', export_daten, schema)
 
     def insert_abteilung(self, neuanlage_abteilung):
         """
@@ -227,8 +177,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/{neuanlage_abteilung}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{neuanlage_abteilung}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '4 Abteilung.xlsx' pruefen
@@ -256,8 +205,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/{neuanlage_jobtitel}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{neuanlage_jobtitel}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '5 Jobtitel.xlsx' pruefen
@@ -284,8 +232,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/{neuanlage_erfahrungsstufe}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{neuanlage_erfahrungsstufe}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '6 Erfahrungsstufe.xlsx' pruefen
@@ -313,8 +260,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/{neuanlage_gesellschaft}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{neuanlage_gesellschaft}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '7 Gesellschaft.xlsx' pruefen
@@ -344,8 +290,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/{neuanlage_austrittsgrundkategorie}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{neuanlage_austrittsgrundkategorie}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '8 Austrittsgrundkategorie.xlsx' pruefen
@@ -376,8 +321,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/{neuanlage_austrittsgrund}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{neuanlage_austrittsgrund}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '9 Austrittsgrund.xlsx' pruefen
@@ -410,8 +354,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_krankenversicherungsbeitraege}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{neuanlage_krankenversicherungsbeitraege}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '1 Krankenversicherungsbeitraege.xlsx' pruefen
@@ -465,8 +408,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_gesetzliche_krankenkasse}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{neuanlage_gesetzliche_krankenkasse}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '2 gesetzliche Krankenkasse.xlsx' pruefen
@@ -521,8 +463,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_private_krankenkasse}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{neuanlage_private_krankenkasse}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '3 private Krankenkasse.xlsx' pruefen
@@ -573,8 +514,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_gemeldete_krankenkasse}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{neuanlage_gemeldete_krankenkasse}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '4 gemeldete Krankenkasse.xlsx' pruefen
@@ -623,8 +563,7 @@ class Nutzer:
         eingetragen werden sollen.
         """
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_anzahl_kinder}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{neuanlage_anzahl_kinder}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '5 Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx' pruefen
@@ -672,8 +611,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_wohnhaft_sachsen}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{neuanlage_wohnhaft_sachsen}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '6 wohnhaft Sachsen Arbeitgeber PV-Beitrag.xlsx' pruefen
@@ -707,8 +645,8 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_arbeitslosenversicherungsbeitraege}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{neuanlage_arbeitslosenversicherungsbeitraege}", index_col='Daten',
+                                    na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '7 Arbeitslosenversicherungsbeitraege.xlsx' pruefen
@@ -758,8 +696,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_rentenversicherungsbeitraege}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{neuanlage_rentenversicherungsbeitraege}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '8 Rentenversicherungsbeitraege.xlsx' pruefen
@@ -809,8 +746,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_minijobbeitraege}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{neuanlage_minijobbeitraege}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '9 Minijobbeitraege.xlsx' pruefen
@@ -872,8 +808,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_berufsgenossenschaft}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{neuanlage_berufsgenossenschaft}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '10 Berufsgenossenschaft.xlsx' pruefen
@@ -908,8 +843,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert Sozialversicherungsdaten/{neuanlage_unfallversicherungsbeitrag}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{neuanlage_unfallversicherungsbeitrag}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '11 Unfallversicherungsbeitrag.xlsx' pruefen
@@ -960,7 +894,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert Entgeltdaten/{neuanlage_gewerkschaft}", index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{neuanlage_gewerkschaft}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '2 Tarif.xlsx' pruefen
@@ -990,7 +924,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert Entgeltdaten/{neuanlage_tarif}", index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{neuanlage_tarif}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '2 Tarif.xlsx' pruefen
@@ -1021,8 +955,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert Entgeltdaten/{neuanlage_verguetungsbestandteil}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{neuanlage_verguetungsbestandteil}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '3 Verguetungsbestandteil.xlsx' pruefen
@@ -1063,8 +996,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/{mitarbeiterdaten}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{mitarbeiterdaten}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '10 Mitarbeiter.xlsx' pruefen
@@ -1274,9 +1206,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"insert personenbezogene Daten/"
-                                    f"{neuanlage_aussertariflicher_verguetungsbestandteil}",
-                                    index_col='Daten',
+        df_ma_daten = pd.read_excel(f"{neuanlage_aussertariflicher_verguetungsbestandteil}", index_col='Daten',
                                     na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
@@ -1316,8 +1246,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"update personenbezogene Daten/{update_adressdaten}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{update_adressdaten}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '1 Update Adresse.xlsx' pruefen
@@ -1363,8 +1292,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"update personenbezogene Daten/{update_mitarbeiterentlassung}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{update_mitarbeiterentlassung}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '2 Update Mitarbeiterentlassung.xlsx' pruefen
@@ -1399,8 +1327,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"update personenbezogene Daten/{update_abteilungshierarchie}",
-                                    index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{update_abteilungshierarchie}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle '3 Update Abteilungshierarchie.xlsx' pruefen
@@ -1432,7 +1359,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"update Sozialversicherungsdaten/{update_krankenversicherungsbeitraege}",
+        df_ma_daten = pd.read_excel(f"{update_krankenversicherungsbeitraege}",
                                     index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
@@ -1489,7 +1416,7 @@ class Nutzer:
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Übertrag in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"delete personenbezogene Daten/{mitarbeiter}", index_col='Daten', na_filter=False)
+        df_ma_daten = pd.read_excel(f"{mitarbeiter}", index_col='Daten', na_filter=False)
         liste_ma_daten = list(df_ma_daten.iloc[:, 0])
 
         # Daten aus importierter Excel-Tabelle 'Personalnummer.xlsx' pruefen
@@ -1522,6 +1449,56 @@ class Nutzer:
         cur.callproc('delete_mandantendaten', [self.mandant_id])
 
         # Commit der Änderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+    def _import_excel_daten(self, excel_datei_pfad):
+        """
+        Methode importiert die Daten aus der Excel-Datei.
+        :param excel_datei_pfad: Pfade zur Excel-Datei, dessen Daten importiert werden sollen
+        :return: importierte Daten
+        """
+        df_daten = pd.read_excel(f"{excel_datei_pfad}", index_col='Daten', na_filter=False)
+        daten = list(df_daten.iloc[:, 0])
+
+        return daten
+
+    def _datenbankbverbindung_aufbauen(self):
+        """
+        Baut eine Connection zur Datenbank auf. Diese Methode wird jedes Mal aufgerufen, bevor mit der Datenbank
+        interagiert werden soll.
+        :return: conn-Variable, die die Verbindung zur Datenbank enthält
+        """
+        conn = psycopg2.connect(
+            host="localhost",
+            database="Personalstammdatenbank",
+            user="postgres",
+            password="@Postgres123",
+            port=5432
+        )
+
+        return conn
+
+    def _export_zu_db(self, stored_procedure, export_daten, schema='public'):
+        """
+        Methode uebergibt Liste mit Daten an die Personalstammdatenbank, indem die entsprechende Stored Procedure
+        aufgerufen wird.
+        :param stored_procedure: datenbankseitige Methode, welche die uebergebenen Daten in die Datenbank schreibt
+        :param export_daten: Daten, welche in die Personalstammdatenbank eingetragen werden sollen
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
+        """
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        cur.execute(f"set search_path to {schema};")
+
+        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
+        cur.callproc(stored_procedure, export_daten)
+
+        # Commit der Aenderungen
         conn.commit()
 
         # Cursor und Konnektor zu Datenbank schließen
@@ -1636,8 +1613,8 @@ class Nutzer:
     def _vorherigen_tag_berechnen(self, datum):
         """
         Methode berechnet den Vortag des Datums, ab dem ein neuer Eintrag gültig sein soll. Dies wird benoetigt,
-        um in der Spalte "Datum_Bis" des vorherigen Eintrags (gilt für alle Assoziationstabellen) ein Datum eintragen
-        zu koennen.
+        um fuer diverse 'update'-Methoden in der Spalte "Datum_Bis" des vorherigen Eintrags (gilt für alle
+        Assoziationstabellen) ein Datum eintragen zu koennen.
         :param datum: Datum, ab dem ein neuer Eintrag gueltig werden soll
         :return: Datum des Vortags, dass gleichzeitig das Enddatum des alten Eintrags ist
         """
@@ -1645,8 +1622,6 @@ class Nutzer:
 
         try:
             letzter_tag_alter_eintrag = datum - tag_abziehen
-        except ValueError:
-            raise (ValueError(f"'{datum}' ist nicht möglich!"))
         except TypeError:
             raise (TypeError(f"'{datum}' ist kein datetime-Objekt!"))
 

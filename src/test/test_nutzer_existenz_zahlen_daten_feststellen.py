@@ -98,6 +98,19 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
 
         self.assertEqual(type(anzahl_kinder), int)
 
+    def test_jahr_ist_integer(self):
+        """
+        Test prüft, ob die Methode '_existenz_zahlen_daten_feststellen' die Variable 'beitragsjahr_uv' bei einer
+        Ganzzahl belaesst, wenn der übergebene Wert bereits ein integer ist. Dies sit wichtig, wenn für die Unfall-
+        versicheurng der BEitragsjahr an die DAtenbank uebergeben werden soll
+        """
+        beitragsjahr_uv = 2023
+
+        beitragsjahr_uv = self.testfirma.get_nutzer('M10001'). \
+            _existenz_zahlen_daten_feststellen(beitragsjahr_uv, 9999, 'Beitragsjahr Unfallversicherung', False)
+
+        self.assertEqual(type(beitragsjahr_uv), int)
+
     def test_float_zu_dezimalzahl(self):
         """
         Test prüft, ob die Methode '_existenz_zahlen_daten_feststellen' einen Float-Wert (was bereits eine Dezimalzahl
