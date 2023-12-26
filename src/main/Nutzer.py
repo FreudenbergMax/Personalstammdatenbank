@@ -168,88 +168,57 @@ class Nutzer:
         export_daten = [self.mandant_id, steuerklasse]
         self._export_zu_db('insert_steuerklasse', export_daten, schema)
 
-    def insert_abteilung(self, neuanlage_abteilung):
+    def insert_abteilung(self, neuanlage_abteilung, schema='public'):
         """
         Diese Methode uebertraegt eine Abteilung und deren Abkuerzung in die Datenbank (im Rahmen der Bachelorarbeit
         dargestellt durch eine Excel-Datei), in dem die Stored Procedure 'insert_abteilung' aufgerufen wird.
-        :param neuanlage_abteilung: Name der Excel-Datei, dessen Daten in die Datenbank
-        eingetragen werden sollen.
+        :param neuanlage_abteilung: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
 
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_abteilung}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_abteilung)
 
         # Daten aus importierter Excel-Tabelle '4 Abteilung.xlsx' pruefen
-        abteilung = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Abteilung', 64, True)
-        abkuerzung = self._existenz_str_daten_feststellen(liste_ma_daten[1], 'Abteilungskuerzel', 16, True)
+        abteilung = self._existenz_str_daten_feststellen(daten[0], 'Abteilung', 64, True)
+        abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Abteilungskuerzel', 16, True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
+        export_daten = [self.mandant_id, abteilung, abkuerzung]
+        self._export_zu_db('insert_abteilung', export_daten, schema)
 
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_abteilung', [self.mandant_id, abteilung, abkuerzung])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
-
-    def insert_jobtitel(self, neuanlage_jobtitel):
+    def insert_jobtitel(self, neuanlage_jobtitel, schema='public'):
         """
         Diese Methode uebertraegt einen Jobtitel (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei),
         in dem die Stored Procedure 'insert_jobtitel' aufgerufen wird.
         :param neuanlage_jobtitel: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
 
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_jobtitel}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_jobtitel)
 
         # Daten aus importierter Excel-Tabelle '5 Jobtitel.xlsx' pruefen
-        jobtitel = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Jobtitel', 32, True)
+        jobtitel = self._existenz_str_daten_feststellen(daten[0], 'Jobtitel', 32, True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
+        export_daten = [self.mandant_id, jobtitel]
+        self._export_zu_db('insert_jobtitel', export_daten, schema)
 
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_jobtitel', [self.mandant_id, jobtitel])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
-
-    def insert_erfahrungsstufe(self, neuanlage_erfahrungsstufe):
+    def insert_erfahrungsstufe(self, neuanlage_erfahrungsstufe, schema='public'):
         """
         Diese Methode uebertraegt eine Erfahrungsstufe wie bspw. 'Junior', 'Senior' etc. (im Rahmen der Bachelorarbeit
         dargestellt durch eine Excel-Datei), in dem die Stored Procedure 'insert_erfahrungsstufe' aufgerufen wird.
         :param neuanlage_erfahrungsstufe: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
 
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_erfahrungsstufe}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_erfahrungsstufe)
 
         # Daten aus importierter Excel-Tabelle '6 Erfahrungsstufe.xlsx' pruefen
-        erfahrungsstufe = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Erfahrungsstufe', 32, True)
+        erfahrungsstufe = self._existenz_str_daten_feststellen(daten[0], 'Erfahrungsstufe', 32, True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
-
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_erfahrungsstufe', [self.mandant_id, erfahrungsstufe])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
+        export_daten = [self.mandant_id, erfahrungsstufe]
+        self._export_zu_db('insert_erfahrungsstufe', export_daten, schema)
 
     def insert_gesellschaft(self, neuanlage_gesellschaft):
         """

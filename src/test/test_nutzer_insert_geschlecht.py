@@ -21,7 +21,7 @@ class TestNutzerInsertGeschlecht(unittest.TestCase):
         self.testfirma.get_nutzer("M100001").\
             insert_geschlecht('testdaten_insert_geschlecht/Geschlecht.xlsx', self.testschema)
 
-        # Inhalt aus Tabelle "Geschlechter" ziehen, um zu pruefen, ob der Datensatz angelegt wurde
+        # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").\
             abfrage_ausfuehren("SELECT * FROM geschlechter", self.testschema)
 
@@ -45,7 +45,7 @@ class TestNutzerInsertGeschlecht(unittest.TestCase):
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_geschlecht(integer,character "
                                                  "varying) Zeile 17 bei RAISE\n")
 
-        # Inhalt aus Tabelle "Geschlechter" ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
+        # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM geschlechter",
                                                                            self.testschema)
 
@@ -71,7 +71,7 @@ class TestNutzerInsertGeschlecht(unittest.TestCase):
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_geschlecht(integer,character "
                                                  "varying) Zeile 20 bei RAISE\n")
 
-        # Inhalt aus Tabelle "Geschlechter" ziehen, um zu pruefen, ob der Datensatz tatsaechlich nicht angelegt wurde
+        # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz tatsaechlich nicht angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM geschlechter",
                                                                            self.testschema)
 

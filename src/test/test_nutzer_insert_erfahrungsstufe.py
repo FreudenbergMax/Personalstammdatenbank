@@ -3,7 +3,7 @@ from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
 
-class TestNutzerInsertMitarbeitertyp(unittest.TestCase):
+class TestNutzerInsertErfahrungsstufe(unittest.TestCase):
 
     def setUp(self):
         """
@@ -16,66 +16,66 @@ class TestNutzerInsertMitarbeitertyp(unittest.TestCase):
 
     def test_erfolgreicher_eintrag(self):
         """
-        Test prueft, ob ein Mitarbeitertyp eingetragen wird.
+        Test prueft, ob eine Erfahrungsstufe eingetragen wird.
         """
         self.testfirma.get_nutzer("M100001").\
-            insert_mitarbeitertyp('testdaten_insert_mitarbeitertyp/Mitarbeitertyp.xlsx', self.testschema)
+            insert_erfahrungsstufe('testdaten_insert_erfahrungsstufe/Erfahrungsstufe.xlsx', self.testschema)
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").\
-            abfrage_ausfuehren("SELECT * FROM mitarbeitertypen", self.testschema)
+            abfrage_ausfuehren("SELECT * FROM erfahrungsstufen", self.testschema)
 
-        self.assertEqual(str(ergebnis), "[(1, 1, 'Angestellter')]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 'Junior')]")
 
     def test_kein_doppelter_eintrag(self):
         """
-        Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_mitarbeitertyp' mit demselben Mitarbeitertypen
+        Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_erfahrungsstufe' mit derselben Erfahrungsstufe
         dieser nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden. Ausloeser ist
-        der unique-constraint, welcher in der Stored Procedure 'insert_mitarbeitertyp' implementiert ist.
+        der unique-constraint, welcher in der Stored Procedure 'insert_erfahrungsstufe' implementiert ist.
         """
-        self.testfirma.get_nutzer("M100001").\
-            insert_mitarbeitertyp('testdaten_insert_mitarbeitertyp/Mitarbeitertyp.xlsx', self.testschema)
+        self.testfirma.get_nutzer("M100001"). \
+            insert_erfahrungsstufe('testdaten_insert_erfahrungsstufe/Erfahrungsstufe.xlsx', self.testschema)
 
         # Versuch, denselben Wert noch einmal einzutragen
         with self.assertRaises(Exception) as context:
             self.testfirma.get_nutzer("M100001"). \
-                insert_mitarbeitertyp('testdaten_insert_mitarbeitertyp/Mitarbeitertyp.xlsx', self.testschema)
+                insert_erfahrungsstufe('testdaten_insert_erfahrungsstufe/Erfahrungsstufe.xlsx', self.testschema)
 
-        self.assertEqual(str(context.exception), "FEHLER:  Mitarbeitertyp 'Angestellter' bereits vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_mitarbeitertyp(integer,character "
+        self.assertEqual(str(context.exception), "FEHLER:  Erfahrungsstufe 'Junior' bereits vorhanden!\n"
+                                                 "CONTEXT:  PL/pgSQL-Funktion insert_erfahrungsstufe(integer,character "
                                                  "varying) Zeile 16 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM mitarbeitertypen",
+        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM erfahrungsstufen",
                                                                            self.testschema)
 
-        self.assertEqual(str(ergebnis), "[(1, 1, 'Angestellter')]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 'Junior')]")
 
     def test_kein_doppelter_eintrag_case_insensitive(self):
         """
-        Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_mitarbeitertyp' mit demselben Mitarbeitertypen aber
+        Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_erfahrungsstufe' mit derselben Erfahrungsstufe aber
         mit Kleinschreibung dieser dennoch nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception
-        geworfen werden. Ausloeser ist der unique-constraint, welcher in der Stored Procedure 'insert_mitarbeitertyp'
-        implementiert ist, in Kombination mit dem unique-Index 'mitarbeitertyp_idx'.
+        geworfen werden. Ausloeser ist der unique-constraint, welcher in der Stored Procedure 'insert_erfahrungsstufe'
+        implementiert ist, in Kombination mit dem unique-Index 'erfahrungsstufe_idx'.
         """
         self.testfirma.get_nutzer("M100001"). \
-            insert_mitarbeitertyp('testdaten_insert_mitarbeitertyp/Mitarbeitertyp.xlsx', self.testschema)
+            insert_erfahrungsstufe('testdaten_insert_erfahrungsstufe/Erfahrungsstufe.xlsx', self.testschema)
 
         # Versuch, denselben Wert noch einmal einzutragen (diesmal aber in Kleinschreibung)
         with self.assertRaises(Exception) as context:
             self.testfirma.get_nutzer("M100001"). \
-                insert_mitarbeitertyp('testdaten_insert_mitarbeitertyp/Mitarbeitertyp - klein geschrieben.xlsx',
-                                      self.testschema)
+                insert_erfahrungsstufe('testdaten_insert_erfahrungsstufe/Erfahrungsstufe - klein geschrieben.xlsx',
+                                       self.testschema)
 
-        self.assertEqual(str(context.exception), "FEHLER:  Mitarbeitertyp 'angestellter' bereits vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_mitarbeitertyp(integer,character "
+        self.assertEqual(str(context.exception), "FEHLER:  Erfahrungsstufe 'junior' bereits vorhanden!\n"
+                                                 "CONTEXT:  PL/pgSQL-Funktion insert_erfahrungsstufe(integer,character "
                                                  "varying) Zeile 16 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM mitarbeitertypen",
+        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM erfahrungsstufen",
                                                                            self.testschema)
 
-        self.assertEqual(str(ergebnis), "[(1, 1, 'Angestellter')]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 'Junior')]")
 
     def tearDown(self):
         """

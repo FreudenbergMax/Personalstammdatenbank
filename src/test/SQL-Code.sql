@@ -270,6 +270,7 @@ create table Nutzer(
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
+create unique index nutzer_idx on Nutzer(lower(Personalnummer));
 alter table Nutzer enable row level security;
 create policy FilterMandant_Nutzer
     on Nutzer
@@ -285,6 +286,7 @@ create table Kategorien_Austrittsgruende (
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
+create unique index austrittsgrundkategorie_idx on Kategorien_Austrittsgruende(lower(Austrittsgrundkategorie));
 alter table Kategorien_Austrittsgruende enable row level security;
 create policy FilterMandant_kategorien_austrittsgruende
     on Kategorien_Austrittsgruende
@@ -303,6 +305,7 @@ create table Austrittsgruende (
 		foreign key (Kategorie_Austrittsgruende_ID) 
 			references Kategorien_Austrittsgruende(Kategorie_Austrittsgruende_ID)
 );
+create unique index austrittsgrund_idx on Austrittsgruende(lower(Austrittsgrund));
 alter table Austrittsgruende enable row level security;
 create policy FilterMandant_austrittsgruende
     on Austrittsgruende
@@ -351,6 +354,7 @@ create table Laender (
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
+create unique index land_idx on Laender(lower(Land));
 alter table Laender enable row level security;
 create policy FilterMandant_Laender
     on Laender
@@ -369,6 +373,7 @@ create table Regionen (
 		foreign key (Land_ID)
 			references Laender(Land_ID)
 );
+create unique index region_idx on Regionen(lower(Region));
 alter table Regionen enable row level security;
 create policy FilterMandant_Regionen
     on Regionen
@@ -387,6 +392,7 @@ create table Staedte (
 		foreign key (Region_ID)
 			references Regionen(Region_ID)
 );
+create unique index stadt_idx on Staedte(lower(Stadt));
 alter table Staedte enable row level security;
 create policy FilterMandant_Staedte
     on Staedte
@@ -405,6 +411,7 @@ create table Postleitzahlen (
 		foreign key (Stadt_ID)
 			references Staedte(Stadt_ID)
 );
+create unique index postleitzahl_idx on Postleitzahlen(lower(Postleitzahl));
 alter table Postleitzahlen enable row level security;
 create policy FilterMandant_Postleitzahlen
     on Postleitzahlen
@@ -424,6 +431,8 @@ create table Strassenbezeichnungen (
 		foreign key (Postleitzahl_ID)
 			references Postleitzahlen(Postleitzahl_ID)
 );
+create unique index strassenbezeichnungen_idx on Strassenbezeichnungen(lower(Strasse));
+create unique index hausnummer_idx on Strassenbezeichnungen(lower(Hausnummer));
 alter table Strassenbezeichnungen enable row level security;
 create policy FilterMandant_Strassenbezeichnungen
     on Strassenbezeichnungen
@@ -499,6 +508,7 @@ create table Mitarbeitertypen (
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
+create unique index mitarbeitertyp_idx on Mitarbeitertypen(lower(Mitarbeitertyp));
 alter table Mitarbeitertypen enable row level security;
 create policy FilterMandant_mitarbeitertypen
     on Mitarbeitertypen
@@ -610,7 +620,8 @@ create table Abteilungen (
 	Abteilung varchar(64) not null,
 	Abkuerzung varchar(16),
 	untersteht_Abteilung integer,
-	unique (Mandant_ID, Abteilung, Abkuerzung),
+	unique (Mandant_ID, Abteilung),
+	unique (Mandant_ID, Abkuerzung),
 	constraint fk_abteilungen_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID),
@@ -618,6 +629,8 @@ create table Abteilungen (
 		foreign key (untersteht_Abteilung)
 			references Abteilungen(Abteilung_ID)
 );
+create unique index abteilung_idx on Abteilungen(lower(Abteilung));
+create unique index abteilung_abk_idx on Abteilungen(lower(Abkuerzung));
 alter table Abteilungen enable row level security;
 create policy FilterMandant_abteilungen
     on Abteilungen
@@ -657,6 +670,7 @@ create table Jobtitel (
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
+create unique index jobtitel_idx on Jobtitel(lower(Jobtitel));
 alter table Jobtitel enable row level security;
 create policy FilterMandant_jobtitel
     on Jobtitel
@@ -671,6 +685,7 @@ create table Erfahrungsstufen (
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
+create unique index erfahrungsstufe_idx on Erfahrungsstufen(lower(Erfahrungsstufe));
 alter table Erfahrungsstufen enable row level security;
 create policy FilterMandant_erfahrungsstufen
     on Erfahrungsstufen
@@ -2889,8 +2904,7 @@ begin
 exception
     when unique_violation then
     	set role postgres;
-        raise notice 'Abteilung ''%'' bereits vorhanden!', p_abteilung;
-
+        raise exception 'Abteilung ''%'' oder Abteilungskuerzel ''%'' bereits vorhanden!', p_abteilung, p_abkuerzung;
 end;
 $$
 language plpgsql;
@@ -2924,7 +2938,7 @@ begin
 exception
     when unique_violation then
     	set role postgres;
-        raise notice 'Jobtitel ''%'' bereits vorhanden!', p_jobtitel;
+        raise exception 'Jobtitel ''%'' bereits vorhanden!', p_jobtitel;
 
 end;
 $$
@@ -2958,7 +2972,7 @@ begin
    
 exception
     when unique_violation then
-        raise notice 'Erfahrungsstufe ''%'' bereits vorhanden!', p_erfahrungsstufe;
+        raise exception 'Erfahrungsstufe ''%'' bereits vorhanden!', p_erfahrungsstufe;
 
 end;
 $$

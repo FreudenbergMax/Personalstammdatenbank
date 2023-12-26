@@ -1,0 +1,2 @@
+case insensitive
+http://shuber.io/case-insensitive-unique-constraints-in-postgres/

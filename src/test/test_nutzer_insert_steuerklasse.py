@@ -21,7 +21,7 @@ class TestNutzerInsertSteuerklasse(unittest.TestCase):
         self.testfirma.get_nutzer("M100001").\
             insert_steuerklasse('testdaten_insert_steuerklasse/Steuerklasse.xlsx', self.testschema)
 
-        # Inhalt aus Tabelle "Steuerklasse" ziehen, um zu pruefen, ob der Datensatz angelegt wurde
+        # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").\
             abfrage_ausfuehren("SELECT * FROM steuerklassen", self.testschema)
 
@@ -45,7 +45,7 @@ class TestNutzerInsertSteuerklasse(unittest.TestCase):
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_steuerklasse(integer,character) "
                                                  "Zeile 17 bei RAISE\n")
 
-        # Inhalt aus Tabelle "Geschlechter" ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
+        # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM steuerklassen",
                                                                            self.testschema)
 
@@ -72,7 +72,7 @@ class TestNutzerInsertSteuerklasse(unittest.TestCase):
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_steuerklasse(integer,character) "
                                                  "Zeile 20 bei RAISE\n")
 
-        # Inhalt aus Tabelle "Steuerklassen" ziehen, um zu pruefen, ob der Datensatz tatsaechlich nicht angelegt wurde
+        # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz tatsaechlich nicht angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM steuerklassen",
                                                                            self.testschema)
 
