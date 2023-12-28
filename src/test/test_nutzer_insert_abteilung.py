@@ -134,7 +134,7 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_abteilung' mit derselben Abkuerzung aber mit Klein-
         schreibung dieser dennoch nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen
         werden. Ausloeser ist der unique-constraint, welcher in der Stored Procedure 'insert_abteilung'
-        implementiert ist, in Kombination mit dem unique-Index 'abteilung_idx'.
+        implementiert ist, in Kombination mit dem unique-Index 'abk_abteilung_idx'.
         """
         self.testfirma.get_nutzer("M100001"). \
             insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx', self.testschema)

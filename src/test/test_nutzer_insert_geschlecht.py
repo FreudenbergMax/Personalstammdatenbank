@@ -58,7 +58,7 @@ class TestNutzerInsertGeschlecht(unittest.TestCase):
         der check-constraint, welcher in der Stored Procedure 'insert_geschlecht' implementiert ist.
         Hinweis: die Excel-Datei ist fuer gewoehnlich so praepariert, dass man nur die richtige Rechtschreibung
         eintragen kann. Dennoch soll getestet werden, ob im Ernstfall der constraint greift. Hierfuer wurde die Excel-
-        Datei so umgestaltet, dass man auch falsch geschriebene Geschlechter eintragen eintragen kann.
+        Datei so umgestaltet, dass man auch falsch geschriebene Geschlechter eintragen kann.
         """
 
         # Versuch, falsch geschriebenes Geschlecht 'männlich' einzutragen

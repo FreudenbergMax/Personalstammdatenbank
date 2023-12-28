@@ -725,7 +725,8 @@ create table Gesellschaften (
 	Gesellschaft varchar(128) not null,
 	Abkuerzung varchar(16),
 	untersteht_Gesellschaft integer,
-	unique (Mandant_ID, Gesellschaft, Abkuerzung),
+	unique (Mandant_ID, Gesellschaft),
+	unique (Mandant_ID, Abkuerzung),
 	constraint fk_gesellschaften_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID),
@@ -733,6 +734,8 @@ create table Gesellschaften (
 		foreign key (untersteht_Gesellschaft)
 			references Gesellschaften(Gesellschaft_ID)
 );
+create unique index gesellschaft_idx on Gesellschaften(lower(Gesellschaft));
+create unique index abk_gesellschaft_idx on Gesellschaften(lower(Abkuerzung));
 alter table Gesellschaften enable row level security;
 create policy FilterMandant_gesellschaften
     on Gesellschaften
@@ -1092,11 +1095,14 @@ create table gesetzliche_Krankenkassen (
 	Mandant_ID integer not null,
 	Krankenkasse_gesetzlich varchar(128) not null,
 	Krankenkassenkuerzel varchar(16) not null,
-	unique(Mandant_ID, Krankenkasse_gesetzlich, Krankenkassenkuerzel),
+	unique(Mandant_ID, Krankenkasse_gesetzlich),
+	unique(Mandant_ID, Krankenkassenkuerzel),
 	constraint fk_krankenkassen_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
+create unique index ges_krankenkasse_idx on gesetzliche_Krankenkassen(lower(Krankenkasse_gesetzlich));
+create unique index abk_ges_krankenkasse_idx on gesetzliche_Krankenkassen(lower(Krankenkassenkuerzel));
 alter table gesetzliche_Krankenkassen enable row level security;
 create policy FilterMandant_gesetzlichekrankenkassen
     on gesetzliche_Krankenkassen
@@ -1776,7 +1782,7 @@ begin
     if v_krankenversicherung_id is not null then
     
 		set role postgres;
-		raise exception 'Ermaessigung = ''%'' ist bereits vorhanden! Übergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_krankenversicherungsbeitraege''-Funktion!', p_ermaessigter_beitragssatz;   
+		raise exception 'Ermaessigung = ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_krankenversicherungsbeitraege''-Funktion!', p_ermaessigter_beitragssatz;   
     
 	--... ansonsten neue Kinderanzahl eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_GKV_Beitraege' benoetigt
 	else
@@ -1889,7 +1895,7 @@ begin
     if v_krankenkasse_id is not null then
     
 		set role postgres;
-		raise exception 'Gesetzliche Krankenkasse ''%'' ist bereits vorhanden! Übergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_gesetzliche_krankenkasse''-Funktion!', p_krankenkasse;   
+		raise exception 'Gesetzliche Krankenkasse ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_gesetzliche_krankenkasse''-Funktion!', p_krankenkasse;   
     
 	--... ansonsten neue gesetzliche Krankenkasse eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_GKV_Zusatzbeitrag' benoetigt
 	else
@@ -3007,7 +3013,7 @@ begin
    
 exception
     when unique_violation then
-        raise notice 'Gesellschaft ''%'' bereits vorhanden!', p_gesellschaft;
+        raise exception 'Gesellschaft ''%'' oder ''%'' bereits vorhanden!', p_gesellschaft, p_abkuerzung;
            
 end;
 $$
@@ -3041,10 +3047,10 @@ begin
 
 exception
     when unique_violation then
-        raise notice 'Austrittsgrundkategorie ''%'' bereits vorhanden!', p_austrittsgrundkategorie;
+        raise exception 'Austrittsgrundkategorie ''%'' bereits vorhanden!', p_austrittsgrundkategorie;
     when check_violation then
     	set role postgres;
-    	raise exception 'Fuer Geschlechter sind nur folgende Werte erlaubt: ''verhaltensbedingt'', ''personenbedingt'', ''betriebsbedingt''!';
+    	raise exception 'Fuer Austrittsgrundkategorien sind nur folgende Werte erlaubt: ''verhaltensbedingt'', ''personenbedingt'', ''betriebsbedingt''!';
 
 end;
 $$
@@ -3073,7 +3079,7 @@ begin
     execute 'SET app.current_tenant=' || p_mandant_id;
 
     execute 'SELECT kategorie_austrittsgruende_id FROM kategorien_austrittsgruende WHERE austrittsgrundkategorie = $1' 
-   		into v_kategorie_austrittsgruende_id using p_austrittsgrundkategorie;
+   		into v_kategorie_austrittsgruende_id using lower(p_austrittsgrundkategorie);
     
    	insert into 
    		Austrittsgruende(Mandant_ID, Austrittsgrund, Kategorie_Austrittsgruende_ID) 
@@ -3084,7 +3090,7 @@ begin
  
 exception
     when unique_violation then
-        raise notice 'Austrittsgrund ''%'' bereits vorhanden!', p_austrittsgrund;
+        raise exception 'Austrittsgrund ''%'' bereits vorhanden!', p_austrittsgrund;
 
 end;
 $$

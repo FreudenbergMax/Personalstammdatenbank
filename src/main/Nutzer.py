@@ -123,7 +123,6 @@ class Nutzer:
         :param neuanlage_geschlecht: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_geschlecht)
 
@@ -141,7 +140,6 @@ class Nutzer:
         :param neuanlage_mitarbeitertyp: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_mitarbeitertyp)
 
@@ -158,7 +156,6 @@ class Nutzer:
         :param neuanlage_steuerklasse: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_steuerklasse)
 
@@ -175,7 +172,6 @@ class Nutzer:
         :param neuanlage_abteilung: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_abteilung)
 
@@ -193,7 +189,6 @@ class Nutzer:
         :param neuanlage_jobtitel: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_jobtitel)
 
@@ -210,7 +205,6 @@ class Nutzer:
         :param neuanlage_erfahrungsstufe: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_erfahrungsstufe)
 
@@ -220,154 +214,106 @@ class Nutzer:
         export_daten = [self.mandant_id, erfahrungsstufe]
         self._export_zu_db('insert_erfahrungsstufe', export_daten, schema)
 
-    def insert_gesellschaft(self, neuanlage_gesellschaft):
+    def insert_gesellschaft(self, neuanlage_gesellschaft, schema='public'):
         """
         Diese Methode uebertraegt eine Unternehmensgesellschaft und deren Abkuerzung in die Datenbank (im Rahmen der
         Bachelorarbeit dargestellt durch eine Excel-Datei), in dem die Stored Procedure 'insert_gesellschaft' aufgerufen
         wird.
         :param neuanlage_gesellschaft: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_gesellschaft}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_gesellschaft)
 
         # Daten aus importierter Excel-Tabelle '7 Gesellschaft.xlsx' pruefen
-        gesellschaft = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Gesellschaft', 128, True)
-        abkuerzung = self._existenz_str_daten_feststellen(liste_ma_daten[1], 'Gesellschaftskuerzel', 16, True)
+        gesellschaft = self._existenz_str_daten_feststellen(daten[0], 'Gesellschaft', 128, True)
+        abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Gesellschaftskuerzel', 16, True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
+        export_daten = [self.mandant_id, gesellschaft, abkuerzung]
+        self._export_zu_db('insert_gesellschaft', export_daten, schema)
 
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_gesellschaft', [self.mandant_id, gesellschaft, abkuerzung])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
-
-    def insert_austrittsgrundkategorie(self, neuanlage_austrittsgrundkategorie):
+    def insert_austrittsgrundkategorie(self, neuanlage_austrittsgrundkategorie, schema='public'):
         """
         Diese Methode uebertraegt eine Austrittsgrundkategorie wie bspw. 'betriebsbedingt' in die Datenbank (im Rahmen
         der Bachelorarbeit dargestellt durch eine Excel-Datei), in dem die Stored Procedure
         'insert_kategorien_austrittsgruende' aufgerufen wird.
         :param neuanlage_austrittsgrundkategorie: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden
-        sollen.
+                                                  sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_austrittsgrundkategorie}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_austrittsgrundkategorie)
 
         # Daten aus importierter Excel-Tabelle '8 Austrittsgrundkategorie.xlsx' pruefen
-        austrittsgrundkategorie = self._existenz_str_daten_feststellen(liste_ma_daten[0],
-                                                                       'Austrittsgrundkategorie',
-                                                                       16,
-                                                                       True)
+        austrittsgrundkategorie = self._existenz_str_daten_feststellen(daten[0], 'Austrittsgrundkategorie', 16, True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
+        export_daten = [self.mandant_id, austrittsgrundkategorie]
+        self._export_zu_db('insert_kategorien_austrittsgruende', export_daten, schema)
 
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_kategorien_austrittsgruende', [self.mandant_id, austrittsgrundkategorie])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
-
-    def insert_austrittsgrund(self, neuanlage_austrittsgrund):
+    def insert_austrittsgrund(self, neuanlage_austrittsgrund, schema='public'):
         """
         Diese Methode uebertraegt eine Austrittsgrund wie bspw. 'Umsatzrueckgang' in die Datenbank (im Rahmen
         der Bachelorarbeit dargestellt durch eine Excel-Datei), in dem die Stored Procedure 'insert_austrittsgruende'
         aufgerufen wird.
         :param neuanlage_austrittsgrund: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_austrittsgrund}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_austrittsgrund)
 
         # Daten aus importierter Excel-Tabelle '9 Austrittsgrund.xlsx' pruefen
-        austrittsgrund = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Austrittsgrund', 16, True)
-        austrittsgrundkategorie = self._existenz_str_daten_feststellen(liste_ma_daten[1],
-                                                                       'Austrittsgrundkategorie',
-                                                                       16,
-                                                                       True)
+        austrittsgrund = self._existenz_str_daten_feststellen(daten[0], 'Austrittsgrund', 16, True)
+        austrittsgrundkategorie = self._existenz_str_daten_feststellen(daten[1], 'Austrittsgrundkategorie', 16, True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
+        export_daten = [self.mandant_id, austrittsgrund, austrittsgrundkategorie]
+        self._export_zu_db('insert_austrittsgruende', export_daten, schema)
 
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_austrittsgruende', [self.mandant_id, austrittsgrund, austrittsgrundkategorie])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
-
-    def insert_krankenversicherungsbeitraege(self, neuanlage_krankenversicherungsbeitraege):
+    def insert_krankenversicherungsbeitraege(self, neuanlage_krankenversicherungsbeitraege, schema='public'):
         """
-        Diese Methode überträgt die eingetragenen Krankenversicherungsbeitraege (im Rahmen der Bachelorarbeit
+        Diese Methode uebertraegt die eingetragenen Krankenversicherungsbeitraege (im Rahmen der Bachelorarbeit
         dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
         'insert_krankenversicherungsbeitraege' aufgerufen wird.
         :param neuanlage_krankenversicherungsbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen
         werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
 
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_krankenversicherungsbeitraege}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_krankenversicherungsbeitraege)
 
         # Daten aus importierter Excel-Tabelle '1 Krankenversicherungsbeitraege.xlsx' pruefen
-        ermaessigter_beitragssatz = self._existenz_boolean_daten_feststellen(liste_ma_daten[0],
+        ermaessigter_beitragssatz = self._existenz_boolean_daten_feststellen(daten[0],
                                                                              'ermaessigter Beitragssatz',
                                                                              True)
-        ag_gkv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[1],
+        ag_gkv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(daten[1],
                                                                             99,
                                                                             'Arbeitgeberbeitrag GKV in Prozent',
                                                                             True)
-        an_gkv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2],
+        an_gkv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(daten[2],
                                                                             99,
                                                                             'Arbeitnehmerbeitrag GKV in Prozent',
                                                                             True)
-        beitragsbemessungsgrenze_gkv_ost = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3],
+        beitragsbemessungsgrenze_gkv_ost = self._existenz_zahlen_daten_feststellen(daten[3],
                                                                                    99999999,
                                                                                    'Beitragsbemessungsgrenze GKV Ost',
                                                                                    True)
-        beitragsbemessungsgrenze_gkv_west = self._existenz_zahlen_daten_feststellen(liste_ma_daten[4],
+        beitragsbemessungsgrenze_gkv_west = self._existenz_zahlen_daten_feststellen(daten[4],
                                                                                     99999999,
                                                                                     'Beitragsbemessungsgrenze GKV West',
                                                                                     True)
-        eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[5], 'Eintragungsdatum', True)
+        eintragungsdatum = self._existenz_date_daten_feststellen(daten[5], 'Eintragungsdatum', True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
+        export_daten = [self.mandant_id,
+                        ermaessigter_beitragssatz,
+                        ag_gkv_beitrag_in_prozent,
+                        an_gkv_beitrag_in_prozent,
+                        beitragsbemessungsgrenze_gkv_ost,
+                        beitragsbemessungsgrenze_gkv_west,
+                        eintragungsdatum]
 
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_krankenversicherungsbeitraege', [self.mandant_id,
-                                                              ermaessigter_beitragssatz,
-                                                              an_gkv_beitrag_in_prozent,
-                                                              ag_gkv_beitrag_in_prozent,
-                                                              beitragsbemessungsgrenze_gkv_ost,
-                                                              beitragsbemessungsgrenze_gkv_west,
-                                                              eintragungsdatum])
+        self._export_zu_db('insert_krankenversicherungsbeitraege', export_daten, schema)
 
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
-
-    def insert_gesetzliche_krankenkasse(self, neuanlage_gesetzliche_krankenkasse):
+    def insert_gesetzliche_krankenkasse(self, neuanlage_gesetzliche_krankenkasse, schema='public'):
         """
         Diese Methode uebertraegt die eingetragene gesetzliche Krankenkasse mit deren Zusatzbeitrag und Umlagen (im
         Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
@@ -376,51 +322,41 @@ class Nutzer:
         werden sollen.
         """
 
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_gesetzliche_krankenkasse}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_gesetzliche_krankenkasse)
 
         # Daten aus importierter Excel-Tabelle '2 gesetzliche Krankenkasse.xlsx' pruefen
-        krankenkasse_voller_name = self._existenz_str_daten_feststellen(liste_ma_daten[0],
+        krankenkasse_voller_name = self._existenz_str_daten_feststellen(daten[0],
                                                                         'Krankenkasse voller Name',
                                                                         128,
                                                                         True)
-        krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(liste_ma_daten[1],
+        krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(daten[1],
                                                                        'Krankenkasse Abkuerzung',
                                                                        16,
                                                                        True)
-        zusatzbeitrag = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2],
+        zusatzbeitrag = self._existenz_zahlen_daten_feststellen(daten[2],
                                                                 99,
                                                                 'Zusatzbeitrag Krankenkasse',
                                                                 True)
-        u1_umlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3], 99, 'U1-Umlage', True)
-        u2_umlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[4], 99, 'U2-Umlage', True)
-        insolvenzgeldumlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[5],
+        u1_umlage = self._existenz_zahlen_daten_feststellen(daten[3], 99, 'U1-Umlage', True)
+        u2_umlage = self._existenz_zahlen_daten_feststellen(daten[4], 99, 'U2-Umlage', True)
+        insolvenzgeldumlage = self._existenz_zahlen_daten_feststellen(daten[5],
                                                                       99,
                                                                       'Insolvenzgeldumlage',
                                                                       True)
-        eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[6], 'Eintragungsdatum', True)
+        eintragungsdatum = self._existenz_date_daten_feststellen(daten[6], 'Eintragungsdatum', True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
+        export_daten = [self.mandant_id,
+                        krankenkasse_voller_name,
+                        krankenkasse_abkuerzung,
+                        zusatzbeitrag,
+                        u1_umlage,
+                        u2_umlage,
+                        insolvenzgeldumlage,
+                        'gesetzlich',
+                        eintragungsdatum]
 
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_gesetzliche_Krankenkasse', [self.mandant_id,
-                                                         krankenkasse_voller_name,
-                                                         krankenkasse_abkuerzung,
-                                                         zusatzbeitrag,
-                                                         u1_umlage,
-                                                         u2_umlage,
-                                                         insolvenzgeldumlage,
-                                                         'gesetzlich',
-                                                         eintragungsdatum])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
+        self._export_zu_db('insert_gesetzliche_Krankenkasse', export_daten, schema)
 
     def insert_private_krankenkasse(self, neuanlage_private_krankenkasse):
         """
