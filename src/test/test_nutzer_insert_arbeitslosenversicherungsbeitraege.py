@@ -3,7 +3,7 @@ from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
 
-class TestNutzerInsertArbeitslosenversicherungsbeitraege(unittest.TestCase):
+class TestNutzerInsertRentenversicherungsbeitraege(unittest.TestCase):
 
     def setUp(self):
         """
@@ -16,7 +16,7 @@ class TestNutzerInsertArbeitslosenversicherungsbeitraege(unittest.TestCase):
 
     def test_erfolgreicher_eintrag(self):
         """
-        Test prueft, ob Arbeitslosenversicherungsbeitraege eingetragen werden.
+        Test prueft, ob Rentenversicherungsbeitraege eingetragen werden.
         """
         self.testfirma.get_nutzer("M100001").\
             insert_arbeitslosenversicherungsbeitraege('testdaten_insert_arbeitslosenversicherungsbeitraege/'
@@ -39,8 +39,8 @@ class TestNutzerInsertArbeitslosenversicherungsbeitraege(unittest.TestCase):
 
     def test_kein_doppelter_eintrag(self):
         """
-        Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_arbeitslosenversicherungsbeitraege' mit derselben
-        Angabe nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden. Massgeblich
+        Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_arbeitslosenversicherungsbeitraege' mit denselben
+        Angaben nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden. Massgeblich
         ist hier lediglich die Mandant_ID in Tabelle "Krankenversicherungen" (denn jeder Arbeitgeber bezahlt fuer alle
         Mitarbeiter dieselben Saetze). Die Exception wird auch dann geworfen, wenn die Beitragssaetze anders sind.
         Sollen nur die Beitragssaetze geaendert werden, muss hierfuer eine update-Methode verwendet werden (welche im
@@ -50,7 +50,7 @@ class TestNutzerInsertArbeitslosenversicherungsbeitraege(unittest.TestCase):
             insert_arbeitslosenversicherungsbeitraege('testdaten_insert_arbeitslosenversicherungsbeitraege/'
                                                       'Arbeitslosenversicherungsbeitraege.xlsx', self.testschema)
 
-        # Versuch, nochmal den nicht ermaessigten Beitragssatz einzutragen
+        # Versuch, dieselben Beitragssaetze einzutragen
         with self.assertRaises(Exception) as context:
             self.testfirma.get_nutzer("M100001"). \
                 insert_arbeitslosenversicherungsbeitraege('testdaten_insert_arbeitslosenversicherungsbeitraege/'
@@ -91,7 +91,6 @@ class TestNutzerInsertArbeitslosenversicherungsbeitraege(unittest.TestCase):
             insert_arbeitslosenversicherungsbeitraege('testdaten_insert_arbeitslosenversicherungsbeitraege/'
                                                       'Arbeitslosenversicherungsbeitraege.xlsx', self.testschema)
 
-        # Versuch, nochmal den nicht ermaessigten Beitragssatz einzutragen
         with self.assertRaises(Exception) as context:
             self.testfirma.get_nutzer("M100001"). \
                 insert_arbeitslosenversicherungsbeitraege('testdaten_insert_arbeitslosenversicherungsbeitraege/'

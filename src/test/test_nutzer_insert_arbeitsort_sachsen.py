@@ -91,7 +91,6 @@ class TestNutzerInsertArbeitsortSachsen(unittest.TestCase):
             insert_arbeitsort_sachsen_ag_pv_beitrag('testdaten_insert_ag_pv_beitrag_sachsen/'
                                                     'Arbeitsort Sachsen Arbeitgeber PV-Beitrag.xlsx', self.testschema)
 
-        # Versuch, nochmal den nicht ermaessigten Beitragssatz einzutragen
         with self.assertRaises(Exception) as context:
             self.testfirma.get_nutzer("M100001"). \
                 insert_arbeitsort_sachsen_ag_pv_beitrag('testdaten_insert_ag_pv_beitrag_sachsen/Arbeitsort Sachsen '

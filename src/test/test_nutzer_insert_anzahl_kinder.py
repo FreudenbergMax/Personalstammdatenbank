@@ -88,7 +88,7 @@ class TestNutzerInsertAnzahlKinder(unittest.TestCase):
             insert_anzahl_kinder_an_pv_beitrag('testdaten_insert_anzahl_kinder/'
                                                'Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx', self.testschema)
 
-        # Versuch, nochmal den nicht ermaessigten Beitragssatz einzutragen
+        # Versuch, einen anderen ermaessigten Beitragssatz einzutragen
         with self.assertRaises(Exception) as context:
             self.testfirma.get_nutzer("M100001"). \
                 insert_anzahl_kinder_an_pv_beitrag('testdaten_insert_anzahl_kinder/'

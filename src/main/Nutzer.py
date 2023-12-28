@@ -497,118 +497,90 @@ class Nutzer:
                         eintragungsdatum]
         self._export_zu_db('insert_arbeitslosenversicherungsbeitraege', export_daten, schema)
 
-    def insert_rentenversicherungsbeitraege(self, neuanlage_rentenversicherungsbeitraege):
+    def insert_rentenversicherungsbeitraege(self, neuanlage_rentenversicherungsbeitraege, schema='public'):
         """
         Diese Methode uebertraegt die Rentenversicherungsbeitragssaetze von Arbeitnehmer und Arbeitgeber sowie die
         Beitragsbemessungsgrenzen (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in
         dem der Stored Procedure 'insert_arbeitslosenversicherungsbeitraege' aufgerufen wird.
         :param neuanlage_rentenversicherungsbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_rentenversicherungsbeitraege}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_rentenversicherungsbeitraege)
 
         # Daten aus importierter Excel-Tabelle '8 Rentenversicherungsbeitraege.xlsx' pruefen
-        an_beitrag_rv_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[0],
-                                                                           99,
-                                                                           'AN-Beitrag RV in %',
-                                                                           True)
-        ag_beitrag_rv_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[1],
-                                                                           99,
-                                                                           'AG-Beitrag RV in %',
-                                                                           True)
-        beitragsbemessungsgrenze_rv_ost = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2],
+        an_beitrag_rv_in_prozent = self._existenz_zahlen_daten_feststellen(daten[0], 99, 'AN-Beitrag RV in %', True)
+        ag_beitrag_rv_in_prozent = self._existenz_zahlen_daten_feststellen(daten[1], 99, 'AG-Beitrag RV in %', True)
+        beitragsbemessungsgrenze_rv_ost = self._existenz_zahlen_daten_feststellen(daten[2],
                                                                                   99999999,
                                                                                   'Beitragsbemessungsgrenze RV Ost',
                                                                                   True)
-        beitragsbemessungsgrenze_rv_west = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3],
+        beitragsbemessungsgrenze_rv_west = self._existenz_zahlen_daten_feststellen(daten[3],
                                                                                    99999999,
                                                                                    'Beitragsbemessungsgrenze RV West',
                                                                                    True)
-        eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[4], 'Eintragungsdatum', True)
+        eintragungsdatum = self._existenz_date_daten_feststellen(daten[4], 'Eintragungsdatum', True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
+        export_daten = [self.mandant_id,
+                        an_beitrag_rv_in_prozent,
+                        ag_beitrag_rv_in_prozent,
+                        beitragsbemessungsgrenze_rv_ost,
+                        beitragsbemessungsgrenze_rv_west,
+                        eintragungsdatum]
+        self._export_zu_db('insert_rentenversicherungsbeitraege', export_daten, schema)
 
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_rentenversicherungsbeitraege', [self.mandant_id,
-                                                             an_beitrag_rv_in_prozent,
-                                                             ag_beitrag_rv_in_prozent,
-                                                             beitragsbemessungsgrenze_rv_ost,
-                                                             beitragsbemessungsgrenze_rv_west,
-                                                             eintragungsdatum])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
-
-    def insert_minijobbeitraege(self, neuanlage_minijobbeitraege):
+    def insert_minijobbeitraege(self, neuanlage_minijobbeitraege, schema='public'):
         """
         Diese Methode uebertraegt Minijobbeitragssaetze von Arbeitnehmer und Arbeitgeber sowie die Umlagen und
-         Pauschalsteuer (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in
+        Pauschalsteuer (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in
         dem der Stored Procedure 'insert_Minijob' aufgerufen wird.
         :param neuanlage_minijobbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_minijobbeitraege}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_minijobbeitraege)
 
         # Daten aus importierter Excel-Tabelle '9 Minijobbeitraege.xlsx' pruefen
-        kurzfristig_beschaeftigt = self._existenz_boolean_daten_feststellen(liste_ma_daten[0],
+        kurzfristig_beschaeftigt = self._existenz_boolean_daten_feststellen(daten[0],
                                                                             'kurzfristige Minijobtaetigkeit?',
                                                                             True)
-        ag_beitrag_kv_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[1],
+        ag_beitrag_kv_in_prozent = self._existenz_zahlen_daten_feststellen(daten[1],
                                                                            99,
                                                                            'AG-Beitrag KV Minijob in %',
                                                                            True)
-        ag_beitrag_rv_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2],
+        ag_beitrag_rv_in_prozent = self._existenz_zahlen_daten_feststellen(daten[2],
                                                                            99,
                                                                            'AG-Beitrag RV Minijob in %',
                                                                            True)
-        an_beitrag_rv_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3],
+        an_beitrag_rv_in_prozent = self._existenz_zahlen_daten_feststellen(daten[3],
                                                                            99,
                                                                            'AN-Beitrag RV Minijob in %',
                                                                            True)
-        u1_umlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[4], 99, 'U1-Umlage Minijob in %', True)
-        u2_umlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[5], 99, 'U2-Umlage Minijob in %', True)
-        insolvenzgeldumlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[6],
+        u1_umlage = self._existenz_zahlen_daten_feststellen(daten[4], 99, 'U1-Umlage Minijob in %', True)
+        u2_umlage = self._existenz_zahlen_daten_feststellen(daten[5], 99, 'U2-Umlage Minijob in %', True)
+        insolvenzgeldumlage = self._existenz_zahlen_daten_feststellen(daten[6],
                                                                       99,
                                                                       'Insolvenzgeldumlage Minijob in %',
                                                                       True)
-        pauschalsteuer = self._existenz_zahlen_daten_feststellen(liste_ma_daten[7],
+        pauschalsteuer = self._existenz_zahlen_daten_feststellen(daten[7],
                                                                  99,
                                                                  'Pauschalsteuer Minijob in %',
                                                                  True)
-        eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[8], 'Eintragungsdatum', True)
+        eintragungsdatum = self._existenz_date_daten_feststellen(daten[8], 'Eintragungsdatum', True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
-
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_Minijob', [self.mandant_id,
-                                        kurzfristig_beschaeftigt,
-                                        ag_beitrag_kv_in_prozent,
-                                        ag_beitrag_rv_in_prozent,
-                                        an_beitrag_rv_in_prozent,
-                                        u1_umlage,
-                                        u2_umlage,
-                                        insolvenzgeldumlage,
-                                        pauschalsteuer,
-                                        eintragungsdatum])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
+        export_daten = [self.mandant_id,
+                        kurzfristig_beschaeftigt,
+                        ag_beitrag_kv_in_prozent,
+                        ag_beitrag_rv_in_prozent,
+                        an_beitrag_rv_in_prozent,
+                        u1_umlage,
+                        u2_umlage,
+                        insolvenzgeldumlage,
+                        pauschalsteuer,
+                        eintragungsdatum]
+        self._export_zu_db('insert_Minijob', export_daten, schema)
 
     def insert_berufsgenossenschaft(self, neuanlage_berufsgenossenschaft):
         """

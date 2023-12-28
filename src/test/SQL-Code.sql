@@ -2445,7 +2445,7 @@ begin
     if v_rentenversicherung_id is not null then
     
 		set role postgres;
-		raise exception 'Rentenversicherung ist bereits vorhanden! Übergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_rentenversicherung''-Funktion!';   
+		raise exception 'Rentenversicherung ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_rentenversicherung''-Funktion!';   
 	
 	--... ansonsten eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_RV_Beitraege' benoetigt
 	else
@@ -2685,7 +2685,7 @@ begin
    
 exception
     when unique_violation then
-        raise notice 'Gewerkschaft ''%'' bereits vorhanden!', p_gewerkschaft;
+        raise exception 'Gewerkschaft ''%'' bereits vorhanden!', p_gewerkschaft;
            
 end;
 $$
