@@ -943,11 +943,14 @@ create table gemeldete_Krankenkassen(
 	Mandant_ID integer not null,
 	gemeldete_Krankenkasse varchar(128) not null,
 	Krankenkassenkuerzel varchar(16) not null,
-	unique (Mandant_ID, gemeldete_Krankenkasse),
+	unique(Mandant_ID, gemeldete_Krankenkasse),
+	unique(Mandant_ID, Krankenkassenkuerzel),
 	constraint fk_gemeldetekrankenkassen_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
+create unique index gemeldete_krankenkasse_idx on gemeldete_Krankenkassen(lower(gemeldete_Krankenkasse));
+create unique index abk_gemeldete_krankenkasse_idx on gemeldete_Krankenkassen(lower(Krankenkassenkuerzel));
 alter table gemeldete_Krankenkassen enable row level security;
 create policy FilterMandant_gemeldetekrankenkassen
     on gemeldete_Krankenkassen
@@ -981,10 +984,13 @@ create table Privatkrankenkassen(
 	Privatkrankenkasse varchar(128) not null,
 	Privatkrankenkassenkuerzel varchar(16) not null,
 	unique (Mandant_ID, Privatkrankenkasse),
+	unique (Mandant_ID, Privatkrankenkassenkuerzel),
 	constraint fk_privatkrankenkassen_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
+create unique index private_krankenkasse_idx on Privatkrankenkassen(lower(Privatkrankenkasse));
+create unique index abk_private_krankenkasse_idx on Privatkrankenkassen(lower(Privatkrankenkassenkuerzel));
 alter table Privatkrankenkassen enable row level security;
 create policy FilterMandant_privatkrankenkassen
     on Privatkrankenkassen
@@ -1950,6 +1956,11 @@ begin
 
     set role postgres;
 
+exception
+    when unique_violation then
+    	set role postgres;
+        raise exception 'Gesetzliche Krankenkasse ''%'' oder dessen Kuerzel ''%'' bereits vorhanden!', p_krankenkasse, p_krankenkassenkuerzel;
+
 end;
 $$
 language plpgsql;
@@ -1990,7 +2001,7 @@ begin
     if v_krankenkasse_id is not null then
     
 		set role postgres;
-		raise exception 'Private Krankenkasse ''%'' ist bereits vorhanden! Übergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_privatkrankenkasse''-Funktion!', p_krankenkasse;   
+		raise exception 'Private Krankenkasse ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_privatkrankenkasse''-Funktion!', p_krankenkasse;   
     
 	--... ansonsten neue Privatkrankenkasse eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_Umlagen_privat' benoetigt
 	else
@@ -2023,6 +2034,11 @@ begin
    		values (v_krankenkasse_id, v_umlage_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
 
     set role postgres;
+
+exception
+    when unique_violation then
+    	set role postgres;
+        raise exception 'Private Krankenkasse ''%'' oder dessen Kuerzel ''%'' bereits vorhanden!', p_krankenkasse, p_krankenkassenkuerzel;
 
 end;
 $$
@@ -2064,7 +2080,7 @@ begin
     if v_krankenkasse_id is not null then
     
 		set role postgres;
-		raise exception 'Gemeldete Krankenkasse ''%'' ist bereits vorhanden! Übergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_gemeldete_Krankenkasse''-Funktion!', p_krankenkasse;   
+		raise exception 'Gemeldete Krankenkasse ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_gemeldete_Krankenkasse''-Funktion!', p_krankenkasse;   
     
 	--... ansonsten neue Krankenkasse eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_Umlagen_anderweitig' benoetigt
 	else
@@ -2097,6 +2113,11 @@ begin
    		values (v_krankenkasse_id, v_umlage_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
 
     set role postgres;
+
+exception
+    when unique_violation then
+    	set role postgres;
+        raise exception 'Gemeldete Krankenkasse ''%'' oder dessen Kuerzel ''%'' bereits vorhanden!', p_krankenkasse, p_krankenkassenkuerzel;
 
 end;
 $$

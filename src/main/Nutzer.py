@@ -320,30 +320,19 @@ class Nutzer:
         'insert_gesetzliche_Krankenkasse' aufgerufen wird.
         :param neuanlage_gesetzliche_krankenkasse: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen
         werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_gesetzliche_krankenkasse)
 
         # Daten aus importierter Excel-Tabelle '2 gesetzliche Krankenkasse.xlsx' pruefen
-        krankenkasse_voller_name = self._existenz_str_daten_feststellen(daten[0],
-                                                                        'Krankenkasse voller Name',
-                                                                        128,
-                                                                        True)
-        krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(daten[1],
-                                                                       'Krankenkasse Abkuerzung',
-                                                                       16,
-                                                                       True)
-        zusatzbeitrag = self._existenz_zahlen_daten_feststellen(daten[2],
-                                                                99,
-                                                                'Zusatzbeitrag Krankenkasse',
-                                                                True)
+        krankenkasse_voller_name = self._existenz_str_daten_feststellen(daten[0], 'Krankenkasse voller Name', 128, True)
+        krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Krankenkasse Abkuerzung', 16, True)
+        zusatzbeitrag = self._existenz_zahlen_daten_feststellen(daten[2], 99, 'Zusatzbeitrag Krankenkasse', True)
         u1_umlage = self._existenz_zahlen_daten_feststellen(daten[3], 99, 'U1-Umlage', True)
         u2_umlage = self._existenz_zahlen_daten_feststellen(daten[4], 99, 'U2-Umlage', True)
-        insolvenzgeldumlage = self._existenz_zahlen_daten_feststellen(daten[5],
-                                                                      99,
-                                                                      'Insolvenzgeldumlage',
-                                                                      True)
+        insolvenzgeldumlage = self._existenz_zahlen_daten_feststellen(daten[5], 99, 'Insolvenzgeldumlage', True)
         eintragungsdatum = self._existenz_date_daten_feststellen(daten[6], 'Eintragungsdatum', True)
 
         export_daten = [self.mandant_id,
@@ -358,57 +347,38 @@ class Nutzer:
 
         self._export_zu_db('insert_gesetzliche_Krankenkasse', export_daten, schema)
 
-    def insert_private_krankenkasse(self, neuanlage_private_krankenkasse):
+    def insert_private_krankenkasse(self, neuanlage_private_krankenkasse, schema='public'):
         """
         Diese Methode uebertraegt die eingetragene private Krankenkasse mit deren Umlagen (im Rahmen
         der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
         'insert_private_Krankenkasse' aufgerufen wird.
         :param neuanlage_private_krankenkasse: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_private_krankenkasse}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_private_krankenkasse)
 
         # Daten aus importierter Excel-Tabelle '3 private Krankenkasse.xlsx' pruefen
-        krankenkasse_voller_name = self._existenz_str_daten_feststellen(liste_ma_daten[0],
-                                                                        'Krankenkasse voller Name',
-                                                                        128,
-                                                                        True)
-        krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(liste_ma_daten[1],
-                                                                       'Krankenkasse Abkuerzung',
-                                                                       16,
-                                                                       True)
-        u1_umlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2], 99, 'U1-Umlage', True)
-        u2_umlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3], 99, 'U2-Umlage', True)
-        insolvenzgeldumlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[4],
-                                                                      99,
-                                                                      'Insolvenzgeldumlage',
-                                                                      True)
-        eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[5], 'Eintragungsdatum', True)
+        krankenkasse_voller_name = self._existenz_str_daten_feststellen(daten[0], 'Krankenkasse voller Name', 128, True)
+        krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Krankenkasse Abkuerzung', 16, True)
+        u1_umlage = self._existenz_zahlen_daten_feststellen(daten[2], 99, 'U1-Umlage', True)
+        u2_umlage = self._existenz_zahlen_daten_feststellen(daten[3], 99, 'U2-Umlage', True)
+        insolvenzgeldumlage = self._existenz_zahlen_daten_feststellen(daten[4], 99, 'Insolvenzgeldumlage', True)
+        eintragungsdatum = self._existenz_date_daten_feststellen(daten[5], 'Eintragungsdatum', True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
+        export_daten = [self.mandant_id,
+                        krankenkasse_voller_name,
+                        krankenkasse_abkuerzung,
+                        u1_umlage,
+                        u2_umlage,
+                        insolvenzgeldumlage,
+                        'privat',
+                        eintragungsdatum]
 
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_private_Krankenkasse', [self.mandant_id,
-                                                     krankenkasse_voller_name,
-                                                     krankenkasse_abkuerzung,
-                                                     u1_umlage,
-                                                     u2_umlage,
-                                                     insolvenzgeldumlage,
-                                                     'privat',
-                                                     eintragungsdatum])
+        self._export_zu_db('insert_private_Krankenkasse', export_daten, schema)
 
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
-
-    def insert_gemeldete_krankenkasse(self, neuanlage_gemeldete_krankenkasse):
+    def insert_gemeldete_krankenkasse(self, neuanlage_gemeldete_krankenkasse, schema='public'):
         """
         Diese Methode uebertraegt die eingetragene gemeldete Krankenkasse fuer Mitarbeiter, die anderweitig
         krankenversichert sein muessen (z.B. Werkstudenten, unbezahlte Praktikanten etc.) mit deren Umlagen (im Rahmen
@@ -416,48 +386,30 @@ class Nutzer:
         'insert_gemeldete_Krankenkasse' aufgerufen wird.
         :param neuanlage_gemeldete_krankenkasse: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
 
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_gemeldete_krankenkasse}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_gemeldete_krankenkasse)
 
         # Daten aus importierter Excel-Tabelle '4 gemeldete Krankenkasse.xlsx' pruefen
-        krankenkasse_voller_name = self._existenz_str_daten_feststellen(liste_ma_daten[0],
-                                                                        'Krankenkasse voller Name',
-                                                                        128,
-                                                                        True)
-        krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(liste_ma_daten[1],
-                                                                       'Krankenkasse Abkuerzung',
-                                                                       16,
-                                                                       True)
-        u1_umlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2], 99, 'U1-Umlage', True)
-        u2_umlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3], 99, 'U2-Umlage', True)
-        insolvenzgeldumlage = self._existenz_zahlen_daten_feststellen(liste_ma_daten[4],
-                                                                      99,
-                                                                      'Insolvenzgeldumlage',
-                                                                      True)
-        eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[5], 'Eintragungsdatum', True)
+        krankenkasse_voller_name = self._existenz_str_daten_feststellen(daten[0], 'Krankenkasse voller Name', 128, True)
+        krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Krankenkasse Abkuerzung', 16, True)
+        u1_umlage = self._existenz_zahlen_daten_feststellen(daten[2], 99, 'U1-Umlage', True)
+        u2_umlage = self._existenz_zahlen_daten_feststellen(daten[3], 99, 'U2-Umlage', True)
+        insolvenzgeldumlage = self._existenz_zahlen_daten_feststellen(daten[4], 99, 'Insolvenzgeldumlage', True)
+        eintragungsdatum = self._existenz_date_daten_feststellen(daten[5], 'Eintragungsdatum', True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
+        export_daten = [self.mandant_id,
+                        krankenkasse_voller_name,
+                        krankenkasse_abkuerzung,
+                        u1_umlage,
+                        u2_umlage,
+                        insolvenzgeldumlage,
+                        'anders',
+                        eintragungsdatum]
 
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_gemeldete_Krankenkasse', [self.mandant_id,
-                                                       krankenkasse_voller_name,
-                                                       krankenkasse_abkuerzung,
-                                                       u1_umlage,
-                                                       u2_umlage,
-                                                       insolvenzgeldumlage,
-                                                       'anders',
-                                                       eintragungsdatum])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
+        self._export_zu_db('insert_gemeldete_Krankenkasse', export_daten, schema)
 
     def insert_anzahl_kinder_an_pv_beitrag(self, neuanlage_anzahl_kinder):
         """
