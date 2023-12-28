@@ -388,7 +388,6 @@ class Nutzer:
         eingetragen werden sollen.
         :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_gemeldete_krankenkasse)
 
@@ -411,86 +410,59 @@ class Nutzer:
 
         self._export_zu_db('insert_gemeldete_Krankenkasse', export_daten, schema)
 
-    def insert_anzahl_kinder_an_pv_beitrag(self, neuanlage_anzahl_kinder):
+    def insert_anzahl_kinder_an_pv_beitrag(self, neuanlage_anzahl_kinder, schema='public'):
         """
         Diese Methode uebertraegt die Anzahl der Kinder und der daraus resultierende Arbeitnehmerbeitrag zur
         Pflegeversicherung (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in dem
         der Stored Procedure 'insert_anzahl_kinder_an_pv_beitrag' aufgerufen wird.
-        :param neuanlage_anzahl_kinder: Name der Excel-Datei, dessen Daten in die Datenbank
-        eingetragen werden sollen.
+        :param neuanlage_anzahl_kinder: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_anzahl_kinder}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_anzahl_kinder)
 
         # Daten aus importierter Excel-Tabelle '5 Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx' pruefen
-        anzahl_kinder = self._existenz_zahlen_daten_feststellen(liste_ma_daten[0], 99, 'Anzahl Kinder', True)
-        an_beitrag_pv_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[1],
-                                                                           99,
-                                                                           'AN-Beitrag PV in %',
-                                                                           True)
-        beitragsbemessungsgrenze_pv_ost = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2],
+        anzahl_kinder = self._existenz_zahlen_daten_feststellen(daten[0], 99, 'Anzahl Kinder', True)
+        an_beitrag_pv_in_prozent = self._existenz_zahlen_daten_feststellen(daten[1], 99, 'AN-Beitrag PV in %', True)
+        beitragsbemessungsgrenze_pv_ost = self._existenz_zahlen_daten_feststellen(daten[2],
                                                                                   99999999,
                                                                                   'Beitragsbemessungsgrenze PV Ost',
                                                                                   True)
-        beitragsbemessungsgrenze_pv_west = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3],
+        beitragsbemessungsgrenze_pv_west = self._existenz_zahlen_daten_feststellen(daten[3],
                                                                                    99999999,
                                                                                    'Beitragsbemessungsgrenze PV West',
                                                                                    True)
 
-        eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[4], 'Eintragungsdatum', True)
+        eintragungsdatum = self._existenz_date_daten_feststellen(daten[4], 'Eintragungsdatum', True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
+        export_daten = [self.mandant_id,
+                        anzahl_kinder,
+                        an_beitrag_pv_in_prozent,
+                        beitragsbemessungsgrenze_pv_ost,
+                        beitragsbemessungsgrenze_pv_west,
+                        eintragungsdatum]
 
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_anzahl_kinder_an_pv_beitrag', [self.mandant_id,
-                                                            anzahl_kinder,
-                                                            an_beitrag_pv_in_prozent,
-                                                            beitragsbemessungsgrenze_pv_ost,
-                                                            beitragsbemessungsgrenze_pv_west,
-                                                            eintragungsdatum])
+        self._export_zu_db('insert_anzahl_kinder_an_pv_beitrag', export_daten, schema)
 
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
-
-    def insert_wohnhaft_sachsen_ag_pv_beitrag(self, neuanlage_wohnhaft_sachsen):
+    def insert_arbeitsort_sachsen_ag_pv_beitrag(self, neuanlage_wohnhaft_sachsen, schema='public'):
         """
         Diese Methode uebertraegt den Arbeitgeberbeitrag zur Pflichtversicherung in Abhaengigkeit des Wohnortes
         (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in dem
         der Stored Procedure 'insert_Sachsen' aufgerufen wird.
         :param neuanlage_wohnhaft_sachsen: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_wohnhaft_sachsen}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_wohnhaft_sachsen)
 
         # Daten aus importierter Excel-Tabelle '6 wohnhaft Sachsen Arbeitgeber PV-Beitrag.xlsx' pruefen
-        wohnhaft_sachsen = self._existenz_boolean_daten_feststellen(liste_ma_daten[0], 'wohnhaft_Sachsen', True)
-        ag_beitrag_pv_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[1],
-                                                                           99,
-                                                                           'AG-Beitrag PV in %',
-                                                                           True)
-        eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[2], 'Eintragungsdatum', True)
+        wohnhaft_sachsen = self._existenz_boolean_daten_feststellen(daten[0], 'wohnhaft_Sachsen', True)
+        ag_beitrag_pv_in_prozent = self._existenz_zahlen_daten_feststellen(daten[1], 99, 'AG-Beitrag PV in %', True)
+        eintragungsdatum = self._existenz_date_daten_feststellen(daten[2], 'Eintragungsdatum', True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
-
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_Sachsen', [self.mandant_id, wohnhaft_sachsen, ag_beitrag_pv_in_prozent, eintragungsdatum])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
+        export_daten = [self.mandant_id, wohnhaft_sachsen, ag_beitrag_pv_in_prozent, eintragungsdatum]
+        self._export_zu_db('insert_sachsen', export_daten, schema)
 
     def insert_arbeitslosenversicherungsbeitraege(self, neuanlage_arbeitslosenversicherungsbeitraege):
         """

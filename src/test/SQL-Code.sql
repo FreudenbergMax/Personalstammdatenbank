@@ -2158,7 +2158,7 @@ begin
     if v_anzahl_kinder_unter_25_id is not null then
     
 		set role postgres;
-		raise exception 'Kinderanzahl ''%'' ist bereits vorhanden! Übergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_anzahl_kinder''-Funktion!', p_anzahl_kinder; 
+		raise exception 'Kinderanzahl ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_anzahl_kinder''-Funktion!', p_anzahl_kinder; 
 	
 	--... ansonsten neue Kinderanzahl eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_gesetzlichen_AN_PV_Beitragssatz' benoetigt
 	else
@@ -2236,7 +2236,7 @@ language plpgsql;
 /*
  * Funktion trägt neue Daten in Bezug auf die Frage ein, ob jemand in Sachsen wohnhaft ist. (Wichtig für Bestimmung des AG-Anteil zur Pflegeversicherung).
  */
-create or replace function insert_Sachsen(
+create or replace function insert_sachsen(
 	p_mandant_id integer,
 	p_in_sachsen boolean,
 	p_ag_anteil_pv_beitrag_in_prozent decimal(5, 3),

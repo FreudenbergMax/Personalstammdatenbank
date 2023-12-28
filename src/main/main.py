@@ -29,7 +29,7 @@ testfirma.get_nutzer("M100001").\
 testfirma.get_nutzer("M100001").\
     insert_anzahl_kinder_an_pv_beitrag('insert Sozialversicherungsdaten/5 Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx')
 testfirma.get_nutzer("M100001").\
-    insert_wohnhaft_sachsen_ag_pv_beitrag('insert Sozialversicherungsdaten/6 wohnhaft Sachsen Arbeitgeber PV-Beitrag.xlsx')
+    insert_arbeitsort_sachsen_ag_pv_beitrag('insert Sozialversicherungsdaten/6 wohnhaft Sachsen Arbeitgeber PV-Beitrag.xlsx')
 testfirma.get_nutzer("M100001").\
     insert_arbeitslosenversicherungsbeitraege('insert Sozialversicherungsdaten/7 Arbeitslosenversicherungsbeitraege.xlsx')
 testfirma.get_nutzer("M100001").\
