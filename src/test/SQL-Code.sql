@@ -99,8 +99,8 @@ drop table if exists Anzahl_Kinder_unter_25;
 drop table if exists AN_Pflegeversicherungsbeitraege_gesetzlich;
 
 drop table if exists hat_gesetzlichen_AG_PV_Beitragssatz;
-drop table if exists wohnt_in_Sachsen;
-drop table if exists wohnhaft_Sachsen;
+drop table if exists arbeitet_in_sachsen;
+drop table if exists arbeitsort_sachsen;
 drop table if exists AG_Pflegeversicherungsbeitraege_gesetzlich;
 
 drop table if exists hat_gesetzliche_Arbeitslosenversicherung;
@@ -222,7 +222,7 @@ drop function if exists insert_tbl_ist_Minijobber(integer, varchar(32), boolean,
 drop function if exists insert_tbl_hat_gesetzliche_Krankenversicherung(integer, varchar(32), boolean, date);
 drop function if exists insert_tbl_ist_in_gkv(integer, varchar(32), varchar(128), varchar(16), date);
 drop function if exists insert_tbl_hat_x_kinder_unter_25(integer, varchar(32), integer, date);
-drop function if exists insert_tbl_wohnt_in_sachsen(integer, varchar(32), boolean, date);
+drop function if exists insert_tbl_arbeitet_in_sachsen(integer, varchar(32), boolean, date);
 drop function if exists insert_tbl_hat_gesetzliche_arbeitslosenversicherung(integer, varchar(32), date);
 drop function if exists insert_tbl_hat_gesetzliche_rentenversicherung(integer, varchar(32), date);
 drop function if exists insert_tbl_ist_anderweitig_versichert(integer, varchar(32), varchar(128), varchar(16), date);
@@ -1331,40 +1331,40 @@ create policy FilterMandant_hatgesetzlichenanpvbeitragssatz
     on hat_gesetzlichen_AN_PV_Beitragssatz
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
-create table wohnhaft_Sachsen(
-	wohnhaft_Sachsen_ID serial primary key,
+create table Arbeitsort_Sachsen(
+	Arbeitsort_Sachsen_ID serial primary key,
 	Mandant_ID integer not null,
 	in_Sachsen boolean not null,
 	unique(Mandant_ID, in_Sachsen),
-	constraint fk_wohnhaftsachsen_mandanten
+	constraint fk_arbeitsortsachsen_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
-alter table wohnhaft_Sachsen enable row level security;
-create policy FilterMandant_wohnhaftsachsen
-    on wohnhaft_Sachsen
+alter table Arbeitsort_Sachsen enable row level security;
+create policy FilterMandant_arbeitsortsachsen
+    on arbeitsort_sachsen
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
-create table wohnt_in_Sachsen(
+create table arbeitet_in_sachsen(
 	Mitarbeiter_ID integer not null,
-	wohnhaft_Sachsen_ID integer not null,
+	Arbeitsort_Sachsen_ID integer not null,
 	Mandant_ID integer not null,
 	Datum_Von date not null,
 	Datum_Bis date not null,
 	primary key (Mitarbeiter_ID, Datum_Bis),
-	constraint fk_wohntinsachsen_mitarbeiter
+	constraint fk_arbeitetinsachsen_mitarbeiter
 		foreign key (Mitarbeiter_ID)
 			references Mitarbeiter(Mitarbeiter_ID),
-	constraint fk_wohntinsachsen_wohnhaftsachsen
-		foreign key (wohnhaft_Sachsen_ID)
-			references wohnhaft_Sachsen(wohnhaft_Sachsen_ID),
-	constraint fk_wohntinsachsen_mandanten
+	constraint fk_arbeitetinsachsen_wohnhaftsachsen
+		foreign key (arbeitsort_sachsen_ID)
+			references arbeitsort_sachsen(arbeitsort_sachsen_ID),
+	constraint fk_arbeitetinsachsen_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
-alter table wohnt_in_Sachsen enable row level security;
-create policy FilterMandant_wohntinsachsen
-    on wohnt_in_Sachsen
+alter table arbeitet_in_sachsen enable row level security;
+create policy FilterMandant_arbeitetinsachsen
+    on arbeitet_in_sachsen
     using (Mandant_ID = current_setting('app.current_tenant')::int);  
 
 create table AG_Pflegeversicherungsbeitraege_gesetzlich (
@@ -1382,15 +1382,15 @@ create policy FilterMandant_agpflegeversicherungsbeitraegegesetzlich
     using (Mandant_ID = current_setting('app.current_tenant')::int);
    
 create table hat_gesetzlichen_AG_PV_Beitragssatz(
-	wohnhaft_Sachsen_ID integer not null,
+	Arbeitsort_Sachsen_ID integer not null,
 	AG_PV_Beitrag_ID integer not null,
 	Mandant_ID integer not null,
 	Datum_Von date not null,
 	Datum_Bis date not null,
-	primary key (wohnhaft_Sachsen_ID, Datum_Bis),
-	constraint fk_hatgesetzlichenagpvbeitragssatz_wohnhaftsachsen
-		foreign key (wohnhaft_Sachsen_ID)
-			references wohnhaft_Sachsen(wohnhaft_Sachsen_ID),	
+	primary key (arbeitsort_sachsen_ID, Datum_Bis),
+	constraint fk_hatgesetzlichenagpvbeitragssatz_arbeitsortsachsen
+		foreign key (arbeitsort_sachsen_ID)
+			references arbeitsort_sachsen(arbeitsort_sachsen_ID),	
 	constraint fk_hatgesetzlichenagpvbeitragssatz_agpflegeversicherungsbeitraegegesetzlich
 		foreign key (AG_PV_Beitrag_ID)
 			references AG_Pflegeversicherungsbeitraege_gesetzlich(AG_PV_Beitrag_ID),	
@@ -2244,7 +2244,7 @@ create or replace function insert_sachsen(
 ) returns void as
 $$
 declare
-	v_wohnhaft_sachsen_id integer;
+	v_arbeitsort_sachsen_id integer;
 	v_ag_pv_beitrag_id integer;
 begin
     
@@ -2252,21 +2252,21 @@ begin
     execute 'SET app.current_tenant=' || p_mandant_id;
     
    	-- Pruefen, ob Wahrheitswert für Sachsen-Frage bereits vorhanden ist...
-   	execute 'SELECT wohnhaft_sachsen_id FROM wohnhaft_sachsen WHERE in_sachsen = $1' into v_wohnhaft_sachsen_id using p_in_sachsen;
+   	execute 'SELECT arbeitsort_sachsen_id FROM arbeitsort_sachsen WHERE in_sachsen = $1' into v_arbeitsort_sachsen_id using p_in_sachsen;
     
     -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden muessen
-    if v_wohnhaft_sachsen_id is not null then
+    if v_arbeitsort_sachsen_id is not null then
     
 		set role postgres;
-		raise exception 'wohnhaft_Sachsen = ''%'' ist bereits vorhanden! Übergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_wohnhaft_sachsen''-Funktion!', p_in_sachsen;   
+		raise exception 'arbeitsort_sachsen = ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_arbeitsort_sachsen''-Funktion!', p_in_sachsen;   
 	
 	--... ansonsten eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_gesetzlichen_AG_PV_Beitragssatz' benoetigt
 	else
 	
-		insert into wohnhaft_Sachsen(Mandant_ID, in_Sachsen)
+		insert into arbeitsort_sachsen(Mandant_ID, in_Sachsen)
    			values (p_mandant_id, p_in_sachsen);
 		
-		execute 'SELECT wohnhaft_sachsen_id FROM wohnhaft_sachsen WHERE in_sachsen = $1' into v_wohnhaft_sachsen_id using p_in_sachsen;
+		execute 'SELECT arbeitsort_sachsen_id FROM arbeitsort_sachsen WHERE in_sachsen = $1' into v_arbeitsort_sachsen_id using p_in_sachsen;
 	
     end if;
     
@@ -2286,10 +2286,10 @@ begin
    		
 	end if;
     
-	-- Datensatz in Assoziation 'hat_gesetzlichen_AG_PV_Beitragssatz', welche die Tabellen 'wohnhaft_Sachsen' und 
+	-- Datensatz in Assoziation 'hat_gesetzlichen_AG_PV_Beitragssatz', welche die Tabellen 'arbeitsort_sachsen' und 
 	-- 'AG_Pflegeversicherungsbeitraege_gesetzlich' verbindet, eintragen
-    insert into hat_gesetzlichen_AG_PV_Beitragssatz(wohnhaft_Sachsen_ID, AG_PV_Beitrag_ID, Mandant_ID, Datum_Von, Datum_Bis)
-   		values (v_wohnhaft_sachsen_id, v_ag_pv_beitrag_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
+    insert into hat_gesetzlichen_AG_PV_Beitragssatz(arbeitsort_sachsen_ID, AG_PV_Beitrag_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_arbeitsort_sachsen_id, v_ag_pv_beitrag_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
 
     set role postgres;
 
@@ -2332,7 +2332,7 @@ begin
     if v_arbeitslosenversicherung_id is not null then
     
 		set role postgres;
-		raise exception 'Arbeitslosenversicherung ist bereits vorhanden! Übergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_arbeitslosenversicherung''-Funktion!';   
+		raise exception 'Arbeitslosenversicherung ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_arbeitslosenversicherung''-Funktion!';   
 	
 	--... ansonsten eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_AV_Beitraege' benoetigt
 	else
@@ -3375,7 +3375,7 @@ begin
 		perform insert_tbl_hat_gesetzliche_Krankenversicherung(p_mandant_id, p_personalnummer, p_ermaessigter_kv_beitrag, p_eintrittsdatum);
 		perform insert_tbl_ist_in_gkv(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
 		perform insert_tbl_hat_x_kinder_unter_25(p_mandant_id, p_personalnummer, p_anzahl_kinder, p_eintrittsdatum);
-		perform insert_tbl_wohnt_in_sachsen(p_mandant_id, p_personalnummer, p_in_sachsen, p_eintrittsdatum);									  
+		perform insert_tbl_arbeitet_in_sachsen(p_mandant_id, p_personalnummer, p_in_sachsen, p_eintrittsdatum);									  
 
 	end if;
 	
@@ -4265,9 +4265,9 @@ $$
 language plpgsql;
 
 /*
- * Funktion trägt die Daten in die Assoziation "wohnt_in_Sachsen" ein
+ * Funktion trägt die Daten in die Assoziation "arbeitet_in_sachsen" ein
  */
-create or replace function insert_tbl_wohnt_in_sachsen(
+create or replace function insert_tbl_arbeitet_in_sachsen(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_in_sachsen boolean,
@@ -4276,17 +4276,17 @@ create or replace function insert_tbl_wohnt_in_sachsen(
 $$
 declare
 	v_mitarbeiter_id integer;
-	v_wohnhaft_sachsen_id integer;
+	v_arbeitsort_sachsen_id integer;
 begin
 	
 	set session role tenant_user;
 	execute 'SET app.current_tenant=' || p_mandant_id;
 	
 	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
-	execute 'SELECT wohnhaft_sachsen_id FROM wohnhaft_sachsen WHERE in_sachsen = $1' into v_wohnhaft_sachsen_id using p_in_sachsen;
+	execute 'SELECT arbeitsort_sachsen_id FROM arbeitsort_sachsen WHERE in_sachsen = $1' into v_arbeitsort_sachsen_id using p_in_sachsen;
     
-    insert into wohnt_in_sachsen(Mitarbeiter_ID, wohnhaft_Sachsen_ID, Mandant_ID, Datum_Von, Datum_Bis)
-   		values (v_mitarbeiter_id, v_wohnhaft_sachsen_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+    insert into arbeitet_in_sachsen(Mitarbeiter_ID, arbeitsort_sachsen_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_mitarbeiter_id, v_arbeitsort_sachsen_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
 	
    	set role postgres;
 
@@ -4672,7 +4672,7 @@ begin
 	execute 'UPDATE ist_in_gkv SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE hat_gesetzliche_krankenversicherung SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE hat_x_kinder_unter_25 SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	execute 'UPDATE wohnt_in_sachsen SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE arbeitet_in_sachsen SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE hat_gesetzliche_arbeitslosenversicherung SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE hat_gesetzliche_Rentenversicherung SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE in_Steuerklasse SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
@@ -4908,7 +4908,7 @@ begin
 	execute 'DELETE FROM ist_in_gkv WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 	execute 'DELETE FROM hat_gesetzliche_krankenversicherung WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 	execute 'DELETE FROM hat_x_kinder_unter_25 WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
-	execute 'DELETE FROM wohnt_in_sachsen WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+	execute 'DELETE FROM arbeitet_in_sachsen WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 
 	-- personenbezogene Mitarbeiterdaten aus Bereich 'Arbeitslosenversicherung' entfernen
 	execute 'DELETE FROM hat_gesetzliche_arbeitslosenversicherung WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
@@ -5017,9 +5017,9 @@ begin
 	execute 'DELETE FROM anzahl_kinder_unter_25 WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM an_pflegeversicherungsbeitraege_gesetzlich WHERE mandant_id = $1' using p_mandant_id;
 	
-	execute 'DELETE FROM wohnt_in_sachsen WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM arbeitet_in_sachsen WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM hat_gesetzlichen_ag_pv_beitragssatz WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM wohnhaft_sachsen WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM arbeitsort_sachsen WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM ag_pflegeversicherungsbeitraege_gesetzlich WHERE mandant_id = $1' using p_mandant_id;
 
 	-- Daten aus Bereich 'Arbeitslosenversicherung' entfernen

@@ -464,56 +464,38 @@ class Nutzer:
         export_daten = [self.mandant_id, wohnhaft_sachsen, ag_beitrag_pv_in_prozent, eintragungsdatum]
         self._export_zu_db('insert_sachsen', export_daten, schema)
 
-    def insert_arbeitslosenversicherungsbeitraege(self, neuanlage_arbeitslosenversicherungsbeitraege):
+    def insert_arbeitslosenversicherungsbeitraege(self, neuanlage_arbeitslosenversicherungsbeitraege, schema='public'):
         """
         Diese Methode uebertraegt die Arbeitslosenversicheurngsbeitragssaetze von Arbeitnehmer und Arbeitgeber sowie die
         Beitragsbemessungsgrenzen (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in
         dem der Stored Procedure 'insert_arbeitslosenversicherungsbeitraege' aufgerufen wird.
         :param neuanlage_arbeitslosenversicherungsbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_arbeitslosenversicherungsbeitraege}", index_col='Daten',
-                                    na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_arbeitslosenversicherungsbeitraege)
 
         # Daten aus importierter Excel-Tabelle '7 Arbeitslosenversicherungsbeitraege.xlsx' pruefen
-        an_beitrag_av_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[0],
-                                                                           99,
-                                                                           'AN-Beitrag AV in %',
-                                                                           True)
-        ag_beitrag_av_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[1],
-                                                                           99,
-                                                                           'AG-Beitrag AV in %',
-                                                                           True)
-        beitragsbemessungsgrenze_av_ost = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2],
+        an_beitrag_av_in_prozent = self._existenz_zahlen_daten_feststellen(daten[0], 99, 'AN-Beitrag AV in %', True)
+        ag_beitrag_av_in_prozent = self._existenz_zahlen_daten_feststellen(daten[1], 99, 'AG-Beitrag AV in %', True)
+        beitragsbemessungsgrenze_av_ost = self._existenz_zahlen_daten_feststellen(daten[2],
                                                                                   99999999,
                                                                                   'Beitragsbemessungsgrenze AV Ost',
                                                                                   True)
-        beitragsbemessungsgrenze_av_west = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3],
+        beitragsbemessungsgrenze_av_west = self._existenz_zahlen_daten_feststellen(daten[3],
                                                                                    99999999,
                                                                                    'Beitragsbemessungsgrenze AV West',
                                                                                    True)
-        eintragungsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[4], 'Eintragungsdatum', True)
+        eintragungsdatum = self._existenz_date_daten_feststellen(daten[4], 'Eintragungsdatum', True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
-
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_arbeitslosenversicherungsbeitraege', [self.mandant_id,
-                                                                   an_beitrag_av_in_prozent,
-                                                                   ag_beitrag_av_in_prozent,
-                                                                   beitragsbemessungsgrenze_av_ost,
-                                                                   beitragsbemessungsgrenze_av_west,
-                                                                   eintragungsdatum])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
+        export_daten = [self.mandant_id,
+                        an_beitrag_av_in_prozent,
+                        ag_beitrag_av_in_prozent,
+                        beitragsbemessungsgrenze_av_ost,
+                        beitragsbemessungsgrenze_av_west,
+                        eintragungsdatum]
+        self._export_zu_db('insert_arbeitslosenversicherungsbeitraege', export_daten, schema)
 
     def insert_rentenversicherungsbeitraege(self, neuanlage_rentenversicherungsbeitraege):
         """
