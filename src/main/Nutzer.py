@@ -582,40 +582,23 @@ class Nutzer:
                         eintragungsdatum]
         self._export_zu_db('insert_Minijob', export_daten, schema)
 
-    def insert_berufsgenossenschaft(self, neuanlage_berufsgenossenschaft):
+    def insert_berufsgenossenschaft(self, neuanlage_berufsgenossenschaft, schema='public'):
         """
         Diese Methode uebertraegt eine Berufsgenossenschaft in die Datenbank (im Rahmen der Bachelorarbeit dargestellt
         durch eine Excel-Datei), in dem die Stored Procedure 'insert_berufsgenossenschaft' aufgerufen wird.
         :param neuanlage_berufsgenossenschaft: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden
         sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_berufsgenossenschaft}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_berufsgenossenschaft)
 
         # Daten aus importierter Excel-Tabelle '10 Berufsgenossenschaft.xlsx' pruefen
-        berufsgenossenschaft = self._existenz_str_daten_feststellen(liste_ma_daten[0],
-                                                                    'Berufsgenossenschaft',
-                                                                    128,
-                                                                    True)
-        abkuerzung = self._existenz_str_daten_feststellen(liste_ma_daten[1],
-                                                          'Berufsgenossenschaftskuerzel',
-                                                          16,
-                                                          True)
+        berufsgenossenschaft = self._existenz_str_daten_feststellen(daten[0], 'Berufsgenossenschaft', 128, True)
+        abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Berufsgenossenschaftskuerzel', 16, True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
-
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_berufsgenossenschaft', [self.mandant_id, berufsgenossenschaft, abkuerzung])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
+        export_daten = [self.mandant_id, berufsgenossenschaft, abkuerzung]
+        self._export_zu_db('insert_berufsgenossenschaft', export_daten, schema)
 
     def insert_unfallversicherungsbeitrag(self, neuanlage_unfallversicherungsbeitrag):
         """

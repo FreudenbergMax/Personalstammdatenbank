@@ -770,10 +770,13 @@ create table Berufsgenossenschaften(
 	Berufsgenossenschaft varchar(128) not null,
 	Abkuerzung varchar(16),
 	unique(Mandant_ID, Berufsgenossenschaft),
+	unique(Mandant_ID, Abkuerzung),
 	constraint fk_berufsgenossenschaften_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
-); 
+);
+create unique index berufsgenossenschaft_idx on Berufsgenossenschaften(lower(Berufsgenossenschaft));
+create unique index Berufsgenossenschaft_abk_idx on Berufsgenossenschaften(lower(Abkuerzung));
 alter table Berufsgenossenschaften enable row level security;
 create policy FilterMandant_berufsgenossenschaften
     on Berufsgenossenschaften
@@ -2685,7 +2688,7 @@ begin
    
 exception
     when unique_violation then
-        raise exception 'Gewerkschaft ''%'' bereits vorhanden!', p_gewerkschaft;
+        raise notice 'Gewerkschaft ''%'' bereits vorhanden!', p_gewerkschaft;
            
 end;
 $$
@@ -3146,7 +3149,7 @@ begin
    
 exception
     when unique_violation then
-        raise notice 'Berufsgenossenschaft ''%'' bereits vorhanden!', p_berufsgenossenschaft;
+        raise exception 'Berufsgenossenschaft ''%'' oder Abkuerzung ''%'' bereits vorhanden!', p_berufsgenossenschaft, p_abkuerzung;
            
 end;
 $$
