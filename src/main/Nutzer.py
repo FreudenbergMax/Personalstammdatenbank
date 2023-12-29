@@ -791,8 +791,10 @@ class Nutzer:
 
         minijob = self._existenz_boolean_daten_feststellen(daten[43], 'Minijob?', False)
         anderweitig_versichert = self._existenz_boolean_daten_feststellen(daten[44], 'anderweitig_versichert?', False)
+        arbeitslosenversichert = self._existenz_boolean_daten_feststellen(daten[45], 'arbeitslosenversichert?', False)
+        rentenversichert = self._existenz_boolean_daten_feststellen(daten[46], 'rentenversichert?', False)
 
-        # Ein Mitarbeiter darf nur entweder gesetzlich krankenversicht ODER privat versichert mit Anspruch auf
+        # Ein Mitarbeiter darf nur entweder gesetzlich krankenversichert ODER privat versichert mit Anspruch auf
         # Arbeitgeberzuschuss ODER Minijobber ODER anderweitig versichert (z.B. kruzfristig Beschaeftigte, Werkstudenten
         # etc.) Es darf also nur genau eines der vier boolean-Variablen 'True' sein
         true_zaehler = 0
@@ -806,22 +808,26 @@ class Nutzer:
             raise (ValueError(f"Ein Mitarbeiter kann nur gesetzlich oder privat krankenversichert oder Minijobber oder "
                               f"anderweitig versichert sein. Sie haben {true_zaehler} Angaben bejaht. Das ist falsch!"))
 
+        # Ein Minijobber ist niemals ueber den Arbeitgeber gesetzlich arbeitslosen- und rentenversichert. Arbeitgeber
+        # zahlt lediglich pauschale Minijob-Abgaben.
+        if (minijob and arbeitslosenversichert) or (minijob and rentenversichert):
+            raise (ValueError(f"Ein Minijobber ist niemals ueber den Arbeitgeber arbeitslosen- und rentenversichert!"))
+
+        # Ein Kurzfristig Beschaeftigter ist niemals ueber den Arbeitgeber gesetzlich arbeitslosen- und rentenversichert
+        if (kurzfristig_beschaeftigt and arbeitslosenversichert) or (kurzfristig_beschaeftigt and rentenversichert):
+            raise (ValueError(f"Ein kurzfristig Beschaeftigter ist niemals ueber den Arbeitgeber arbeitslosen- und "
+                              f"rentenversichert!"))
+
         # Ein kurzfristig Beschaeftigter ist entweder anderweitig versichert oder Minijobber. Niemals ist er beim
         # Arbeitgeber gesetzlich versichert oder privat versichert mit Anspruch auf AG-Zuschuss
         if kurzfristig_beschaeftigt and gesetzlich_krankenversichert:
             raise (ValueError(f"Sie haben angegeben, dass dieser Mitarbeiter kurzfristig beschaeftigt und gleichzeitig"
-                              f"bei Ihnen gesetzlich versichert ist. Das ist rechtlich nicht moeglich!"))
+                              f" bei Ihnen gesetzlich versichert ist. Das ist rechtlich nicht moeglich!"))
 
         if kurzfristig_beschaeftigt and privat_krankenversichert:
-            raise (ValueError(f"Sie haben angegeben, dass dieser Mitarbeiter kurzfristig beschaeftigt und gleichzeitig"
-                              f"bei Ihnen privat versichert ist und somit Anspruch auf Arbeitgeberzuschuss hat. "
-                              f"Das ist rechtlich nicht moeglich!"))
-
-        # Werte für gesetzliche Arbeitslosenversicherung
-        arbeitslosenversichert = self._existenz_boolean_daten_feststellen(daten[45], 'arbeitslosenversichert?', False)
-
-        # Werte für gesetzliche Rentenversicherung
-        rentenversichert = self._existenz_boolean_daten_feststellen(daten[46], 'rentenversichert?', False)
+            raise (ValueError("Sie haben angegeben, dass dieser Mitarbeiter kurzfristig beschaeftigt und gleichzeitig"
+                              " bei Ihnen privat versichert ist und somit Anspruch auf Arbeitgeberzuschuss hat. "
+                              "Das ist rechtlich nicht moeglich!"))
 
         export_daten = [self.mandant_id,
                         personalnummer,

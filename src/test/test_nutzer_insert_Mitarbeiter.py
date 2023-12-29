@@ -79,15 +79,253 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
         self.testfirma.get_nutzer("M100001").\
             insert_neuer_mitarbeiter('testdaten_insert_mitarbeiter/Mitarbeiter.xlsx', self.testschema)
 
-        # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
+        # Inhalt aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").\
             abfrage_ausfuehren("SELECT * FROM mitarbeiter", self.testschema)
-
         self.assertEqual(str(ergebnis), "[(1, 1, 'M100001', 'Max', None, 'Mustermann', datetime.date(1992, 12, 12), "
                                         "datetime.date(2024, 1, 1), '11 111 111 111', '00 121292 F 00', "
                                         "'DE00 0000 0000 0000 0000 00', '0175 1234567', 'maxmustermann@web.de', "
                                         "'030 987654321', 'Mustermann@testfirma.de', datetime.date(9999, 12, 31), "
                                         "None, None)]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM hat_gesetzliche_rentenversicherung", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM hat_gesetzliche_arbeitslosenversicherung", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM arbeitet_in_sachsen", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM hat_x_kinder_unter_25", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM hat_gesetzliche_krankenversicherung", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM ist_in_gkv", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        # muss leer sein, da gesetzlich krankenversichert. Kann also nicht privatversichert sein.
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM hat_privatkrankenkasse", self.testschema)
+        self.assertEqual(str(ergebnis), "[]")
+
+        # muss leer sein, da gesetzlich krankenversichert, kann also nicht ueber einen anderen Arbeitgeber oder
+        # freiwillig versichert sein
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM ist_anderweitig_versichert", self.testschema)
+        self.assertEqual(str(ergebnis), "[]")
+
+        # muss leer sein, da gesetzlich krankenversichert, kann also kein Minijobber sein
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM ist_minijobber", self.testschema)
+        self.assertEqual(str(ergebnis), "[]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM in_gesellschaft", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM ist_mitarbeitertyp", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM hat_geschlecht", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM wohnt_in", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM hat_tarif", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        # muss leer sein, da tariflich angestellt. Kann also nicht aussertariflich sein
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM aussertarifliche", self.testschema)
+        self.assertEqual(str(ergebnis), "[]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM hat_jobtitel", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM eingesetzt_in", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, False, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM arbeitet_x_wochenstunden", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM in_steuerklasse", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+    def test_Mitarbeiter_aussertariflich_erfolgreich_angelegt(self):
+        """
+        Test prueft, ob Mitarbeiter auch keinem Tarif zugeordnet wird, wenn er als Aussertariflicher angegeben wird
+        """
+        self.testfirma.get_nutzer("M100001"). \
+            insert_neuer_mitarbeiter('testdaten_insert_mitarbeiter/Mitarbeiter - aussertariflich.xlsx', self.testschema)
+
+        # muss leer sein, da aussertariflich angestellt. Kann also nicht tariflich beschaeftigt sein
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM hat_tarif", self.testschema)
+        self.assertEqual(str(ergebnis), "[]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM aussertarifliche", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+    def test_Mitarbeiter_Minijobber_erfolgreich_angelegt(self):
+        """
+        Test prueft, ob Mitarbeiter nicht als gesetzlich oder privat oder anderweitig versichert eingetragen ist,
+        wenn er als Minijobber angegeben wird
+        """
+        self.testfirma.get_nutzer("M100001"). \
+            insert_neuer_mitarbeiter('testdaten_insert_mitarbeiter/Mitarbeiter - Minijobber.xlsx', self.testschema)
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM ist_Minijobber", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        # muss leer sein, da als Minijobber angestellt. Kann also nicht ueber den Arbeitgeber gesetzlich versichert sein
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM ist_in_gkv", self.testschema)
+        self.assertEqual(str(ergebnis), "[]")
+
+        # muss leer sein, da als Minijobber angestellt. Kann also nicht ueber den Arbeitgeber privat versichert sein
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM hat_privatkrankenkasse", self.testschema)
+        self.assertEqual(str(ergebnis), "[]")
+
+        # muss leer sein, da Minijobber. Kann also nicht ueber den Arbeitgeber anderweitig versichert sein
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM ist_anderweitig_versichert", self.testschema)
+        self.assertEqual(str(ergebnis), "[]")
+
+        # muss leer sein, da Minijobber. Kann also nicht ueber den Arbeitgeber arbeitslosenversichert sein
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM hat_gesetzliche_arbeitslosenversicherung", self.testschema)
+        self.assertEqual(str(ergebnis), "[]")
+
+        # muss leer sein, da Minijobber. Kann also nicht ueber den Arbeitgeber rentenversichert sein
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM hat_gesetzliche_rentenversicherung", self.testschema)
+        self.assertEqual(str(ergebnis), "[]")
+
+    def test_mitarbeiter_zweifach_versichert(self):
+        """
+        Test prueft, ob eine Exception geworfen wird, wenn fehlerhafterweise angegeben wird, dass ein neuer Mitarbeiter
+        gleichzeitig gesetzlich als auch privat versichert ist. Mitarbeiter kann nur gesetzlich ODER privat oder
+        anderweitig versichert oder Minijobber sein.
+        """
+        with self.assertRaises(Exception) as context:
+            self.testfirma.get_nutzer("M100001").\
+                insert_neuer_mitarbeiter('testdaten_insert_mitarbeiter/'
+                                         'Mitarbeiter - unzulaessig gesetzlich und privat versichert.xlsx',
+                                         self.testschema)
+
+        self.assertEqual(str(context.exception), "Ein Mitarbeiter kann nur gesetzlich oder privat krankenversichert "
+                                                 "oder Minijobber oder anderweitig versichert sein. Sie haben 2 Angaben"
+                                                 " bejaht. Das ist falsch!")
+
+    def test_minijobber_und_arbeitslosenversichert(self):
+        """
+        Test prueft, ob eine Exception geworfen wird, wenn fehlerhafterweise angegeben wird, dass ein neuer Mitarbeiter
+        Minijobber und gleichzeitig ueber den Arbeitgeber arbeitslosenversichert ist. Das ist rechtlich nicht moeglich.
+        """
+        with self.assertRaises(Exception) as context:
+            self.testfirma.get_nutzer("M100001").\
+                insert_neuer_mitarbeiter('testdaten_insert_mitarbeiter/'
+                                         'Mitarbeiter - Minijobber und arbeitslosenversichert.xlsx',
+                                         self.testschema)
+
+        self.assertEqual(str(context.exception), "Ein Minijobber ist niemals ueber den Arbeitgeber arbeitslosen- und "
+                                                 "rentenversichert!")
+
+    def test_minijobber_und_rentenversichert(self):
+        """
+        Test prueft, ob eine Exception geworfen wird, wenn fehlerhafterweise angegeben wird, dass ein neuer Mitarbeiter
+        Minijobber und gleichzeitig ueber den Arbeitgeber rentenversichert ist. Das ist rechtlich nicht moeglich.
+        """
+        with self.assertRaises(Exception) as context:
+            self.testfirma.get_nutzer("M100001").\
+                insert_neuer_mitarbeiter('testdaten_insert_mitarbeiter/'
+                                         'Mitarbeiter - Minijobber und rentenversichert.xlsx',
+                                         self.testschema)
+
+        self.assertEqual(str(context.exception), "Ein Minijobber ist niemals ueber den Arbeitgeber arbeitslosen- und "
+                                                 "rentenversichert!")
+
+    def test_kurzfristig_beschaeftigter_und_arbeitslosenversichert(self):
+        """
+        Test prueft, ob eine Exception geworfen wird, wenn fehlerhafterweise angegeben wird, dass ein neuer Mitarbeiter
+        Minijobber und gleichzeitig ueber den Arbeitgeber arbeitslosenversichert ist. Das ist rechtlich nicht moeglich.
+        """
+        with self.assertRaises(Exception) as context:
+            self.testfirma.get_nutzer("M100001").\
+                insert_neuer_mitarbeiter('testdaten_insert_mitarbeiter/'
+                                         'Mitarbeiter - Kurzfristig Beschaeftigter und arbeitslosenversichert.xlsx',
+                                         self.testschema)
+
+        self.assertEqual(str(context.exception), "Ein kurzfristig Beschaeftigter ist niemals ueber den Arbeitgeber "
+                                                 "arbeitslosen- und rentenversichert!")
+
+    def test_kurzfristig_beschaeftigter_und_rentenversichert(self):
+        """
+        Test prueft, ob eine Exception geworfen wird, wenn fehlerhafterweise angegeben wird, dass ein neuer Mitarbeiter
+        kurzfristig Beschaeftigter und gleichzeitig ueber den Arbeitgeber rentenversichert ist. Das ist rechtlich nicht
+        moeglich.
+        """
+        with self.assertRaises(Exception) as context:
+            self.testfirma.get_nutzer("M100001").\
+                insert_neuer_mitarbeiter('testdaten_insert_mitarbeiter/'
+                                         'Mitarbeiter - Kurzfristig Beschaeftigter und rentenversichert.xlsx',
+                                         self.testschema)
+
+        self.assertEqual(str(context.exception), "Ein kurzfristig Beschaeftigter ist niemals ueber den Arbeitgeber "
+                                                 "arbeitslosen- und rentenversichert!")
+
+    def test_kurzfristig_beschaeftigter_gesetzlich_versichert(self):
+        """
+        Test prueft, ob eine Exception geworfen wird, wenn fehlerhafterweise angegeben wird, dass ein neuer Mitarbeiter
+        kurzfristig beschaeftigt und gleichzeitig ueber den Arbeitgeber gesetzlich versichert ist. Das ist rechtlich
+        nicht moeglich.
+        """
+        with self.assertRaises(Exception) as context:
+            self.testfirma.get_nutzer("M100001").\
+                insert_neuer_mitarbeiter('testdaten_insert_mitarbeiter/Mitarbeiter - '
+                                         'kurzfristig Beschaeftigter gesetzlich krankenversichert.xlsx',
+                                         self.testschema)
+
+        self.assertEqual(str(context.exception), "Sie haben angegeben, dass dieser Mitarbeiter kurzfristig beschaeftigt"
+                                                 " und gleichzeitig bei Ihnen gesetzlich versichert ist. Das ist "
+                                                 "rechtlich nicht moeglich!")
+
+    def test_kurzfristig_beschaeftigter_privat_versichert(self):
+        """
+        Test prueft, ob eine Exception geworfen wird, wenn fehlerhafterweise angegeben wird, dass ein neuer Mitarbeiter
+        kurzfristig beschaeftigt und gleichzeitig ueber den Arbeitgeber gesetzlich versichert ist. Das ist rechtlich
+        nicht moeglich.
+        """
+        with self.assertRaises(Exception) as context:
+            self.testfirma.get_nutzer("M100001").\
+                insert_neuer_mitarbeiter('testdaten_insert_mitarbeiter/Mitarbeiter - '
+                                         'kurzfristig Beschaeftigter privat krankenversichert.xlsx',
+                                         self.testschema)
+
+        self.assertEqual(str(context.exception), "Sie haben angegeben, dass dieser Mitarbeiter kurzfristig beschaeftigt"
+                                                 " und gleichzeitig bei Ihnen privat versichert ist und somit Anspruch "
+                                                 "auf Arbeitgeberzuschuss hat. Das ist rechtlich nicht moeglich!")
 
     def tearDown(self):
         """
