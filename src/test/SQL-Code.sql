@@ -809,12 +809,12 @@ create table Gewerkschaften (
 	Gewerkschaft_ID serial primary key,
 	Mandant_ID integer not null,
 	Gewerkschaft varchar(64) not null,
-	Branche varchar(64) not null,
-	unique (Mandant_ID, Gewerkschaft, Branche),
+	unique (Mandant_ID, Gewerkschaft),
 	constraint fk_gewerkschaften_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
+create unique index gewerkschaft_idx on Gewerkschaften(lower(Gewerkschaft));
 alter table Gewerkschaften enable row level security;
 create policy FilterMandant_gewerkschaften
     on Gewerkschaften
@@ -2670,8 +2670,7 @@ language plpgsql;
  */
 create or replace function insert_gewerkschaft(
 	p_mandant_id integer,
-	p_gewerkschaft varchar(64),
-	p_branche varchar(64)
+	p_gewerkschaft varchar(64)
 ) returns void as
 $$
 begin
@@ -2680,15 +2679,15 @@ begin
     execute 'SET app.current_tenant=' || p_mandant_id;
 
     insert into 
-   		Gewerkschaften(Mandant_ID, Gewerkschaft, Branche)
+   		Gewerkschaften(Mandant_ID, Gewerkschaft)
    	values 
-   		(p_mandant_id, p_gewerkschaft, p_branche);
+   		(p_mandant_id, p_gewerkschaft);
     
     set role postgres;
    
 exception
     when unique_violation then
-        raise notice 'Gewerkschaft ''%'' bereits vorhanden!', p_gewerkschaft;
+        raise exception 'Gewerkschaft ''%'' bereits vorhanden!', p_gewerkschaft;
            
 end;
 $$
@@ -3183,7 +3182,8 @@ begin
 	execute 'SET app.current_tenant=' || p_mandant_id;
 
 	-- Pruefen, ob Gesellschaft bereits in Tabelle 'Gesellschaften' hinterlegt ist...
-	execute 'SELECT gesellschaft_id FROM gesellschaften WHERE gesellschaft = $1 AND abkuerzung = $2' into v_gesellschaft_id using p_gesellschaft, p_abkuerzung_gesellschaft;
+	execute 'SELECT gesellschaft_id FROM gesellschaften WHERE lower(gesellschaft) = $1 AND lower(abkuerzung) = $2' 
+		into v_gesellschaft_id using lower(p_gesellschaft), lower(p_abkuerzung_gesellschaft);
 
 	-- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Gesellschaft hinterlegt werden muss!
     if v_gesellschaft_id is null then
@@ -3192,13 +3192,13 @@ begin
     end if;
    
    	-- Pruefen, ob Berufsgenossenschaft bereits in Tabelle 'Berufsgenossenschaften' hinterlegt ist...
-	execute 'SELECT berufsgenossenschaft_id FROM berufsgenossenschaften WHERE berufsgenossenschaft = $1 AND abkuerzung = $2' 
-		into v_berufsgenossenschaft_id using p_berufsgenossenschaft, p_abkuerzung_berufsgenossenschaft;
+	execute 'SELECT berufsgenossenschaft_id FROM berufsgenossenschaften WHERE lower(berufsgenossenschaft) = $1 AND lower(abkuerzung) = $2' 
+		into v_berufsgenossenschaft_id using lower(p_berufsgenossenschaft), lower(p_abkuerzung_berufsgenossenschaft);
 
 	-- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Berufsgenossenschaft hinterlegt werden muss!
     if v_berufsgenossenschaft_id is null then
 		set role postgres;
-		raise exception 'Berufsgenossenschaft ''%'' mit Abkkuerzung ''%'' nicht vorhanden!', p_berufsgenossenschaft, p_abkuerzung_berufsgenossenschaft;   
+		raise exception 'Berufsgenossenschaft ''%'' mit Abkuerzung ''%'' nicht vorhanden!', p_berufsgenossenschaft, p_abkuerzung_berufsgenossenschaft;   
     end if;
     
     insert into Unfallversicherungsbeitraege(Gesellschaft_ID, Berufsgenossenschaft_ID, Mandant_ID, Beitrag, Beitragsjahr) 
@@ -3209,7 +3209,7 @@ begin
 exception
     when unique_violation then
     	set role postgres;
-        raise notice 'Unfallversicherungsbeitrag ist fuer das Jahr ''%'' bereits vermerkt!', p_beitragsjahr;
+        raise exception 'Unfallversicherungsbeitrag ist fuer das Jahr ''%'' bereits vermerkt!', p_beitragsjahr;
 end;
 $$
 language plpgsql;

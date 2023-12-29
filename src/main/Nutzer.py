@@ -600,85 +600,56 @@ class Nutzer:
         export_daten = [self.mandant_id, berufsgenossenschaft, abkuerzung]
         self._export_zu_db('insert_berufsgenossenschaft', export_daten, schema)
 
-    def insert_unfallversicherungsbeitrag(self, neuanlage_unfallversicherungsbeitrag):
+    def insert_unfallversicherungsbeitrag(self, neuanlage_unfallversicherungsbeitrag, schema='public'):
         """
-        Diese Methode uebertraegt eine Berufsgenossenschaft in die Datenbank (im Rahmen der Bachelorarbeit dargestellt
-        durch eine Excel-Datei), in dem die Stored Procedure 'insert_unfallversicherungsbeitrag' aufgerufen wird.
+        Diese Methode verknuepft eine Berufsgenossenschaft mit einer Gesellschaft und traegt den Jahresbeitrag der
+        Gesellschaft in die Datenbank ein (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei), in dem die
+        Stored Procedure 'insert_unfallversicherungsbeitrag' aufgerufen wird.
         :param neuanlage_unfallversicherungsbeitrag: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen
         werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_unfallversicherungsbeitrag}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_unfallversicherungsbeitrag)
 
         # Daten aus importierter Excel-Tabelle '11 Unfallversicherungsbeitrag.xlsx' pruefen
-        gesellschaft = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Gesellschaft', 128, True)
-        gesellschaftskuerzel = self._existenz_str_daten_feststellen(liste_ma_daten[1], 'Gesellschaftskuerzel', 16, True)
-        berufsgenossenschaft = self._existenz_str_daten_feststellen(liste_ma_daten[2],
-                                                                    'Berufsgenossenschaft',
-                                                                    128,
-                                                                    True)
-        berufsgenossenschaftskuerzel = self._existenz_str_daten_feststellen(liste_ma_daten[3],
+        gesellschaft = self._existenz_str_daten_feststellen(daten[0], 'Gesellschaft', 128, True)
+        gesellschaftskuerzel = self._existenz_str_daten_feststellen(daten[1], 'Gesellschaftskuerzel', 16, True)
+        berufsgenossenschaft = self._existenz_str_daten_feststellen(daten[2], 'Berufsgenossenschaft', 128, True)
+        berufsgenossenschaftskuerzel = self._existenz_str_daten_feststellen(daten[3],
                                                                             'Berufsgenossenschaftskuerzel',
                                                                             16,
                                                                             True)
-        jahresbeitrag_unfallversicherung = self._existenz_zahlen_daten_feststellen(liste_ma_daten[4],
-                                                                                   9999999999,
-                                                                                   'Betrag',
-                                                                                   True)
-        beitragsjahrjahr_uv = self._existenz_zahlen_daten_feststellen(liste_ma_daten[5],
-                                                                      9999,
-                                                                      'Beitragsjahr Unfallversicherung',
-                                                                      True)
+        jahresbeitrag_unfallversicherung = self._existenz_zahlen_daten_feststellen(daten[4], 9999999999, 'Betrag', True)
+        beitragsjahr_uv = self._existenz_zahlen_daten_feststellen(daten[5],
+                                                                  9999,
+                                                                  'Beitragsjahr Unfallversicherung',
+                                                                  True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
+        export_daten = [self.mandant_id,
+                        gesellschaft,
+                        gesellschaftskuerzel,
+                        berufsgenossenschaft,
+                        berufsgenossenschaftskuerzel,
+                        jahresbeitrag_unfallversicherung,
+                        beitragsjahr_uv]
+        self._export_zu_db('insert_unfallversicherungsbeitrag', export_daten, schema)
 
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_unfallversicherungsbeitrag', [self.mandant_id,
-                                                           gesellschaft,
-                                                           gesellschaftskuerzel,
-                                                           berufsgenossenschaft,
-                                                           berufsgenossenschaftskuerzel,
-                                                           jahresbeitrag_unfallversicherung,
-                                                           beitragsjahrjahr_uv])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
-
-    def insert_gewerkschaft(self, neuanlage_gewerkschaft):
+    def insert_gewerkschaft(self, neuanlage_gewerkschaft, schema='public'):
         """
         Diese Methode uebertraegt den Namen der Gewerkschaft (im Rahmen der Bachelorarbeit dargestellt durch eine
         Excel-Datei) in die Datenbank, in dem der Stored Procedure 'insert_tarif' aufgerufen wird.
         :param neuanlage_gewerkschaft: Name der Excel-Datei, dessen Daten in die Datenbank
-        eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_gewerkschaft}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_gewerkschaft)
 
         # Daten aus importierter Excel-Tabelle '2 Tarif.xlsx' pruefen
-        gewerkschaft = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Gewerkschaft', 64, True)
-        branche = self._existenz_str_daten_feststellen(liste_ma_daten[1], 'Branche', 64, True)
+        gewerkschaft = self._existenz_str_daten_feststellen(daten[0], 'Gewerkschaft', 64, True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
-
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_gewerkschaft', [self.mandant_id, gewerkschaft, branche])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
+        export_daten = [self.mandant_id, gewerkschaft]
+        self._export_zu_db('insert_gewerkschaft', export_daten, schema)
 
     def insert_tarif(self, neuanlage_tarif):
         """
