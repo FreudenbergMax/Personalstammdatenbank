@@ -11,7 +11,7 @@ class TestNeuerMandant(unittest.TestCase):
         Methode ruft Funktion 'test_set_up' der Klasse 'test_SetUp_TearDown' (siehe Ordner 'main') auf, welches das
         Datenbankschema 'temp_test_schema' erstellt.
         """
-        self.conn, self.cur, self.testschema = test_set_up()
+        self.testschema = test_set_up()
 
     def test_erster_mandant_angelegt(self):
         """
@@ -19,12 +19,10 @@ class TestNeuerMandant(unittest.TestCase):
         """
 
         testfirma = Mandant('beispielbetrieb', self.testschema)
+        testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.testschema)
 
-        select_query = "SELECT * FROM mandanten WHERE firma = 'beispielbetrieb'"
-        self.cur.execute(select_query)
-
-        # Ergebnisse abrufen
-        ausgabe = self.cur.fetchall()
+        ausgabe = testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM mandanten WHERE firma = "
+                                                                     "'beispielbetrieb'", self.testschema)
 
         self.assertEqual(str(ausgabe), "[(1, 'beispielbetrieb')]")
 
@@ -112,4 +110,4 @@ class TestNeuerMandant(unittest.TestCase):
         Methode ruft Funktion 'test_tear_down' der Klasse 'test_SetUp_TearDown' (siehe Ordner 'main') auf, welches das
         Datenbankschema 'temp_test_schema' mit allen Daten entfernt.
         """
-        test_tear_down(self.conn, self.cur)
+        test_tear_down()

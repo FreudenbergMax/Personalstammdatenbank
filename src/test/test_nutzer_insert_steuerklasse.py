@@ -10,7 +10,7 @@ class TestNutzerInsertSteuerklasse(unittest.TestCase):
         Methode ruft Funktion 'test_set_up' der Klasse 'test_SetUp_TearDown' (siehe Ordner 'main') auf, welches das
         Datenbankschema 'temp_test_schema' erstellt.
         """
-        self.conn, self.cur, self.testschema = test_set_up()
+        self.testschema = test_set_up()
         self.testfirma = Mandant('Testfirma', self.testschema)
         self.testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.testschema)
 
@@ -83,4 +83,4 @@ class TestNutzerInsertSteuerklasse(unittest.TestCase):
         Methode ruft Funktion 'test_tear_down' auf, welches das Datenbankschema 'temp_test_schema' mit allen Daten
         entfernt.
         """
-        test_tear_down(self.conn, self.cur)
+        test_tear_down()

@@ -10,26 +10,25 @@ class TestNutzerEntfernen(unittest.TestCase):
         Methode ruft Funktion 'test_set_up' der Klasse 'test_SetUp_TearDown' (siehe Ordner 'main') auf, welches das
         Datenbankschema 'temp_test_schema' erstellt.
         """
-        self.conn, self.cur, self.testschema = test_set_up()
+        self.testschema = test_set_up()
+        self.testfirma = Mandant('Testfirma', self.testschema)
+        self.testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.testschema)
 
     def test_nutzer_aus_Nutzerliste_entfernen(self):
         """
         Test prüft, ob nach Ausführung der Methode 'nutzer_entfernen' das Nutzerobjekt in der Liste des
         Mandant-Objekts entfernt wurde.
         """
-        testfirma = Mandant('Testfirma', self.testschema)
-        testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.testschema)
-
         # Zwischenprüfung, ob Nutzer in Nutzerliste angelegt ist
-        gesuchter_nutzer = testfirma.get_nutzer('M100001')
+        gesuchter_nutzer = self.testfirma.get_nutzer('M100001')
         self.assertEqual(gesuchter_nutzer.get_vorname(), 'Max')
         self.assertEqual(gesuchter_nutzer.get_nachname(), 'Mustermann')
 
         # Prüfung, ob Nutzer nun entfernt wird
-        testfirma.nutzer_entfernen('M100001')
+        self.testfirma.nutzer_entfernen('M100001')
 
         with self.assertRaises(ValueError) as context:
-            testfirma.get_nutzer('M100001')
+            self.testfirma.get_nutzer('M100001')
         self.assertEqual(str(context.exception), "Nutzer mit Personalnummer M100001 nicht vorhanden!")
 
     def test_nutzer_aus_db_entfernen(self):
@@ -37,26 +36,21 @@ class TestNutzerEntfernen(unittest.TestCase):
         Test prüft, ob nach Ausführung der Methode 'nutzer_entfernen' das Nutzerobjekt in der Liste des
         Mandant-Objekts entfernt wurde.
         """
-        testfirma = Mandant('Testfirma', self.testschema)
-        testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.testschema)
-
         # Zwischenprüfung, ob Nutzer in Datenbank angelegt ist
-        select_query = "SELECT * FROM nutzer WHERE personalnummer = 'M100001'"
-        self.cur.execute(select_query)
-        daten = self.cur.fetchall()
+        ausgabe = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM nutzer WHERE personalnummer = "
+                                                                          "'M100001'", self.testschema)
 
-        self.assertEqual(str(daten), "[(1, 1, 'M100001', 'Max', 'Mustermann')]")
+        self.assertEqual(str(ausgabe), "[(1, 1, 'M100001', 'Max', 'Mustermann')]")
 
         # Nutzer entfernen
-        testfirma.nutzer_entfernen('M100001')
+        self.testfirma.nutzer_entfernen('M100001')
 
-        # Prüfung, ob Nutzer aus Datenbank entfernt wurde
-        select_query = "SELECT * FROM nutzer WHERE personalnummer = 'M100001'"
-        self.cur = self.conn.cursor()
-        self.cur.execute(select_query)
-        leere_liste = self.cur.fetchall()
+        # Pruefung, ob Nutzer aus Datenbank entfernt wurde
+        self.testfirma.nutzer_anlegen('M100002', 'Erika', 'Musterfrau', self.testschema)
+        ausgabe = self.testfirma.get_nutzer("M100002").abfrage_ausfuehren("SELECT * FROM nutzer WHERE personalnummer = "
+                                                                          "'M100001'", self.testschema)
 
-        self.assertEqual(str(leere_liste), "[]")
+        self.assertEqual(str(ausgabe), "[]")
 
     def test_nutzer_fremder_mandanten_aus_nutzerliste_entfernen(self):
         """
@@ -89,27 +83,24 @@ class TestNutzerEntfernen(unittest.TestCase):
         B.nutzer_anlegen('M1234', 'Erika', 'Musterfrau', self.testschema)
 
         # Zwischenprüfung, ob Nutzer 'M1234' von Mandant B in Datenbank angelegt ist
-        select_query = "SELECT * FROM nutzer WHERE personalnummer = 'M1234'"
-        self.cur.execute(select_query)
-        daten = self.cur.fetchall()
+        daten = B.get_nutzer("M1234").abfrage_ausfuehren("SELECT * FROM nutzer WHERE personalnummer = 'M1234'",
+                                                         self.testschema)
 
-        self.assertEqual(str(daten), "[(2, 2, 'M1234', 'Erika', 'Musterfrau')]")
+        self.assertEqual(str(daten), "[(3, 3, 'M1234', 'Erika', 'Musterfrau')]")
 
         # Mandant A versucht nun, Nutzer 'M1234' von Mandant B zu entfernen
         A.nutzer_entfernen('M1234')
 
         # Prüfung, ob Nutzer 'M1234' von Mandant B aus Datenbank entfernt wurde. Nutzer 'M1234' muss vorhanden sein
         # und die Datenbank muss die entsprechenden Daten ausgeben können
-        select_query = "SELECT * FROM nutzer WHERE personalnummer = 'M1234'"
-        self.cur.execute(select_query)
-        daten = self.cur.fetchall()
+        daten = B.get_nutzer("M1234").abfrage_ausfuehren("SELECT * FROM nutzer WHERE personalnummer = 'M1234'",
+                                                         self.testschema)
 
-        self.assertEqual(str(daten), "[(2, 2, 'M1234', 'Erika', 'Musterfrau')]")
-
+        self.assertEqual(str(daten), "[(3, 3, 'M1234', 'Erika', 'Musterfrau')]")
 
     def tearDown(self):
         """
         Methode ruft Funktion 'test_tear_down' auf, welches das Datenbankschema 'temp_test_schema' mit allen Daten
         entfernt.
         """
-        test_tear_down(self.conn, self.cur)
+        test_tear_down()

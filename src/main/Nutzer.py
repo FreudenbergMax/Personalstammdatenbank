@@ -651,194 +651,146 @@ class Nutzer:
         export_daten = [self.mandant_id, gewerkschaft]
         self._export_zu_db('insert_gewerkschaft', export_daten, schema)
 
-    def insert_tarif(self, neuanlage_tarif):
+    def insert_tarif(self, neuanlage_tarif, schema='public'):
         """
         Diese Methode uebertraegt den Namen eines Tarifs und verknuepft diese mit der Gewerkschaft (im Rahmen der
         Bachelorarbeit dargestellt durch eine Excel-Datei), die fuer diese zustaendig ist, in die Datenbank, in dem der
         Stored Procedure 'insert_Tarif' aufgerufen wird.
-        :param neuanlage_tarif: Name der Excel-Datei, dessen Daten in die Datenbank
-        eingetragen werden sollen.
+        :param neuanlage_tarif: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_tarif}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_tarif)
 
         # Daten aus importierter Excel-Tabelle '2 Tarif.xlsx' pruefen
-        tarifbezeichnung = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Tarifbezeichnung', 16, True)
-        gewerkschaft = self._existenz_str_daten_feststellen(liste_ma_daten[1], 'Gewerkschaft', 64, True)
-        branche = self._existenz_str_daten_feststellen(liste_ma_daten[2], 'Branche', 64, True)
+        tarifbezeichnung = self._existenz_str_daten_feststellen(daten[0], 'Tarifbezeichnung', 16, True)
+        gewerkschaft = self._existenz_str_daten_feststellen(daten[1], 'Gewerkschaft', 64, True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
+        export_daten = [self.mandant_id, tarifbezeichnung, gewerkschaft]
+        self._export_zu_db('insert_tarif', export_daten, schema)
 
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_tarif', [self.mandant_id, tarifbezeichnung, gewerkschaft, branche])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
-
-    def insert_verguetungsbestandteil(self, neuanlage_verguetungsbestandteil):
+    def insert_tarifliches_verguetungsbestandteil(self, neuanlage_verguetungsbestandteil, schema='public'):
         """
         Diese Methode uebertraegt einen Verguetungsbestandteil wie bspw. Grundgehalt, Urlaubsgeld etc. und verknuepft
         sie mit dem entsprechenden Tarif (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei), in die
         Datenbank, in dem die Stored Procedure 'insert_verguetungsbestandteil' aufgerufen wird.
         :param neuanlage_verguetungsbestandteil: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_verguetungsbestandteil}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_verguetungsbestandteil)
 
         # Daten aus importierter Excel-Tabelle '3 Verguetungsbestandteil.xlsx' pruefen
-        verguetungsbestandteil = self._existenz_str_daten_feststellen(liste_ma_daten[0],
-                                                                      'Verguetungsbestandteil',
-                                                                      64,
-                                                                      True)
-        auszahlungsmonat = self._existenz_str_daten_feststellen(liste_ma_daten[1], 'Auszahlungsmonat', 16, True)
-        tarifbezeichnung = self._existenz_str_daten_feststellen(liste_ma_daten[2], 'Tarifbezeichnung', 16, True)
-        betrag = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3], 99999999, 'Betrag', True)
-        gueltig_ab = self._existenz_date_daten_feststellen(liste_ma_daten[4], 'Tarifentgelt gueltig ab', True)
+        verguetungsbestandteil = self._existenz_str_daten_feststellen(daten[0], 'Verguetungsbestandteil', 64, True)
+        auszahlungsmonat = self._existenz_str_daten_feststellen(daten[1], 'Auszahlungsmonat', 16, True)
+        tarifbezeichnung = self._existenz_str_daten_feststellen(daten[2], 'Tarifbezeichnung', 16, True)
+        betrag = self._existenz_zahlen_daten_feststellen(daten[3], 99999999, 'Betrag', True)
+        gueltig_ab = self._existenz_date_daten_feststellen(daten[4], 'Tarifentgelt gueltig ab', True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
+        export_daten = [self.mandant_id, verguetungsbestandteil, auszahlungsmonat, tarifbezeichnung, betrag, gueltig_ab]
+        self._export_zu_db('insert_tarifliches_verguetungsbestandteil', export_daten, schema)
 
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_tarifliches_verguetungsbestandteil', [self.mandant_id,
-                                                                   verguetungsbestandteil,
-                                                                   auszahlungsmonat,
-                                                                   tarifbezeichnung,
-                                                                   betrag,
-                                                                   gueltig_ab])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
-
-    def insert_neuer_mitarbeiter(self, mitarbeiterdaten):
+    def insert_neuer_mitarbeiter(self, mitarbeiterdaten, schema='public'):
         """
         Diese Methode überträgt die eingetragenen Mitarbeiterdaten (im Rahmen der Bachelorarbeit
         dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
         'insert_neuer_mitarbeiter' aufgerufen wird.
         :param mitarbeiterdaten: Name der Excel-Datei, dessen Mitarbeiterdaten in die Datenbank
         eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{mitarbeiterdaten}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(mitarbeiterdaten)
 
         # Daten aus importierter Excel-Tabelle '10 Mitarbeiter.xlsx' pruefen
-        personalnummer = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Personalnummer', 32, True)
-        vorname = self._existenz_str_daten_feststellen(liste_ma_daten[1], 'Vorname', 64, True)
-        zweitname = self._existenz_str_daten_feststellen(liste_ma_daten[2], 'Zweitname', 128, False)
-        nachname = self._existenz_str_daten_feststellen(liste_ma_daten[3], 'Nachname', 64, True)
-        geburtsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[4], 'Geburtsdatum', True)
-        eintrittsdatum = self._existenz_date_daten_feststellen(liste_ma_daten[5], 'Eintrittsdatum', True)
-        steuernummer = self._existenz_str_daten_feststellen(liste_ma_daten[6], 'Steuernummer', 32, False)
-        sozialversicherungsnummer = self._existenz_str_daten_feststellen(liste_ma_daten[7],
-                                                                         'Sozialversicherungsnummer',
-                                                                         32,
+        personalnummer = self._existenz_str_daten_feststellen(daten[0], 'Personalnummer', 32, True)
+        vorname = self._existenz_str_daten_feststellen(daten[1], 'Vorname', 64, True)
+        zweitname = self._existenz_str_daten_feststellen(daten[2], 'Zweitname', 128, False)
+        nachname = self._existenz_str_daten_feststellen(daten[3], 'Nachname', 64, True)
+        geburtsdatum = self._existenz_date_daten_feststellen(daten[4], 'Geburtsdatum', True)
+        eintrittsdatum = self._existenz_date_daten_feststellen(daten[5], 'Eintrittsdatum', True)
+        steuernummer = self._existenz_str_daten_feststellen(daten[6], 'Steuernummer', 32, False)
+        sozialversicherungsnummer = self._existenz_str_daten_feststellen(daten[7], 'Sozialversicherungsnummer', 32,
                                                                          False)
-        iban = self._existenz_str_daten_feststellen(liste_ma_daten[8], 'IBAN', 32, False)
-        private_telefonnummer = self._existenz_str_daten_feststellen(liste_ma_daten[9],
-                                                                     'private Telefonnummer',
-                                                                     16,
-                                                                     False)
-        private_email = self._existenz_str_daten_feststellen(liste_ma_daten[10], 'private E-Mail', 64, True)
-        dienstliche_telefonnummer = self._existenz_str_daten_feststellen(liste_ma_daten[11],
-                                                                         'dienstliche Telefonnummer',
-                                                                         16,
+        iban = self._existenz_str_daten_feststellen(daten[8], 'IBAN', 32, False)
+        private_telefonnummer = self._existenz_str_daten_feststellen(daten[9], 'private Telefonnummer', 16, False)
+        private_email = self._existenz_str_daten_feststellen(daten[10], 'private E-Mail', 64, True)
+        dienstliche_telefonnummer = self._existenz_str_daten_feststellen(daten[11], 'dienstliche Telefonnummer', 16,
                                                                          False)
-        dienstliche_email = self._existenz_str_daten_feststellen(liste_ma_daten[12], 'dienstliche E-Mail', 64, False)
-        befristet_bis = self._existenz_date_daten_feststellen(liste_ma_daten[13], 'Befristet Bis', False)
+        dienstliche_email = self._existenz_str_daten_feststellen(daten[12], 'dienstliche E-Mail', 64, False)
+        befristet_bis = self._existenz_date_daten_feststellen(daten[13], 'Befristet Bis', False)
 
-        strasse = self._existenz_str_daten_feststellen(liste_ma_daten[14], 'Strasse', 64, True)
-        hausnummer = self._existenz_str_daten_feststellen(liste_ma_daten[15], 'Hausnummer', 8, True)
-        postleitzahl = self._existenz_str_daten_feststellen(liste_ma_daten[16], 'Postleitzahl', 16, True)
-        stadt = self._existenz_str_daten_feststellen(liste_ma_daten[17], 'Stadt', 128, True)
-        region = self._existenz_str_daten_feststellen(liste_ma_daten[18], 'Region', 128, True)
-        land = self._existenz_str_daten_feststellen(liste_ma_daten[19], 'Land', 128, True)
+        strasse = self._existenz_str_daten_feststellen(daten[14], 'Strasse', 64, True)
+        hausnummer = self._existenz_str_daten_feststellen(daten[15], 'Hausnummer', 8, True)
+        postleitzahl = self._existenz_str_daten_feststellen(daten[16], 'Postleitzahl', 16, True)
+        ost_west_ausland = self._existenz_str_daten_feststellen(daten[17], 'Postleitzahl', 8, True)
+        stadt = self._existenz_str_daten_feststellen(daten[18], 'Stadt', 128, True)
+        region = self._existenz_str_daten_feststellen(daten[19], 'Region', 128, True)
+        land = self._existenz_str_daten_feststellen(daten[20], 'Land', 128, True)
 
-        geschlecht = self._existenz_str_daten_feststellen(liste_ma_daten[20], 'Geschlecht', 32, False)
+        geschlecht = self._existenz_str_daten_feststellen(daten[21], 'Geschlecht', 32, False)
 
-        mitarbeitertyp = self._existenz_str_daten_feststellen(liste_ma_daten[21], 'Mitarbeitertyp', 32, False)
+        mitarbeitertyp = self._existenz_str_daten_feststellen(daten[22], 'Mitarbeitertyp', 32, False)
 
-        steuerklasse = self._existenz_str_daten_feststellen(liste_ma_daten[22], 'Steuerklasse', 1, False)
+        steuerklasse = self._existenz_str_daten_feststellen(daten[23], 'Steuerklasse', 1, False)
 
-        wochenarbeitsstunden = self._existenz_zahlen_daten_feststellen(liste_ma_daten[23],
+        wochenarbeitsstunden = self._existenz_zahlen_daten_feststellen(daten[24],
                                                                        48,
                                                                        'Wochenarbeitsstunden',
                                                                        False)
 
-        abteilung = self._existenz_str_daten_feststellen(liste_ma_daten[24], 'Abteilung', 64, False)
-        abteilungskuerzel = self._existenz_str_daten_feststellen(liste_ma_daten[25], 'Abteilungskuerzel', 16, False)
+        abteilung = self._existenz_str_daten_feststellen(daten[25], 'Abteilung', 64, False)
+        abteilungskuerzel = self._existenz_str_daten_feststellen(daten[26], 'Abteilungskuerzel', 16, False)
 
-        fuehrungskraft = self._existenz_boolean_daten_feststellen(liste_ma_daten[26], 'Fuehrungskraft', False)
-        jobtitel = self._existenz_str_daten_feststellen(liste_ma_daten[27], 'Jobtitel', 32, False)
-        erfahrungsstufe = self._existenz_str_daten_feststellen(liste_ma_daten[28], 'Erfahrungsstufe', 32, False)
+        fuehrungskraft = self._existenz_boolean_daten_feststellen(daten[27], 'Fuehrungskraft', False)
+        jobtitel = self._existenz_str_daten_feststellen(daten[28], 'Jobtitel', 32, False)
+        erfahrungsstufe = self._existenz_str_daten_feststellen(daten[29], 'Erfahrungsstufe', 32, False)
 
-        gesellschaft = self._existenz_str_daten_feststellen(liste_ma_daten[29], 'Gesellschaft', 128, False)
+        gesellschaft = self._existenz_str_daten_feststellen(daten[30], 'Gesellschaft', 128, False)
 
-        tarifbeschaeftigt = self._existenz_boolean_daten_feststellen(liste_ma_daten[30], 'tarifbeschaeftigt', False)
+        tarifbeschaeftigt = self._existenz_boolean_daten_feststellen(daten[31], 'tarifbeschaeftigt', False)
         if tarifbeschaeftigt:
-            tarif = self._existenz_str_daten_feststellen(liste_ma_daten[31], 'Tarif', 16, True)
+            tarif = self._existenz_str_daten_feststellen(daten[32], 'Tarif', 16, True)
         else:
             tarif = None
 
-        kurzfristig_beschaeftigt = self._existenz_boolean_daten_feststellen(liste_ma_daten[32],
-                                                                            'Kurzfristig_beschaeftigt?',
+        kurzfristig_beschaeftigt = self._existenz_boolean_daten_feststellen(daten[33], 'Kurzfristig_beschaeftigt?',
                                                                             False)
 
-        bezeichnung_krankenkasse = self._existenz_str_daten_feststellen(liste_ma_daten[33],
-                                                                        'Bezeichnung Krankenkasse',
-                                                                        128,
+        bezeichnung_krankenkasse = self._existenz_str_daten_feststellen(daten[34], 'Bezeichnung Krankenkasse', 128,
                                                                         False)
 
-        abkuerzung_krankenkasse = self._existenz_str_daten_feststellen(liste_ma_daten[34],
-                                                                       'Abkuerzung Krankenkasse',
-                                                                       16,
-                                                                       False)
+        abkuerzung_krankenkasse = self._existenz_str_daten_feststellen(daten[35], 'Abkuerzung Krankenkasse', 16, False)
 
-        gesetzlich_krankenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[35],
+        gesetzlich_krankenversichert = self._existenz_boolean_daten_feststellen(daten[36],
                                                                                 'gesetzlich Krankenversichert?',
                                                                                 False)
 
-        ermaessigter_gkv_beitragssatz = self._existenz_boolean_daten_feststellen(liste_ma_daten[36],
+        ermaessigter_gkv_beitragssatz = self._existenz_boolean_daten_feststellen(daten[37],
                                                                                  'ermaessigter GKV-Beitragssatz?',
                                                                                  False)
 
-        anzahl_kinder = self._existenz_zahlen_daten_feststellen(liste_ma_daten[37], 99, 'Anzahl Kinder', False)
+        anzahl_kinder = self._existenz_zahlen_daten_feststellen(daten[38], 99, 'Anzahl Kinder', False)
 
-        wohnhaft_sachsen = self._existenz_boolean_daten_feststellen(liste_ma_daten[38], 'wohnhaft Sachsen', False)
+        wohnhaft_sachsen = self._existenz_boolean_daten_feststellen(daten[39], 'wohnhaft Sachsen', False)
 
-        privat_krankenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[39],
+        privat_krankenversichert = self._existenz_boolean_daten_feststellen(daten[40],
                                                                             'privat Krankenversichert?',
                                                                             False)
 
-        ag_zuschuss_private_krankenversicherung = self._existenz_zahlen_daten_feststellen(liste_ma_daten[40],
+        ag_zuschuss_private_krankenversicherung = self._existenz_zahlen_daten_feststellen(daten[41],
                                                                                           99999999,
                                                                                           'AG-Zuschuss PKV',
                                                                                           False)
 
-        ag_zuschuss_private_pflegeversicherung = self._existenz_zahlen_daten_feststellen(liste_ma_daten[41],
+        ag_zuschuss_private_pflegeversicherung = self._existenz_zahlen_daten_feststellen(daten[42],
                                                                                          99999999,
                                                                                          'AG-Zuschuss PPV',
                                                                                          False)
 
-        minijob = self._existenz_boolean_daten_feststellen(liste_ma_daten[42], 'Minijob?', False)
-
-        anderweitig_versichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[43],
-                                                                          'anderweitig_versichert?',
-                                                                          False)
+        minijob = self._existenz_boolean_daten_feststellen(daten[43], 'Minijob?', False)
+        anderweitig_versichert = self._existenz_boolean_daten_feststellen(daten[44], 'anderweitig_versichert?', False)
 
         # Ein Mitarbeiter darf nur entweder gesetzlich krankenversicht ODER privat versichert mit Anspruch auf
         # Arbeitgeberzuschuss ODER Minijobber ODER anderweitig versichert (z.B. kruzfristig Beschaeftigte, Werkstudenten
@@ -866,71 +818,60 @@ class Nutzer:
                               f"Das ist rechtlich nicht moeglich!"))
 
         # Werte für gesetzliche Arbeitslosenversicherung
-        arbeitslosenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[44],
-                                                                          'arbeitslosenversichert?',
-                                                                          False)
+        arbeitslosenversichert = self._existenz_boolean_daten_feststellen(daten[45], 'arbeitslosenversichert?', False)
 
         # Werte für gesetzliche Rentenversicherung
-        rentenversichert = self._existenz_boolean_daten_feststellen(liste_ma_daten[45], 'rentenversichert?', False)
+        rentenversichert = self._existenz_boolean_daten_feststellen(daten[46], 'rentenversichert?', False)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
-
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_mitarbeiterdaten', [self.mandant_id,
-                                                 personalnummer,
-                                                 vorname,
-                                                 zweitname,
-                                                 nachname,
-                                                 geburtsdatum,
-                                                 eintrittsdatum,
-                                                 steuernummer,
-                                                 sozialversicherungsnummer,
-                                                 iban,
-                                                 private_telefonnummer,
-                                                 private_email,
-                                                 dienstliche_telefonnummer,
-                                                 dienstliche_email,
-                                                 befristet_bis,
-                                                 strasse,
-                                                 hausnummer,
-                                                 postleitzahl,
-                                                 stadt,
-                                                 region,
-                                                 land,
-                                                 geschlecht,
-                                                 mitarbeitertyp,
-                                                 steuerklasse,
-                                                 wochenarbeitsstunden,
-                                                 abteilung,
-                                                 abteilungskuerzel,
-                                                 fuehrungskraft,
-                                                 jobtitel,
-                                                 erfahrungsstufe,
-                                                 gesellschaft,
-                                                 tarifbeschaeftigt,
-                                                 tarif,
-                                                 kurzfristig_beschaeftigt,
-                                                 bezeichnung_krankenkasse,
-                                                 abkuerzung_krankenkasse,
-                                                 gesetzlich_krankenversichert,
-                                                 ermaessigter_gkv_beitragssatz,
-                                                 anzahl_kinder,
-                                                 wohnhaft_sachsen,
-                                                 privat_krankenversichert,
-                                                 ag_zuschuss_private_krankenversicherung,
-                                                 ag_zuschuss_private_pflegeversicherung,
-                                                 minijob,
-                                                 anderweitig_versichert,
-                                                 arbeitslosenversichert,
-                                                 rentenversichert])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
+        export_daten = [self.mandant_id,
+                        personalnummer,
+                        vorname,
+                        zweitname,
+                        nachname,
+                        geburtsdatum,
+                        eintrittsdatum,
+                        steuernummer,
+                        sozialversicherungsnummer,
+                        iban,
+                        private_telefonnummer,
+                        private_email,
+                        dienstliche_telefonnummer,
+                        dienstliche_email,
+                        befristet_bis,
+                        strasse,
+                        hausnummer,
+                        postleitzahl,
+                        ost_west_ausland,
+                        stadt,
+                        region,
+                        land,
+                        geschlecht,
+                        mitarbeitertyp,
+                        steuerklasse,
+                        wochenarbeitsstunden,
+                        abteilung,
+                        abteilungskuerzel,
+                        fuehrungskraft,
+                        jobtitel,
+                        erfahrungsstufe,
+                        gesellschaft,
+                        tarifbeschaeftigt,
+                        tarif,
+                        kurzfristig_beschaeftigt,
+                        bezeichnung_krankenkasse,
+                        abkuerzung_krankenkasse,
+                        gesetzlich_krankenversichert,
+                        ermaessigter_gkv_beitragssatz,
+                        anzahl_kinder,
+                        wohnhaft_sachsen,
+                        privat_krankenversichert,
+                        ag_zuschuss_private_krankenversicherung,
+                        ag_zuschuss_private_pflegeversicherung,
+                        minijob,
+                        anderweitig_versichert,
+                        arbeitslosenversichert,
+                        rentenversichert]
+        self._export_zu_db('insert_mitarbeiterdaten', export_daten, schema)
 
     def insert_aussertariflicher_verguetungsbestandteil(self, neuanlage_aussertariflicher_verguetungsbestandteil):
         """

@@ -47,8 +47,7 @@ testfirma.get_nutzer("M100001").insert_tarif('insert Entgeltdaten/2 Tarif.xlsx')
 testfirma.get_nutzer("M100001").insert_verguetungsbestandteil('insert Entgeltdaten/3 Verguetungsbestandteil.xlsx')
 
 # zentrale Funktion: neuen Mitarbeiter anlegen!
-#testfirma.get_nutzer("M100001").insert_neuer_mitarbeiter('10.1 Mitarbeiter.xlsx')
-testfirma.get_nutzer("M100001").insert_neuer_mitarbeiter('insert personenbezogene Daten/10.2 Mitarbeiter.xlsx')
+testfirma.get_nutzer("M100001").insert_neuer_mitarbeiter('insert personenbezogene Daten/Mitarbeiter.xlsx')
 
 # Entgeltbestandteil fuer aussertariflichen Mitarbeiter anlegen
 testfirma.get_nutzer("M100001").\

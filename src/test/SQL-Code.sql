@@ -204,7 +204,7 @@ varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date);
 drop function if exists insert_tbl_laender(integer, varchar(128));
 drop function if exists insert_tbl_regionen(integer, varchar(128), varchar(128));
 drop function if exists insert_tbl_staedte(integer, varchar(128), varchar(128));
-drop function if exists insert_tbl_postleitzahlen(integer, varchar(16), varchar(128));
+drop function if exists insert_tbl_postleitzahlen(integer, varchar(16), varchar(8), varchar(128));
 drop function if exists insert_tbl_strassenbezeichnungen(integer, varchar(64), varchar(8), varchar(16));
 drop function if exists insert_tbl_wohnt_in(integer, varchar(32), varchar(64), varchar(8), date);
 drop function if exists insert_tbl_hat_geschlecht(integer, varchar(32), varchar(32), date);
@@ -270,7 +270,7 @@ create table Nutzer(
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
-create unique index nutzer_idx on Nutzer(lower(Personalnummer));
+--create unique index nutzer_idx on Nutzer(lower(Personalnummer));
 alter table Nutzer enable row level security;
 create policy FilterMandant_Nutzer
     on Nutzer
@@ -402,6 +402,7 @@ create table Postleitzahlen (
 	Postleitzahl_ID serial primary key,
 	Mandant_ID integer not null,
 	Postleitzahl varchar(16) not null,
+	ost_west_ausland varchar(8) not null check(ost_west_ausland in ('Ost', 'West', 'anders')),
 	Stadt_ID integer not null,
 	unique(Mandant_ID, Postleitzahl),
 	constraint fk_postleitzahlen_mandanten
@@ -833,6 +834,7 @@ create table Tarife (
 		foreign key (Gewerkschaft_ID)
 			references Gewerkschaften(Gewerkschaft_ID)
 );
+create unique index tarifbezeichnung_idx on Tarife(lower(Tarifbezeichnung));
 alter table Tarife enable row level security;
 create policy FilterMandant_tarife
     on Tarife
@@ -849,6 +851,8 @@ create table Verguetungsbestandteile(
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
+create unique index verguetungsbestandteil_idx on Verguetungsbestandteile(lower(Verguetungsbestandteil));
+create unique index auszahlungsmonat_idx on Verguetungsbestandteile(lower(Auszahlungsmonat));
 alter table Verguetungsbestandteile enable row level security;
 create policy FilterMandant_verguetungsbestandteile
     on Verguetungsbestandteile
@@ -2699,8 +2703,7 @@ language plpgsql;
 create or replace function insert_tarif(
 	p_mandant_id integer,
 	p_tarifbezeichnung varchar(16),
-	p_gewerkschaft varchar(64),
-	p_branche varchar(64)
+	p_gewerkschaft varchar(64)
 ) returns void as
 $$
 declare
@@ -2712,13 +2715,13 @@ begin
     execute 'SET app.current_tenant=' || p_mandant_id;
     
    	-- Pruefen, ob Gewerkschaft bereits vorhanden ist...
-   	execute 'SELECT gewerkschaft_id FROM gewerkschaften WHERE gewerkschaft = $1 AND branche = $2' 
-   		into v_gewerkschaft_id using p_gewerkschaft, p_branche;
+   	execute 'SELECT gewerkschaft_id FROM gewerkschaften WHERE lower(gewerkschaft) = $1' 
+   		into v_gewerkschaft_id using lower(p_gewerkschaft);
     
     -- ... und falls sie noch nicht existiert, dann Meldung ausgeben
     if v_gewerkschaft_id is null then
     	set role postgres;
-		raise exception 'Gewerkschaft ''%'' existiert nicht! Bittae tragen Sie erst eine Gewerkschaft ein!', p_gewerkschaft; 
+		raise exception 'Gewerkschaft ''%'' existiert nicht! Bitte tragen Sie erst eine Gewerkschaft ein!', p_gewerkschaft; 
     end if;
    
    	-- Pruefen, ob Tarif bereits vorhanden ist...
@@ -2728,7 +2731,7 @@ begin
     if v_tarif_id is not null then
     
 		set role postgres;
-		raise exception 'Tarif ist bereits vorhanden! Übergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_Tarif''-Funktion!';   
+		raise exception 'Tarif ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_Tarif''-Funktion!';   
 	
     end if; 
    
@@ -2737,6 +2740,10 @@ begin
 		values(p_mandant_id, p_tarifbezeichnung, v_gewerkschaft_id);
 
     set role postgres;
+
+exception
+    when unique_violation then
+        raise exception 'Tarif ''%'' bereits vorhanden!', p_gewerkschaft;
 
 end;
 $$
@@ -2770,7 +2777,7 @@ begin
 
 
 	-- Tarif_ID ziehen, da diese benoetigt wird, um einen Datensatz in der Assoziation 'hat_Verguetungsbestandteil_Tarif' anzulegen
-	execute 'SELECT tarif_id FROM tarife WHERE tarifbezeichnung = $1' into v_tarif_id using p_tarifbezeichnung;
+	execute 'SELECT tarif_id FROM tarife WHERE lower(tarifbezeichnung) = $1' into v_tarif_id using lower(p_tarifbezeichnung);
 
 	-- ... falls Tarif nicht vorhanden ist, dann Meldung ausgeben, dass dieser erst hinterlegt werden muss!
 	if v_tarif_id is null then
@@ -2785,9 +2792,9 @@ begin
 
 exception
     when unique_violation then
-        raise notice 'Tarif ''%'' oder Verguetungsbestandteil ''%'' bereits vorhanden!', p_tarifbezeichnung, p_Verguetungsbestandteil;
+        raise exception 'Verguetungsbestandteil ''%'' bereits vorhanden!', p_Verguetungsbestandteil;
     when check_violation then
-        raise exception 'Auszahlungsmonat ''%'' nicht vorhanden! Bitte wählen Sie zwischen folgenden Moeglichkeiten: ''jeden Monat'', ''Januar'', ''Februar'', ''Maerz'', ''April'', ''Mai'', ''Juni'', ''Juli'', ''August'', ''September'', ''Oktober'', ''November'', ''Dezember''!', p_auszahlungsmonat;    
+        raise exception 'Auszahlungsmonat ''%'' nicht vorhanden! Bitte waehlen Sie zwischen folgenden Moeglichkeiten: ''jeden Monat'', ''Januar'', ''Februar'', ''Maerz'', ''April'', ''Mai'', ''Juni'', ''Juli'', ''August'', ''September'', ''Oktober'', ''November'', ''Dezember''!', p_auszahlungsmonat;    
 
 end;
 $$
@@ -3245,6 +3252,7 @@ create or replace function insert_mitarbeiterdaten(
     p_strasse varchar(64),
 	p_hausnummer varchar(8),
 	p_postleitzahl varchar(16),
+	p_ost_west_ausland varchar(8),
 	p_stadt varchar(128),
 	p_region varchar(128),
 	p_land varchar(128),
@@ -3313,11 +3321,11 @@ begin
 								  );
 	
 	-- Sofern keines der Adress-Parameter 'null' ist, den Bereich 'Adresse' mit Daten befüllen
-	if p_land is not null and p_region is not null and p_stadt is not null and p_postleitzahl is not null and p_strasse is not null and p_hausnummer is not null then
+	if p_land is not null and p_region is not null and p_stadt is not null and p_postleitzahl is not null and p_ost_west_ausland is not null and p_strasse is not null and p_hausnummer is not null then
 		perform insert_tbl_laender(p_mandant_id, p_land);
 		perform insert_tbl_regionen(p_mandant_id, p_region, p_land);
 		perform insert_tbl_staedte(p_mandant_id, p_stadt, p_region);
-		perform insert_tbl_postleitzahlen(p_mandant_id, p_postleitzahl, p_stadt);
+		perform insert_tbl_postleitzahlen(p_mandant_id, p_postleitzahl, p_ost_west_ausland, p_stadt);
 		perform insert_tbl_strassenbezeichnungen(p_mandant_id, p_strasse, p_hausnummer, p_postleitzahl);
 		perform insert_tbl_wohnt_in(p_mandant_id, p_personalnummer, p_strasse, p_hausnummer, p_eintrittsdatum);
 	end if;
@@ -3582,6 +3590,7 @@ language plpgsql;
 create or replace function insert_tbl_postleitzahlen(
 	p_mandant_id integer,
 	p_postleitzahl varchar(16),
+	p_ost_west_ausland varchar(8),
 	p_stadt varchar(128)
 ) returns void as
 $$
@@ -3595,9 +3604,9 @@ begin
     execute 'SELECT stadt_id FROM staedte WHERE stadt = $1' into v_stadt_id using p_stadt;
     
    	insert into 
-   		Postleitzahlen(Mandant_ID, Postleitzahl, Stadt_ID) 
+   		Postleitzahlen(Mandant_ID, Postleitzahl, ost_west_ausland, Stadt_ID) 
    	values 
-   		(p_mandant_id, p_postleitzahl, v_stadt_id);
+   		(p_mandant_id, p_postleitzahl, p_ost_west_ausland, v_stadt_id);
     
     set role postgres;
  
@@ -4567,6 +4576,7 @@ create or replace function update_adresse(
 	p_strasse varchar(64),
 	p_hausnummer varchar(8),
 	p_postleitzahl varchar(16),
+	p_ost_west_ausland varchar(8),
 	p_stadt varchar(128),
 	p_region varchar(128),
 	p_land varchar(128)
@@ -4591,7 +4601,7 @@ begin
 	perform insert_tbl_laender(p_mandant_id, p_land);
 	perform insert_tbl_regionen(p_mandant_id, p_region, p_land);
 	perform insert_tbl_staedte(p_mandant_id, p_stadt, p_region);
-	perform insert_tbl_postleitzahlen(p_mandant_id, p_postleitzahl, p_stadt);
+	perform insert_tbl_postleitzahlen(p_mandant_id, p_postleitzahl, p_ost_west_ausland, p_stadt);
 	perform insert_tbl_strassenbezeichnungen(p_mandant_id, p_strasse, p_hausnummer, p_postleitzahl);
 	
 	-- Pruefung, ob für Mitarbeiter bereits ein Datensatz in 'wohnt_in' existiert. Falls nicht, so wurde für den Mitarbeiter noch kein Wohnort angelegt.

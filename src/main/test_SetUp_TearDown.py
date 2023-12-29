@@ -27,17 +27,28 @@ def test_set_up():
     cur.execute(setup_sql)
     conn.commit()
 
-    return conn, cur, testschema
+    # Cursor und Konnektor zu Datenbank schließen
+    cur.close()
+    conn.close()
+
+    return testschema
 
 
-def test_tear_down(conn, cur):
+def test_tear_down():
     """
     Methode entfernt das Testschema 'temp_test_schema' mit allen Daten, Tabellen und stored Procedures aus der
     Datenbank. Diese soll nur für die Unit-Tests aufgebaut werden. In der Praxis würden die Nutzer auf dem Schema
     'public' arbeiten.
-    :param conn: Verbindung zur Datenbank
-    :param cur: Cursor, mit der Daten abgerufen wurden
     """
+    conn = psycopg2.connect(
+        host="localhost",
+        database="Personalstammdatenbank",
+        user="postgres",
+        password="@Postgres123",
+        port=5432
+    )
+
+    cur = conn.cursor()
     cur.execute(f"set role postgres;DROP SCHEMA temp_test_schema CASCADE")
     conn.commit()
     cur.close()
