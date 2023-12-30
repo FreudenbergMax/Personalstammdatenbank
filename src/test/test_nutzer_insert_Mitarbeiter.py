@@ -77,7 +77,7 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
 
     def test_erfolgreicher_eintrag(self):
         """
-        Test prueft, ob eine Abteilung eingetragen wird.
+        Test prueft, ob ein neuer Mitarbeiter angelegt wird.
         """
         self.testfirma.get_nutzer("M100001").\
             insert_neuer_mitarbeiter('testdaten_insert_mitarbeiter/Mitarbeiter.xlsx', self.testschema)

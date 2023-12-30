@@ -918,51 +918,42 @@ class Nutzer:
         export_daten = [self.mandant_id, personalnummer, verguetungsbestandteil, betrag, gueltig_ab]
         self._export_zu_db('insert_aussertarifliches_verguetungsbestandteil', export_daten, schema)
 
-    def update_adresse(self, update_adressdaten):
+    def update_adresse(self, update_adressdaten, schema='public'):
         """
         Diese Methode überträgt die neue Adresse eines Mitarbeiters (im Rahmen der Bachelorarbeit
         dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
         'update_adresse' aufgerufen wird.
         :param update_adressdaten: Name der Excel-Datei, dessen Adressdaten in die Datenbank
         eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{update_adressdaten}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(update_adressdaten)
 
         # Daten aus importierter Excel-Tabelle '1 Update Adresse.xlsx' pruefen
-        personalnummer = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Personalnummer', 32, True)
-        neuer_eintrag_gueltig_ab = self._existenz_date_daten_feststellen(liste_ma_daten[1], 'Gueltig ab', True)
+        personalnummer = self._existenz_str_daten_feststellen(daten[0], 'Personalnummer', 32, True)
+        neuer_eintrag_gueltig_ab = self._existenz_date_daten_feststellen(daten[1], 'Gueltig ab', True)
         alter_eintrag_gueltig_bis = self._vorherigen_tag_berechnen(neuer_eintrag_gueltig_ab)
-        strasse = self._existenz_str_daten_feststellen(liste_ma_daten[2], 'Strasse', 64, True)
-        hausnummer = self._existenz_str_daten_feststellen(liste_ma_daten[3], 'Hausnummer', 8, True)
-        postleitzahl = self._existenz_str_daten_feststellen(liste_ma_daten[4], 'Postleitzahl', 16, True)
-        stadt = self._existenz_str_daten_feststellen(liste_ma_daten[5], 'Stadt', 128, True)
-        region = self._existenz_str_daten_feststellen(liste_ma_daten[6], 'Region', 128, True)
-        land = self._existenz_str_daten_feststellen(liste_ma_daten[7], 'Land', 128, True)
+        strasse = self._existenz_str_daten_feststellen(daten[2], 'Strasse', 64, True)
+        hausnummer = self._existenz_str_daten_feststellen(daten[3], 'Hausnummer', 8, True)
+        postleitzahl = self._existenz_str_daten_feststellen(daten[4], 'Postleitzahl', 16, True)
+        ost_west_ausland = self._existenz_str_daten_feststellen(daten[5], 'Postleitzahl', 8, True)
+        stadt = self._existenz_str_daten_feststellen(daten[6], 'Stadt', 128, True)
+        region = self._existenz_str_daten_feststellen(daten[7], 'Region', 128, True)
+        land = self._existenz_str_daten_feststellen(daten[8], 'Land', 128, True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
-
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('update_adresse', [self.mandant_id,
-                                        personalnummer,
-                                        alter_eintrag_gueltig_bis,
-                                        neuer_eintrag_gueltig_ab,
-                                        strasse,
-                                        hausnummer,
-                                        postleitzahl,
-                                        stadt,
-                                        region,
-                                        land])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
+        export_daten = [self.mandant_id,
+                        personalnummer,
+                        alter_eintrag_gueltig_bis,
+                        neuer_eintrag_gueltig_ab,
+                        strasse,
+                        hausnummer,
+                        postleitzahl,
+                        ost_west_ausland,
+                        stadt,
+                        region,
+                        land]
+        self._export_zu_db('update_adresse', export_daten, schema)
 
     def update_mitarbeiterentlassung(self, update_mitarbeiterentlassung):
         """

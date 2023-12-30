@@ -339,11 +339,11 @@ create table Mitarbeiter (
 		foreign key (Austrittsgrund_ID) 
 			references Austrittsgruende(Austrittsgrund_ID)
 );
+create unique index personalnummer_idx on Mitarbeiter(lower(Personalnummer));
 alter table Mitarbeiter enable row level security;
 create policy FilterMandant_Mitarbeiter
     on Mitarbeiter
     using (Mandant_ID = current_setting('app.current_tenant')::int);
---revoke update (Mandant_ID) on table Mitarbeiter from tenant_user;
 
 -- Tabellen, die den Bereich "Adresse" behandeln, erstellen
 create table Laender (
@@ -3559,7 +3559,7 @@ begin
 	set session role tenant_user;
     execute 'SET app.current_tenant=' || p_mandant_id;
 
-    execute 'SELECT land_id FROM laender WHERE land = $1' into v_land_id using p_land;
+    execute 'SELECT land_id FROM laender WHERE lower(land) = $1' into v_land_id using lower(p_land);
     
    	insert into 
    		Regionen(Mandant_ID, Region, Land_ID) 
@@ -3593,7 +3593,7 @@ begin
 	set session role tenant_user;
     execute 'SET app.current_tenant=' || p_mandant_id;
 
-    execute 'SELECT region_id FROM regionen WHERE region = $1' into v_region_id using p_region;
+    execute 'SELECT region_id FROM regionen WHERE lower(region) = $1' into v_region_id using lower(p_region);
     
    	insert into 
    		Staedte(Mandant_ID, Stadt, Region_ID) 
@@ -3628,7 +3628,7 @@ begin
 	set session role tenant_user;
     execute 'SET app.current_tenant=' || p_mandant_id;
 
-    execute 'SELECT stadt_id FROM staedte WHERE stadt = $1' into v_stadt_id using p_stadt;
+    execute 'SELECT stadt_id FROM staedte WHERE lower(stadt) = $1' into v_stadt_id using lower(p_stadt);
     
    	insert into 
    		Postleitzahlen(Mandant_ID, Postleitzahl, ost_west_ausland, Stadt_ID) 
@@ -3664,7 +3664,7 @@ begin
 	set session role tenant_user;
     execute 'SET app.current_tenant=' || p_mandant_id;
 
-    execute 'SELECT postleitzahl_id FROM postleitzahlen WHERE Postleitzahl = $1' into v_postleitzahlen_id using p_postleitzahl;
+    execute 'SELECT postleitzahl_id FROM postleitzahlen WHERE lower(Postleitzahl) = $1' into v_postleitzahlen_id using lower(p_postleitzahl);
 	
    	insert into 
 		strassenbezeichnungen(Mandant_ID, Strasse, Hausnummer, Postleitzahl_ID) 
@@ -3702,8 +3702,9 @@ begin
 	set session role tenant_user;
 	execute 'SET app.current_tenant=' || p_mandant_id;
 	
-	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
-	execute 'SELECT strassenbezeichnung_ID FROM strassenbezeichnungen WHERE strasse = $1 AND hausnummer = $2' into v_strassenbezeichnung_id using p_strasse, p_hausnummer;
+	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE lower(personalnummer) = $1' into v_mitarbeiter_ID using lower(p_personalnummer);
+	execute 'SELECT strassenbezeichnung_ID FROM strassenbezeichnungen WHERE lower(strasse) = $1 AND lower(hausnummer) = $2' 
+		into v_strassenbezeichnung_id using lower(p_strasse), lower(p_hausnummer);
     
     insert into 
     	wohnt_in(Mitarbeiter_ID, Strassenbezeichnung_ID, Mandant_ID, Datum_Von, Datum_Bis) 
@@ -4618,7 +4619,7 @@ begin
 	execute 'SET app.current_tenant=' || p_mandant_id;
 
 	-- Pruefung, ob der Mitarbeiter ueberhaupt existiert und falls ja, dann Mitarbeiter_ID in Variable speichern
-	execute 'SELECT mitarbeiter_id FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_id using p_personalnummer;
+	execute 'SELECT mitarbeiter_id FROM mitarbeiter WHERE lower(personalnummer) = $1' into v_mitarbeiter_id using lower(p_personalnummer);
 	if v_mitarbeiter_id is null then
 		set role postgres;
 		raise exception 'Mitarbeiter ''%'' existiert nicht!', p_personalnummer;
@@ -4630,22 +4631,18 @@ begin
 	perform insert_tbl_staedte(p_mandant_id, p_stadt, p_region);
 	perform insert_tbl_postleitzahlen(p_mandant_id, p_postleitzahl, p_ost_west_ausland, p_stadt);
 	perform insert_tbl_strassenbezeichnungen(p_mandant_id, p_strasse, p_hausnummer, p_postleitzahl);
-	
-	-- Pruefung, ob für Mitarbeiter bereits ein Datensatz in 'wohnt_in' existiert. Falls nicht, so wurde für den Mitarbeiter noch kein Wohnort angelegt.
-	-- Notwendig, da es moeglich sein soll, einen neuen Mitarbeiter vorerst auch ohne Adresse in der Datenbank anzulegen. Damit im Nachhinein
-	-- die Adresse eingetragen werden kann, kann diese Update-Funktion verwendet werden.
-	execute 'SELECT count(*) FROM wohnt_in WHERE mitarbeiter_id = $1' into v_anzahl_eintraege_id using v_mitarbeiter_ID;
-	
-	-- falls bereits Adresszuordnungen für Mitarbeiter besteht, dann die aktuelle, in der in Spalte 'Datum_Bis' der Wert '9999-12-31' steht, updaten.
-	if v_anzahl_eintraege_id != 0 then
-		execute 'UPDATE wohnt_in SET Datum_Bis = $1 WHERE mitarbeiter_ID = $2 AND Datum_Bis = ''9999-12-31''' 
-				using p_alter_eintrag_gueltig_bis, v_mitarbeiter_ID;
-	end if;
+
+	execute 'UPDATE wohnt_in SET Datum_Bis = $1 WHERE mitarbeiter_ID = $2 AND Datum_Bis = ''9999-12-31''' 
+			using p_alter_eintrag_gueltig_bis, v_mitarbeiter_ID;
 	
 	-- neue Adresse mit Mitarbeiter verknuepfen
 	perform insert_tbl_wohnt_in(p_mandant_id, p_personalnummer, p_strasse, p_hausnummer, p_neuer_eintrag_gueltig_ab);
 	
    	set role postgres;
+
+exception
+    when unique_violation then
+        raise exception 'Mitarbeiter ''%'' bereits seit diesem Datum unter der Adresse gemeldet!', p_personalnummer;
    	
 end;
 $$
