@@ -332,6 +332,7 @@ create table Mitarbeiter (
     Befristet_Bis date,
     Austrittsdatum date,
     Austrittsgrund_ID integer,
+	unique(Personalnummer),
     constraint fk_mitarbeiter_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID),
@@ -3332,7 +3333,7 @@ begin
 	set session role tenant_user;
 	execute 'SET app.current_tenant=' || p_mandant_id;
 	
-	perform pruefe_einmaligkeit_personalnummer(p_mandant_id, 'mitarbeiter', p_personalnummer);
+	--perform pruefe_einmaligkeit_personalnummer(p_mandant_id, 'mitarbeiter', p_personalnummer);
 	
 	-- Daten in Tabelle 'Mitarbeiter' eintragen
 	perform insert_tbl_mitarbeiter(p_mandant_id, 

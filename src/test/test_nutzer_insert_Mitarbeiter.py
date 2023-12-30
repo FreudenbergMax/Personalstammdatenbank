@@ -172,6 +172,57 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
             abfrage_ausfuehren("SELECT * FROM in_steuerklasse", self.testschema)
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
+    def test_kein_eintrag_gleicher_mitarbeiter(self):
+        """
+        Test prueft, ob eine Exception geworfen wird, wenn versucht wird, denselben Mitarbeiter mit derselben
+        Personalnummer, zweimal einzutragen
+        """
+        self.testfirma.get_nutzer("M100001").\
+            insert_neuer_mitarbeiter('testdaten_insert_mitarbeiter/Mitarbeiter.xlsx', self.testschema)
+
+        with self.assertRaises(Exception) as context:
+            self.testfirma.get_nutzer("M100001"). \
+                insert_neuer_mitarbeiter('testdaten_insert_mitarbeiter/Mitarbeiter.xlsx', self.testschema)
+
+        expected_error_prefix = "FEHLER:  Personalnummer 'M100002' bereits vorhanden!"
+        actual_error_message = str(context.exception)
+
+        self.assertTrue(actual_error_message.startswith(expected_error_prefix))
+
+        # Pruefen, ob es wirklich nur einen Datensatz mit der Personalnummer 'M100002' gibt
+        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM mitarbeiter", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 'M100002', 'Max', None, 'Mustermann', datetime.date(1992, 12, 12), "
+                                        "datetime.date(2024, 1, 1), '11 111 111 111', '00 121292 F 00', "
+                                        "'DE00 0000 0000 0000 0000 00', '0175 1234567', 'maxmustermann@web.de', "
+                                        "'030 987654321', 'Mustermann@testfirma.de', datetime.date(9999, 12, 31), "
+                                        "None, None)]")
+
+    def test_kein_eintrag_gleicher_mitarbeiter_personalnummer_klein_geschrieben(self):
+        """
+        Test prueft, ob eine Exception geworfen wird, wenn versucht wird, einen anderen Mitarbeiter mit einer bereits
+        vorhandenen Personalnummer (aber klein geschrieben) anzulegen
+        """
+        self.testfirma.get_nutzer("M100001").\
+            insert_neuer_mitarbeiter('testdaten_insert_mitarbeiter/Mitarbeiter.xlsx', self.testschema)
+
+        with self.assertRaises(Exception) as context:
+            self.testfirma.get_nutzer("M100001"). \
+                insert_neuer_mitarbeiter('testdaten_insert_mitarbeiter/Mitarbeiter - Personalnummer klein '
+                                         'geschrieben.xlsx', self.testschema)
+
+        expected_error_prefix = "FEHLER:  Personalnummer 'm100002' bereits vorhanden!"
+        actual_error_message = str(context.exception)
+
+        self.assertTrue(actual_error_message.startswith(expected_error_prefix))
+
+        # Pruefen, ob es wirklich nur einen Datensatz mit der Personalnummer 'M100002' gibt
+        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM mitarbeiter", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 'M100002', 'Max', None, 'Mustermann', datetime.date(1992, 12, 12), "
+                                        "datetime.date(2024, 1, 1), '11 111 111 111', '00 121292 F 00', "
+                                        "'DE00 0000 0000 0000 0000 00', '0175 1234567', 'maxmustermann@web.de', "
+                                        "'030 987654321', 'Mustermann@testfirma.de', datetime.date(9999, 12, 31), "
+                                        "None, None)]")
+
     def test_Mitarbeiter_aussertariflich_erfolgreich_angelegt(self):
         """
         Test prueft, ob Mitarbeiter auch keinem Tarif zugeordnet wird, wenn er als Aussertariflicher angegeben wird
