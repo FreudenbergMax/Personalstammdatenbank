@@ -159,6 +159,7 @@ drop function if exists insert_Minijob(integer, boolean, decimal(5, 3), decimal(
 -- Loeschung der Stored Procedures für Use Case "Eintrag neuer Tarif mit Verguetung"
 drop function if exists insert_gewerkschaft(integer, varchar(64), varchar(64));
 drop function if exists insert_tarif(integer, varchar(16), varchar(64), varchar(64));
+drop function if exists insert_verguetungsbestandteil(integer, varchar(64), varchar(16));
 drop function if exists insert_tarifliches_verguetungsbestandteil(integer, varchar(64), varchar(16), varchar(16), decimal(10, 2), date);
 
 -- Loeschung der Stored Procedure fuer Use Case "Eintrag neues Geschlecht"
@@ -228,7 +229,7 @@ drop function if exists insert_tbl_hat_gesetzliche_rentenversicherung(integer, v
 drop function if exists insert_tbl_ist_anderweitig_versichert(integer, varchar(32), varchar(128), varchar(16), date);
 
 -- Loeschung der Stored Procedure fuer Use Case "Eintrag Verguetungsbestandteil fuer aussertariflicher Mitarbeiter"
-drop function if exists insert_aussertarifliche_verguetungsbestandteil(integer, varchar(32), varchar(64), decimal(8, 2), date);
+drop function if exists insert_aussertariflicher_verguetungsbestandteil(integer, varchar(32), varchar(64), decimal(8, 2), date);
 
 -- Loeschung der Stored Procedure für Use Case "Update Adresse Mitarbeiter"
 drop function if exists update_adresse(integer, varchar(32), date, date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128));
@@ -324,8 +325,8 @@ create table Mitarbeiter (
     Steuernummer varchar(32),
     Sozialversicherungsnummer varchar(32),
     IBAN varchar(32),
-    Private_Telefonnummer varchar(16),
-    Private_Emailadresse varchar(64),
+    Private_Telefonnummer varchar(16) not null,
+    Private_Emailadresse varchar(64) not null,
     Dienstliche_Telefonnummer varchar(16),
     Dienstliche_Emailadresse varchar(64),
     Befristet_Bis date,
@@ -2667,7 +2668,7 @@ language plpgsql;
 
 
 ----------------------------------------------------------------------------------------------------------------
--- Stored Procedures für Use Case "Eintrag neuer Tarif inkl. Gewerkschaft, Verguetung und. evtl. Beihilfen"
+-- Stored Procedures für Use Case "Eintrag neuer Tarif inkl. Gewerkschaft, Verguetung etc,"
 
 /*
  * Funktion trägt neue Daten in Tabelle 'Gewerkschaften' ein.
@@ -2750,13 +2751,43 @@ $$
 language plpgsql;
 
 /*
- * Funktion verknuepft Tarif mit (diversen) Verguetungsbestandteilen- Darunter fallen neben Monatsgehalt, Weihnachtsgeld etc. auch Beamtenbeihilfen, da der Staat verpflichtet ist, 
- * Beamten Beihilfen zu zahlen z.B. für (private) Krankenversicherung, Kinder etc..
+ * Funktion trägt neue Daten in Tabelle 'Verguetungsbestandteil' ein.
+ */
+create or replace function insert_verguetungsbestandteil(
+	p_mandant_id integer,
+	p_Verguetungsbestandteil varchar(64),
+	p_auszahlungsmonat varchar(16)
+) returns void as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+		Verguetungsbestandteile(Mandant_ID, Verguetungsbestandteil, Auszahlungsmonat) 
+	values 
+		(p_mandant_id, p_verguetungsbestandteil, p_auszahlungsmonat);
+    
+    set role postgres;
+   
+exception
+    when unique_violation then
+        raise exception 'Verguetungsbestandteil ''%'' bereits vorhanden!', p_Verguetungsbestandteil;
+	when check_violation then
+        raise exception 'Auszahlungsmonat ''%'' nicht vorhanden! Bitte waehlen Sie zwischen folgenden Moeglichkeiten: ''jeden Monat'', ''Januar'', ''Februar'', ''Maerz'', ''April'', ''Mai'', ''Juni'', ''Juli'', ''August'', ''September'', ''Oktober'', ''November'', ''Dezember''!', p_auszahlungsmonat;    
+
+           
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion verknuepft Tarif mit (diversen) Verguetungsbestandteilen- Darunter fallen neben Monatsgehalt, Weihnachtsgeld etc.
  */
 create or replace function insert_tarifliches_verguetungsbestandteil(
 	p_mandant_id integer,
 	p_Verguetungsbestandteil varchar(64),
-	p_auszahlungsmonat varchar(16),
 	p_tarifbezeichnung varchar(16),
 	p_betrag decimal(10, 2),
 	p_gueltig_ab date
@@ -2770,11 +2801,14 @@ begin
     set session role tenant_user;
 	execute 'SET app.current_tenant=' || p_mandant_id;
 	
-	insert into Verguetungsbestandteile(Mandant_ID, Verguetungsbestandteil, Auszahlungsmonat) values (p_mandant_id, p_verguetungsbestandteil, p_auszahlungsmonat);
+	-- Pruefen, ob Verguetungsbestandteil bereits in Tabelle 'Verguetungsbestandteile' hinterlegt ist
+	execute 'SELECT verguetungsbestandteil_id FROM verguetungsbestandteile WHERE lower(Verguetungsbestandteil) = $1' into v_verguetungsbestandteil_id using lower(p_Verguetungsbestandteil);
 
-	execute 'SELECT verguetungsbestandteil_id FROM verguetungsbestandteile WHERE Verguetungsbestandteil = $1' 
-		into v_verguetungsbestandteil_id using p_Verguetungsbestandteil;
-
+	-- ... und falls nicht, dann Meldung ausgeben, dass dieser Verguetungsbestandteil erst hinterlegt werden muss!
+	if v_verguetungsbestandteil_id is null then
+		set role postgres;
+		raise exception 'Bitte erst Verguetungsbestandteil ''%'' anlegen!', p_Verguetungsbestandteil;
+	end if;
 
 	-- Tarif_ID ziehen, da diese benoetigt wird, um einen Datensatz in der Assoziation 'hat_Verguetungsbestandteil_Tarif' anzulegen
 	execute 'SELECT tarif_id FROM tarife WHERE lower(tarifbezeichnung) = $1' into v_tarif_id using lower(p_tarifbezeichnung);
@@ -2792,9 +2826,7 @@ begin
 
 exception
     when unique_violation then
-        raise exception 'Verguetungsbestandteil ''%'' bereits vorhanden!', p_Verguetungsbestandteil;
-    when check_violation then
-        raise exception 'Auszahlungsmonat ''%'' nicht vorhanden! Bitte waehlen Sie zwischen folgenden Moeglichkeiten: ''jeden Monat'', ''Januar'', ''Februar'', ''Maerz'', ''April'', ''Mai'', ''Juni'', ''Juli'', ''August'', ''September'', ''Oktober'', ''November'', ''Dezember''!', p_auszahlungsmonat;    
+        raise exception 'Verguetungsbestandteil ''%'' fuer Tarif ''%'' bereits verknuepft!', p_Verguetungsbestandteil, p_tarifbezeichnung;
 
 end;
 $$
@@ -4494,7 +4526,7 @@ language plpgsql;
  * Funktion verknuepft aussertariflichen Mitarbeiter mit (diversen) Verguetungsbestandteilen- Darunter fallen neben Monatsgehalt, Weihnachtsgeld etc. auch Beamtenbeihilfen, da der Staat verpflichtet ist, 
  * Beamten Beihilfen zu zahlen z.B. für (private) Krankenversicherung, Kinder etc..
  */
-create or replace function insert_aussertarifliche_verguetungsbestandteil(
+create or replace function insert_aussertariflicher_verguetungsbestandteil(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_Verguetungsbestandteil varchar(64),
@@ -4511,7 +4543,7 @@ begin
     set session role tenant_user;
 	execute 'SET app.current_tenant=' || p_mandant_id;
 	
-	-- Pruefen, ob Verguetungsbestandteil bereits in Tabelle 'monatliche_Beihilfen' hinterlegt ist
+	-- Pruefen, ob Verguetungsbestandteil bereits in Tabelle 'Verguetungsbestandteile' hinterlegt ist
 	execute 'SELECT verguetungsbestandteil_id FROM verguetungsbestandteile WHERE Verguetungsbestandteil = $1' into v_verguetungsbestandteil_id using p_Verguetungsbestandteil;
 
 	-- ... und falls nicht, dann Meldung ausgeben, dass dieser Verguetungsbestandteil erst hinterlegt werden muss!
@@ -4545,7 +4577,7 @@ begin
 
 exception
     when unique_violation then
-        raise notice 'Aussertariflicher Mitarbeiter ''%'' hat bereits aktuellen Verguetungsbestandteil ''%''!', p_personalnummer, p_Verguetungsbestandteil;
+        raise exception 'Aussertariflicher Mitarbeiter ''%'' hat bereits aktuellen Verguetungsbestandteil ''%''!', p_personalnummer, p_Verguetungsbestandteil;
 
 end;
 $$

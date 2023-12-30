@@ -669,26 +669,42 @@ class Nutzer:
         export_daten = [self.mandant_id, tarifbezeichnung, gewerkschaft]
         self._export_zu_db('insert_tarif', export_daten, schema)
 
-    def insert_tarifliches_verguetungsbestandteil(self, neuanlage_verguetungsbestandteil, schema='public'):
+    def insert_verguetungsbestandteil(self, neuanalage_verguetungsbestandteil, schema='public'):
         """
-        Diese Methode uebertraegt einen Verguetungsbestandteil wie bspw. Grundgehalt, Urlaubsgeld etc. und verknuepft
-        sie mit dem entsprechenden Tarif (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei), in die
-        Datenbank, in dem die Stored Procedure 'insert_verguetungsbestandteil' aufgerufen wird.
-        :param neuanlage_verguetungsbestandteil: Name der Excel-Datei, dessen Daten in die Datenbank
+        MEthode schreibt ein neues Verguetungsbestandteil und dessen Auszahlungsmonat in die Datenbank ein.
+        :param neuanalage_verguetungsbestandteil: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
         :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
-        daten = self._import_excel_daten(neuanlage_verguetungsbestandteil)
+        daten = self._import_excel_daten(neuanalage_verguetungsbestandteil)
 
         # Daten aus importierter Excel-Tabelle '3 Verguetungsbestandteil.xlsx' pruefen
         verguetungsbestandteil = self._existenz_str_daten_feststellen(daten[0], 'Verguetungsbestandteil', 64, True)
         auszahlungsmonat = self._existenz_str_daten_feststellen(daten[1], 'Auszahlungsmonat', 16, True)
-        tarifbezeichnung = self._existenz_str_daten_feststellen(daten[2], 'Tarifbezeichnung', 16, True)
-        betrag = self._existenz_zahlen_daten_feststellen(daten[3], 99999999, 'Betrag', True)
-        gueltig_ab = self._existenz_date_daten_feststellen(daten[4], 'Tarifentgelt gueltig ab', True)
 
-        export_daten = [self.mandant_id, verguetungsbestandteil, auszahlungsmonat, tarifbezeichnung, betrag, gueltig_ab]
+        export_daten = [self.mandant_id, verguetungsbestandteil, auszahlungsmonat]
+        self._export_zu_db('insert_verguetungsbestandteil', export_daten, schema)
+
+    def insert_tarifliches_verguetungsbestandteil(self, neuanlage_tarifliches_verguetungsbestandteil, schema='public'):
+        """
+        Diese Methode uebertraegt einen Verguetungsbestandteil wie bspw. Grundgehalt, Urlaubsgeld etc. und verknuepft
+        sie mit dem entsprechenden Tarif (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei), in die
+        Datenbank, in dem die Stored Procedure 'insert_tarifliches_verguetungsbestandteil' aufgerufen wird.
+        :param neuanlage_tarifliches_verguetungsbestandteil: Name der Excel-Datei, dessen Daten in die Datenbank
+        eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
+        """
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_tarifliches_verguetungsbestandteil)
+
+        # Daten aus importierter Excel-Tabelle '4 Verguetungsbestandteil.xlsx' pruefen
+        verguetungsbestandteil = self._existenz_str_daten_feststellen(daten[0], 'Verguetungsbestandteil', 64, True)
+        tarifbezeichnung = self._existenz_str_daten_feststellen(daten[1], 'Tarifbezeichnung', 16, True)
+        betrag = self._existenz_zahlen_daten_feststellen(daten[2], 99999999, 'Betrag', True)
+        gueltig_ab = self._existenz_date_daten_feststellen(daten[3], 'Tarifentgelt gueltig ab', True)
+
+        export_daten = [self.mandant_id, verguetungsbestandteil, tarifbezeichnung, betrag, gueltig_ab]
         self._export_zu_db('insert_tarifliches_verguetungsbestandteil', export_daten, schema)
 
     def insert_neuer_mitarbeiter(self, mitarbeiterdaten, schema='public'):
@@ -879,7 +895,8 @@ class Nutzer:
                         rentenversichert]
         self._export_zu_db('insert_mitarbeiterdaten', export_daten, schema)
 
-    def insert_aussertariflicher_verguetungsbestandteil(self, neuanlage_aussertariflicher_verguetungsbestandteil):
+    def insert_aussertariflicher_verguetungsbestandteil(self, neuanlage_aussertariflicher_verguetungsbestandteil,
+                                                        schema='public'):
         """
         Diese Methode uebertraegt einen Verguetungsbestandteil wie bspw. Grundgehalt, Urlaubsgeld etc. und verknuepft
         sie mit dem entsprechenden aussertariflich angestellten Mitarbeiter (im Rahmen der Bachelorarbeit dargestellt
@@ -887,38 +904,19 @@ class Nutzer:
         'insert_aussertarifliche_verguetungsbestandteil' aufgerufen wird.
         :param neuanlage_aussertariflicher_verguetungsbestandteil: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{neuanlage_aussertariflicher_verguetungsbestandteil}", index_col='Daten',
-                                    na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(neuanlage_aussertariflicher_verguetungsbestandteil)
 
         # Daten aus importierter Excel-Tabelle '3 Verguetungsbestandteil.xlsx' pruefen
-        personalnummer = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Personalnummer', 32, True)
-        verguetungsbestandteil = self._existenz_str_daten_feststellen(liste_ma_daten[1],
-                                                                      'Verguetungsbestandteil',
-                                                                      64,
-                                                                      True)
-        betrag = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2], 99999999, 'Betrag', True)
-        gueltig_ab = self._existenz_date_daten_feststellen(liste_ma_daten[3], 'Entgelt gueltig ab', True)
+        personalnummer = self._existenz_str_daten_feststellen(daten[0], 'Personalnummer', 32, True)
+        verguetungsbestandteil = self._existenz_str_daten_feststellen(daten[1], 'Verguetungsbestandteil', 64, True)
+        betrag = self._existenz_zahlen_daten_feststellen(daten[2], 99999999, 'Betrag', True)
+        gueltig_ab = self._existenz_date_daten_feststellen(daten[3], 'Entgelt gueltig ab', True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
-
-        # Stored Procedure aufrufen und Daten an Datenbank uebergeben
-        cur.callproc('insert_aussertarifliche_verguetungsbestandteil', [self.mandant_id,
-                                                                        personalnummer,
-                                                                        verguetungsbestandteil,
-                                                                        betrag,
-                                                                        gueltig_ab])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
+        export_daten = [self.mandant_id, personalnummer, verguetungsbestandteil, betrag, gueltig_ab]
+        self._export_zu_db('insert_aussertariflicher_verguetungsbestandteil', export_daten, schema)
 
     def update_adresse(self, update_adressdaten):
         """

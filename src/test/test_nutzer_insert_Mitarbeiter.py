@@ -12,7 +12,7 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
         """
         self.testschema = test_set_up()
         self.testfirma = Mandant('Testfirma', self.testschema)
-        self.testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.testschema)
+        self.testfirma.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', self.testschema)
 
         # Eintragen personenbezogener Daten
         self.testfirma.get_nutzer("M100001").insert_geschlecht('testdaten_insert_geschlecht/Geschlecht.xlsx',
@@ -69,8 +69,11 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
         self.testfirma.get_nutzer("M100001").insert_gewerkschaft('testdaten_insert_gewerkschaft/Gewerkschaft.xlsx',
                                                                  self.testschema)
         self.testfirma.get_nutzer("M100001").insert_tarif('testdaten_insert_tarif/Tarif.xlsx', self.testschema)
-        self.testfirma.get_nutzer("M100001").insert_tarifliches_verguetungsbestandteil(
+        self.testfirma.get_nutzer("M100001").insert_verguetungsbestandteil(
             'testdaten_insert_verguetungsbestandteil/Verguetungsbestandteil.xlsx', self.testschema)
+        self.testfirma.get_nutzer("M100001").insert_tarifliches_verguetungsbestandteil(
+            'testdaten_insert_tariflicher_verguetungsbestandteil/tariflicher Verguetungsbestandteil.xlsx',
+            self.testschema)
 
     def test_erfolgreicher_eintrag(self):
         """
@@ -82,7 +85,7 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
         # Inhalt aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").\
             abfrage_ausfuehren("SELECT * FROM mitarbeiter", self.testschema)
-        self.assertEqual(str(ergebnis), "[(1, 1, 'M100001', 'Max', None, 'Mustermann', datetime.date(1992, 12, 12), "
+        self.assertEqual(str(ergebnis), "[(1, 1, 'M100002', 'Max', None, 'Mustermann', datetime.date(1992, 12, 12), "
                                         "datetime.date(2024, 1, 1), '11 111 111 111', '00 121292 F 00', "
                                         "'DE00 0000 0000 0000 0000 00', '0175 1234567', 'maxmustermann@web.de', "
                                         "'030 987654321', 'Mustermann@testfirma.de', datetime.date(9999, 12, 31), "
@@ -399,7 +402,7 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
 
         # Pruefung des Vorhandenseins der Pflichtdaten:
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM mitarbeiter", self.testschema)
-        self.assertEqual(str(ergebnis), "[(1, 1, 'M100001', 'Max', None, 'Mustermann', datetime.date(1992, 12, 12), "
+        self.assertEqual(str(ergebnis), "[(1, 1, 'M100002', 'Max', None, 'Mustermann', datetime.date(1992, 12, 12), "
                                         "datetime.date(2024, 1, 1), None, None, None, '0175 1234567', "
                                         "'maxmustermann@web.de', None, None, None, None, None)]")
 
