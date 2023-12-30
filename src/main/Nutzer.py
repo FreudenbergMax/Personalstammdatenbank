@@ -714,7 +714,7 @@ class Nutzer:
         sozialversicherungsnummer = self._existenz_str_daten_feststellen(daten[7], 'Sozialversicherungsnummer', 32,
                                                                          False)
         iban = self._existenz_str_daten_feststellen(daten[8], 'IBAN', 32, False)
-        private_telefonnummer = self._existenz_str_daten_feststellen(daten[9], 'private Telefonnummer', 16, False)
+        private_telefonnummer = self._existenz_str_daten_feststellen(daten[9], 'private Telefonnummer', 16, True)
         private_email = self._existenz_str_daten_feststellen(daten[10], 'private E-Mail', 64, True)
         dienstliche_telefonnummer = self._existenz_str_daten_feststellen(daten[11], 'dienstliche Telefonnummer', 16,
                                                                          False)
@@ -729,27 +729,27 @@ class Nutzer:
         region = self._existenz_str_daten_feststellen(daten[19], 'Region', 128, True)
         land = self._existenz_str_daten_feststellen(daten[20], 'Land', 128, True)
 
-        geschlecht = self._existenz_str_daten_feststellen(daten[21], 'Geschlecht', 32, False)
+        geschlecht = self._existenz_str_daten_feststellen(daten[21], 'Geschlecht', 32, True)
 
-        mitarbeitertyp = self._existenz_str_daten_feststellen(daten[22], 'Mitarbeitertyp', 32, False)
+        mitarbeitertyp = self._existenz_str_daten_feststellen(daten[22], 'Mitarbeitertyp', 32, True)
 
         steuerklasse = self._existenz_str_daten_feststellen(daten[23], 'Steuerklasse', 1, False)
 
         wochenarbeitsstunden = self._existenz_zahlen_daten_feststellen(daten[24],
                                                                        48,
                                                                        'Wochenarbeitsstunden',
-                                                                       False)
+                                                                       True)
 
-        abteilung = self._existenz_str_daten_feststellen(daten[25], 'Abteilung', 64, False)
-        abteilungskuerzel = self._existenz_str_daten_feststellen(daten[26], 'Abteilungskuerzel', 16, False)
+        abteilung = self._existenz_str_daten_feststellen(daten[25], 'Abteilung', 64, True)
+        abteilungskuerzel = self._existenz_str_daten_feststellen(daten[26], 'Abteilungskuerzel', 16, True)
 
-        fuehrungskraft = self._existenz_boolean_daten_feststellen(daten[27], 'Fuehrungskraft', False)
-        jobtitel = self._existenz_str_daten_feststellen(daten[28], 'Jobtitel', 32, False)
-        erfahrungsstufe = self._existenz_str_daten_feststellen(daten[29], 'Erfahrungsstufe', 32, False)
+        fuehrungskraft = self._existenz_boolean_daten_feststellen(daten[27], 'Fuehrungskraft', True)
+        jobtitel = self._existenz_str_daten_feststellen(daten[28], 'Jobtitel', 32, True)
+        erfahrungsstufe = self._existenz_str_daten_feststellen(daten[29], 'Erfahrungsstufe', 32, True)
 
-        gesellschaft = self._existenz_str_daten_feststellen(daten[30], 'Gesellschaft', 128, False)
+        gesellschaft = self._existenz_str_daten_feststellen(daten[30], 'Gesellschaft', 128, True)
 
-        tarifbeschaeftigt = self._existenz_boolean_daten_feststellen(daten[31], 'tarifbeschaeftigt', False)
+        tarifbeschaeftigt = self._existenz_boolean_daten_feststellen(daten[31], 'tarifbeschaeftigt', True)
         if tarifbeschaeftigt:
             tarif = self._existenz_str_daten_feststellen(daten[32], 'Tarif', 16, True)
         else:

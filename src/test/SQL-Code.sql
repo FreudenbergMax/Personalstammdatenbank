@@ -3320,54 +3320,48 @@ begin
 								   p_befristet_bis
 								  );
 	
-	-- Sofern keines der Adress-Parameter 'null' ist, den Bereich 'Adresse' mit Daten befüllen
-	if p_land is not null and p_region is not null and p_stadt is not null and p_postleitzahl is not null and p_ost_west_ausland is not null and p_strasse is not null and p_hausnummer is not null then
-		perform insert_tbl_laender(p_mandant_id, p_land);
-		perform insert_tbl_regionen(p_mandant_id, p_region, p_land);
-		perform insert_tbl_staedte(p_mandant_id, p_stadt, p_region);
-		perform insert_tbl_postleitzahlen(p_mandant_id, p_postleitzahl, p_ost_west_ausland, p_stadt);
-		perform insert_tbl_strassenbezeichnungen(p_mandant_id, p_strasse, p_hausnummer, p_postleitzahl);
-		perform insert_tbl_wohnt_in(p_mandant_id, p_personalnummer, p_strasse, p_hausnummer, p_eintrittsdatum);
-	end if;
-	
-	
-	-- Sofern p_geschlecht nicht 'null' ist, den Bereich 'Geschlecht' mit Daten befüllen
-	if p_geschlecht is not null then
-		perform insert_tbl_hat_geschlecht(p_mandant_id, p_personalnummer, p_geschlecht, p_eintrittsdatum);
-	end if;
-	
-	-- Sofern p_mitarbeitertyp nicht 'null' ist, den Bereich 'Mitarbeitertyp' mit Daten befüllen
-	if p_mitarbeitertyp is not null then
-		perform insert_tbl_ist_mitarbeitertyp(p_mandant_id, p_personalnummer, p_mitarbeitertyp, p_eintrittsdatum);
-	end if;
+	-- Bereich Adresse ausfuellen. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn alle Adress-Daten vorliegen, 
+	-- werden die Adress-Funktionen sicher aufgerufen.
+	perform insert_tbl_laender(p_mandant_id, p_land);
+	perform insert_tbl_regionen(p_mandant_id, p_region, p_land);
+	perform insert_tbl_staedte(p_mandant_id, p_stadt, p_region);
+	perform insert_tbl_postleitzahlen(p_mandant_id, p_postleitzahl, p_ost_west_ausland, p_stadt);
+	perform insert_tbl_strassenbezeichnungen(p_mandant_id, p_strasse, p_hausnummer, p_postleitzahl);
+	perform insert_tbl_wohnt_in(p_mandant_id, p_personalnummer, p_strasse, p_hausnummer, p_eintrittsdatum);
 
-	-- Sofern p_steuerklasse nicht 'null' ist, den Bereich 'Steuerklasse' mit Daten befüllen
+	-- Geschlecht erfassen. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn Geschlecht vorliegt, 
+	-- wird die Funktion sicher aufgerufen.
+	perform insert_tbl_hat_geschlecht(p_mandant_id, p_personalnummer, p_geschlecht, p_eintrittsdatum);
+
+	-- Mitarbeitertyp erfassen. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn Mitarbeitertyp vorliegt, 
+	-- wird die Funktion sicher aufgerufen.
+	perform insert_tbl_ist_mitarbeitertyp(p_mandant_id, p_personalnummer, p_mitarbeitertyp, p_eintrittsdatum);
+
+	-- Steuerklasse nur eintragen, wenn Wert vorhanden. Da der Mitarbeiter neu angelegt werden koennen soll, auch wenn Steuerklasse noch
+	-- nicht vorliegt, wird dies geprueft.
 	if p_steuerklasse is not null then
 		perform insert_tbl_in_steuerklasse(p_mandant_id, p_personalnummer, p_steuerklasse, p_eintrittsdatum);
 	end if;
-	
-	-- Sofern p_wochenarbeitsstunden nicht 'null' ist, den Bereich 'Wochenarbeitsstunden' mit Daten befüllen
-	if p_wochenarbeitsstunden is not null then
-		perform insert_tbl_wochenarbeitsstunden(p_mandant_id, p_wochenarbeitsstunden);
-		perform insert_tbl_arbeitet_x_wochenarbeitsstunden(p_mandant_id, p_personalnummer, p_wochenarbeitsstunden, p_eintrittsdatum);
-	end if;
 
-	-- Sofern p_abteilung und p_fuehrungskraft nicht 'null' sind, den Bereich 'Abteilung' mit Daten befüllen
-	if p_abteilung is not null and p_fuehrungskraft is not null then
-		perform insert_tbl_eingesetzt_in(p_mandant_id, p_personalnummer, p_abteilung, p_abk_abteilung, p_fuehrungskraft, p_eintrittsdatum);
-	end if;
+	-- Wochenstundenanzahl erfassen. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn Wochenarbeitsstunden vorliegt, 
+	-- werden die entsprechenden Funktionen sicher aufgerufen.
+	perform insert_tbl_wochenarbeitsstunden(p_mandant_id, p_wochenarbeitsstunden);
+	perform insert_tbl_arbeitet_x_wochenarbeitsstunden(p_mandant_id, p_personalnummer, p_wochenarbeitsstunden, p_eintrittsdatum);
 
-	-- Sofern p_jobtitel und p_erfahrungsstufe nicht 'null' sind, den Bereich 'Jobtitel' mit Daten befüllen
-	if p_jobtitel is not null and p_erfahrungsstufe is not null then
-		perform insert_tbl_hat_jobtitel(p_mandant_id, p_personalnummer, p_jobtitel, p_erfahrungsstufe, p_eintrittsdatum);
-	end if;
+	-- Abteilung und Fuehrungskraftstatus erfassen. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn 
+	-- diese Daten vorliegen, wird die entsprechende Funktionen sicher aufgerufen.
+	perform insert_tbl_eingesetzt_in(p_mandant_id, p_personalnummer, p_abteilung, p_abk_abteilung, p_fuehrungskraft, p_eintrittsdatum);
+
+	-- Jobtitel und Erfahrungsstatus erfassen. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn 
+	-- diese Daten vorliegen, wird die entsprechende Funktion sicher aufgerufen.
+	perform insert_tbl_hat_jobtitel(p_mandant_id, p_personalnummer, p_jobtitel, p_erfahrungsstufe, p_eintrittsdatum);
+
+	-- Gesellschaft, zu der der neue Mitarbeiter gehoert, erfassen. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn 
+	-- diese Daten vorliegen, wird die entsprechende Funktion sicher aufgerufen.
+	perform insert_tbl_in_gesellschaft(p_mandant_id, p_personalnummer, p_gesellschaft, p_eintrittsdatum);
 	
-	-- Sofern p_gesellschaft nicht 'null' ist, den Bereich 'Gesellschaft' mit Daten befüllen
-	if p_gesellschaft is not null then
-		perform insert_tbl_in_gesellschaft(p_mandant_id, p_personalnummer, p_gesellschaft, p_eintrittsdatum);
-	end if;
-	
-	-- sofern neuer Mitarbeiter tariflich bezahlt wird, dann Tarif zuordnen...
+	-- Tarif erfassen, sofern fuer Mitarbeiter Tarif vorgesehen ist. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn 
+	-- diese Daten vorliegen, wird die entsprechende Funktion sicher aufgerufen.
 	if p_tarifbeschaeftigt is true and p_tarifbezeichnung is not null then 
 		perform insert_tbl_hat_tarif(p_mandant_id, p_personalnummer, p_tarifbezeichnung, p_eintrittsdatum);
 	end if;
@@ -3380,8 +3374,8 @@ begin
 	end if;
 	
 	-- Man kann niemals über den Arbeitgeber gesetzlich kranken- und pflegeversichert sein, wenn man kurzfristig beschaeftigt ist.
-	-- Der kurzfristig Beschaeftigte muss sich anderweitig um Krankenversicherung kuemmern
-	if p_gesetzlich_krankenversichert and p_ist_kurzfristig_beschaeftigt is false then
+	-- Der kurzfristig Beschaeftigte muss sich anderweitig um Krankenversicherung kuemmern. Eintrag nur, wenn alle Daten vorhanden sind.
+	if p_gesetzlich_krankenversichert and p_ist_kurzfristig_beschaeftigt is false and p_ermaessigter_kv_beitrag is not null and p_krankenkasse is not null and p_krankenkassenkuerzel is not null and p_anzahl_kinder is not null and p_in_sachsen is not null then
 	
 		perform insert_tbl_hat_gesetzliche_Krankenversicherung(p_mandant_id, p_personalnummer, p_ermaessigter_kv_beitrag, p_eintrittsdatum);
 		perform insert_tbl_ist_in_gkv(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
@@ -3390,26 +3384,27 @@ begin
 
 	end if;
 	
-	-- Ein kurzfristig Beschaeftigter ist niemals privat ueber den Arbeitgeber versichert (womit auch kein Anspruch auf Arbeitgeberzuschuss einhergeht)
-	if p_privat_krankenversichert and p_ist_kurzfristig_beschaeftigt is false then
+	-- Ein kurzfristig Beschaeftigter ist niemals privat ueber den Arbeitgeber versichert (womit auch kein Anspruch auf Arbeitgeberzuschuss einhergeht).
+	-- Eintrag nur, wenn alle Daten vorhanden sind.
+	if p_privat_krankenversichert and p_ist_kurzfristig_beschaeftigt is false and p_ag_zuschuss_krankenversicherung is not null and p_ag_zuschuss_krankenversicherung is not null then
 		perform insert_tbl_hat_private_krankenversicherung(p_mandant_id, p_personalnummer, p_krankenkasse, p_ag_zuschuss_krankenversicherung, p_ag_zuschuss_krankenversicherung, p_eintrittsdatum);
 	end if;
 
-	if p_ist_minijobber then
+	if p_ist_minijobber and p_ist_kurzfristig_beschaeftigt is not null then
 		perform insert_tbl_ist_Minijobber(p_mandant_id, p_personalnummer, p_ist_kurzfristig_beschaeftigt, p_eintrittsdatum);
 	end if;
 
 	-- if-Bedingung für kurzfristig beschaeftigte Nicht-Minijobber, denn die zahlen keine SV, aber Umlagen! Das der Kurzfristig Beschaeftigte aber
-	-- aber anderweitig krankenversichert ist, dass muss der Arbeitgeber sicherstellen, weswegen die Krankenkasse vermerkt wird 
-	if p_anderweitig_versichert then
+	-- aber anderweitig krankenversichert ist, dass muss der Arbeitgeber sicherstellen, weswegen die Krankenkasse vermerkt wird. Eintrag nur, wenn alle Daten vorhanden sind.
+	if p_anderweitig_versichert and p_krankenkasse is not null and p_krankenkassenkuerzel is not null then
 		perform insert_tbl_ist_anderweitig_versichert(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
 	end if;
 
-	if p_arbeitslosenversichert and p_ist_kurzfristig_beschaeftigt is not true then
+	if p_arbeitslosenversichert and p_ist_kurzfristig_beschaeftigt is false then
 		perform insert_tbl_hat_gesetzliche_arbeitslosenversicherung(p_mandant_id, p_personalnummer, p_eintrittsdatum);
 	end if;
 	
-	if p_rentenversichert and p_ist_kurzfristig_beschaeftigt is not true then
+	if p_rentenversichert and p_ist_kurzfristig_beschaeftigt is false then
 		perform insert_tbl_hat_gesetzliche_rentenversicherung(p_mandant_id, p_personalnummer, p_eintrittsdatum);
 	end if;
 	

@@ -327,6 +327,114 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
                                                  " und gleichzeitig bei Ihnen privat versichert ist und somit Anspruch "
                                                  "auf Arbeitgeberzuschuss hat. Das ist rechtlich nicht moeglich!")
 
+    def test_Eintrag_trotz_fehlender_Daten(self):
+        """
+        Test prueft, ob es moeglich ist, einen neuen Mitarbeiter anzulegen, auch wenn noch nicht alle Daten vorliegen.
+        In der Praxis liegen nach einer Jobzusage haeufig nur einige Daten des neuen Mitarbeiters vor (da sie
+        fuer gewoehnlich bei der Bewerbung bereits angegeben werden) wie Personalnummer (da vom Arbeitgeber vergeben),
+        Vorname, evtl. Zweitname, Nachname, Geburtsdatum, Eintrittsdatum, private E-Mail und Telefonnummer, Adresse
+        und Geschlecht.
+
+        Zudem sind fuer gewoehnlich bereits Mitarbeitertyp, Wochenarbeitsstunden, Abteilung, ob Mitarbeiter
+        Fuehrungskraft ist, Jobtitel, Erfahrungsstufe, die Gesellschaft die Frage und ob Mitarbeiter tarifbeschaeftigt
+        ist, da dies bereits in der Stellenausschreibung bzw. im Laufe der Vertragsverhandlungen bekannt ist.
+
+        Speziell Sozialversicherungs- und Steuerdaten aber auch die IBAN werden fuer gewoehnlich erst nachgereicht. Es
+        soll dennoch moeglich sein, die oben beschriebenen bereits vorhandenen Daten einzutragen.
+
+        Fuer den Nachtrag sind update-Funktionen notwendig, die im Rahmen dieser Bachelorarbeit aber nicht implementiert
+        werden.
+        """
+        self.testfirma.get_nutzer("M100001"). \
+            insert_neuer_mitarbeiter('testdaten_insert_mitarbeiter/Mitarbeiter - Daten nur teilweise bekannt.xlsx',
+                                     self.testschema)
+
+        # Optionale Daten in Tabelle 'Mitarbeiter' sind null
+        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT "
+                                                                           "    zweitname, "
+                                                                           "    steuernummer, "
+                                                                           "    sozialversicherungsnummer, "
+                                                                           "    iban, dienstliche_telefonnummer, "
+                                                                           "    dienstliche_emailadresse, "
+                                                                           "    befristet_bis, "
+                                                                           "    austrittsdatum, "
+                                                                           "    austrittsgrund_id "
+                                                                           "FROM "
+                                                                           "    mitarbeiter", self.testschema)
+        self.assertEqual(str(ergebnis), "[(None, None, None, None, None, None, None, None, None)]")
+
+        # Die nicht eingetragenen optionalen Daten in den Assoziationstabellen muessen dazu fuehren, dass diese
+        # Assoziationen leer sind
+        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM in_steuerklasse",
+                                                                           self.testschema)
+        self.assertEqual(str(ergebnis), "[]")
+
+        # Sozialversicherungen: damit ein Eintrag in die Datenbank erfolgt, muss genau eines der vier Werte true sein:
+        # gesetzlich krankenversichert, privat krankenversichert, anderweitig versichert oder Minijob. In diesem
+        # liegt eine gesetzliche Krankenversicheurng vor, allerdings liegt in keiner der SV eine Verknuepfung vor,
+        # weil die Daten hierfuer noch nciht vorliegen
+        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM ist_in_gkv",
+                                                                           self.testschema)
+        self.assertEqual(str(ergebnis), "[]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001").\
+            abfrage_ausfuehren("SELECT * FROM hat_gesetzliche_Krankenversicherung", self.testschema)
+        self.assertEqual(str(ergebnis), "[]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM hat_x_kinder_unter_25", self.testschema)
+        self.assertEqual(str(ergebnis), "[]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM arbeitet_in_sachsen", self.testschema)
+        self.assertEqual(str(ergebnis), "[]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM hat_gesetzliche_arbeitslosenversicherung", self.testschema)
+        self.assertEqual(str(ergebnis), "[]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM hat_gesetzliche_rentenversicherung", self.testschema)
+        self.assertEqual(str(ergebnis), "[]")
+
+        # Pruefung des Vorhandenseins der Pflichtdaten:
+        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM mitarbeiter", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 'M100001', 'Max', None, 'Mustermann', datetime.date(1992, 12, 12), "
+                                        "datetime.date(2024, 1, 1), None, None, None, '0175 1234567', "
+                                        "'maxmustermann@web.de', None, None, None, None, None)]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM in_gesellschaft", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM ist_mitarbeitertyp", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM hat_geschlecht", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM wohnt_in", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM hat_tarif", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM hat_jobtitel", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM eingesetzt_in", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, False, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+        ergebnis = self.testfirma.get_nutzer("M100001"). \
+            abfrage_ausfuehren("SELECT * FROM arbeitet_x_wochenstunden", self.testschema)
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
     def tearDown(self):
         """
         Methode ruft Funktion 'test_tear_down' auf, welches das Datenbankschema 'temp_test_schema' mit allen Daten
