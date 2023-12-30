@@ -4526,7 +4526,7 @@ language plpgsql;
  * Funktion verknuepft aussertariflichen Mitarbeiter mit (diversen) Verguetungsbestandteilen- Darunter fallen neben Monatsgehalt, Weihnachtsgeld etc. auch Beamtenbeihilfen, da der Staat verpflichtet ist, 
  * Beamten Beihilfen zu zahlen z.B. für (private) Krankenversicherung, Kinder etc..
  */
-create or replace function insert_aussertariflicher_verguetungsbestandteil(
+create or replace function insert_aussertarifliches_verguetungsbestandteil(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_Verguetungsbestandteil varchar(64),
@@ -4544,7 +4544,7 @@ begin
 	execute 'SET app.current_tenant=' || p_mandant_id;
 	
 	-- Pruefen, ob Verguetungsbestandteil bereits in Tabelle 'Verguetungsbestandteile' hinterlegt ist
-	execute 'SELECT verguetungsbestandteil_id FROM verguetungsbestandteile WHERE Verguetungsbestandteil = $1' into v_verguetungsbestandteil_id using p_Verguetungsbestandteil;
+	execute 'SELECT verguetungsbestandteil_id FROM verguetungsbestandteile WHERE lower(Verguetungsbestandteil) = $1' into v_verguetungsbestandteil_id using lower(p_Verguetungsbestandteil);
 
 	-- ... und falls nicht, dann Meldung ausgeben, dass dieser Verguetungsbestandteil erst hinterlegt werden muss!
 	if v_verguetungsbestandteil_id is null then
@@ -4553,7 +4553,7 @@ begin
 	end if;
 
 	-- Mitarbeiter_ID ziehen, da diese als Vorbereitung benoetigt wird, um einen Datensatz in der Assoziation 'hat_Verguetungsbestandteil_AT' anzulegen
-	execute 'SELECT mitarbeiter_id FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_id using p_personalnummer;
+	execute 'SELECT mitarbeiter_id FROM mitarbeiter WHERE lower(personalnummer) = $1' into v_mitarbeiter_id using lower(p_personalnummer);
 
 	-- ... falls Mitarbeiter nicht vorhanden ist, dann Meldung ausgeben, dass dieser erst hinterlegt werden muss!
 	if v_mitarbeiter_id is null then

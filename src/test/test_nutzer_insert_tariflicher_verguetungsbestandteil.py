@@ -76,7 +76,7 @@ class TestNutzerInsertTariflicherVerguetungsbestandteil(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, 1, Decimal('3330.18'), datetime.date(2023, 5, 1), "
                                         "datetime.date(9999, 12, 31))]")
 
-    def test_erfolgreicher_eintraege_klein_geschrieben(self):
+    def test_erfolgreiche_eintraege_klein_geschrieben(self):
         """
         Test prueft, ob bei Aufruf der Methode 'insert_tariflicher_verguetungsbestandteil' eine Verknuepfung zwischen
         Verguetungsbestandteil und Tarif eingetragen wird, wenn der Tarif eine andere Grossschreibung hat, als in

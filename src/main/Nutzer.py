@@ -895,7 +895,7 @@ class Nutzer:
                         rentenversichert]
         self._export_zu_db('insert_mitarbeiterdaten', export_daten, schema)
 
-    def insert_aussertariflicher_verguetungsbestandteil(self, neuanlage_aussertariflicher_verguetungsbestandteil,
+    def insert_aussertarifliches_verguetungsbestandteil(self, neuanlage_aussertariflicher_verguetungsbestandteil,
                                                         schema='public'):
         """
         Diese Methode uebertraegt einen Verguetungsbestandteil wie bspw. Grundgehalt, Urlaubsgeld etc. und verknuepft
@@ -916,7 +916,7 @@ class Nutzer:
         gueltig_ab = self._existenz_date_daten_feststellen(daten[3], 'Entgelt gueltig ab', True)
 
         export_daten = [self.mandant_id, personalnummer, verguetungsbestandteil, betrag, gueltig_ab]
-        self._export_zu_db('insert_aussertariflicher_verguetungsbestandteil', export_daten, schema)
+        self._export_zu_db('insert_aussertarifliches_verguetungsbestandteil', export_daten, schema)
 
     def update_adresse(self, update_adressdaten):
         """
