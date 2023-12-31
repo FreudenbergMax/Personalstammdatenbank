@@ -955,72 +955,44 @@ class Nutzer:
                         land]
         self._export_zu_db('update_adresse', export_daten, schema)
 
-    def update_mitarbeiterentlassung(self, update_mitarbeiterentlassung):
+    def update_mitarbeiterentlassung(self, update_mitarbeiterentlassung, schema='public'):
         """
         Diese Methode traegt die Entlassung und dessen Grund in die Datenbank (im Rahmen der Bachelorarbeit
         dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
         'update_adresse' aufgerufen wird.
         :param update_mitarbeiterentlassung: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{update_mitarbeiterentlassung}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(update_mitarbeiterentlassung)
 
         # Daten aus importierter Excel-Tabelle '2 Update Mitarbeiterentlassung.xlsx' pruefen
-        personalnummer = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Personalnummer', 32, True)
-        letzter_arbeitstag = self._existenz_date_daten_feststellen(liste_ma_daten[1], 'letzter Arbeitstag', True)
-        austrittsgrund = self._existenz_str_daten_feststellen(liste_ma_daten[2], 'Austrittsgrund', 16, True)
+        personalnummer = self._existenz_str_daten_feststellen(daten[0], 'Personalnummer', 32, True)
+        letzter_arbeitstag = self._existenz_date_daten_feststellen(daten[1], 'letzter Arbeitstag', True)
+        austrittsgrund = self._existenz_str_daten_feststellen(daten[2], 'Austrittsgrund', 16, True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
+        export_daten = [self.mandant_id, personalnummer, letzter_arbeitstag, austrittsgrund]
+        self._export_zu_db('update_mitarbeiterentlassung', export_daten, schema)
 
-        # Stored Procedure aufrufen
-        cur.callproc('update_mitarbeiterentlassung', [self.mandant_id,
-                                                      personalnummer,
-                                                      letzter_arbeitstag,
-                                                      austrittsgrund
-                                                      ])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
-
-    def update_erstelle_abteilungshierarchie(self, update_abteilungshierarchie):
+    def update_erstelle_abteilungshierarchie(self, update_abteilungshierarchie, schema='public'):
         """
         Diese Methode ordnet in der Datenbanke eine Abteilung einer anderen unter (im Rahmen der Bachelorarbeit
         dargestellt durch eine Excel-Datei), in dem der Stored Procedure
         'update_erstelle_abteilungshierarchie' aufgerufen wird.
         :param update_abteilungshierarchie: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{update_abteilungshierarchie}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(update_abteilungshierarchie)
 
         # Daten aus importierter Excel-Tabelle '3 Update Abteilungshierarchie.xlsx' pruefen
-        abteilung_unter = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'untergeordnete Abteilung', 64, True)
-        abteilung_ueber = self._existenz_str_daten_feststellen(liste_ma_daten[1], 'uebergeordnete Abteilung', 64, True)
+        abteilung_unter = self._existenz_str_daten_feststellen(daten[0], 'untergeordnete Abteilung', 64, True)
+        abteilung_ueber = self._existenz_str_daten_feststellen(daten[1], 'uebergeordnete Abteilung', 64, True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
-
-        # Stored Procedure aufrufen
-        cur.callproc('update_erstelle_abteilungshierarchie', [self.mandant_id,
-                                                              abteilung_unter,
-                                                              abteilung_ueber])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
+        export_daten = [self.mandant_id, abteilung_unter, abteilung_ueber]
+        self._export_zu_db('update_erstelle_abteilungshierarchie', export_daten, schema)
 
     def update_krankenversicherungsbeitraege(self, update_krankenversicherungsbeitraege):
         """

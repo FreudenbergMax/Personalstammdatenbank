@@ -81,7 +81,7 @@ class TestNutzerUpdateAdresse(unittest.TestCase):
 
     def test_erfolgreicher_eintrag(self):
         """
-        Test prueft, ob eine Abteilung eingetragen wird.
+        Test prueft, ob die Adresse eines Mitarbeiters geupdated wird.
         """
         self.testfirma.get_nutzer("M100001").\
             update_adresse('testdaten_update_adresse/Update Adresse.xlsx', self.testschema)

@@ -4668,6 +4668,7 @@ create or replace function update_mitarbeiterentlassung(
 $$
 declare
 	v_mitarbeiter_id integer;
+	v_eintrittsdatum date;
 	v_austrittsgrund_id integer;
 begin
 	
@@ -4675,14 +4676,22 @@ begin
 	execute 'SET app.current_tenant=' || p_mandant_id;
 
 	-- Pruefung, ob der Mitarbeiter überhaupt existiert und falls ja, dann Mitarbeiter_ID in Variable speichern
-	execute 'SELECT mitarbeiter_id FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_id using p_personalnummer;
+	execute 'SELECT mitarbeiter_id, eintrittsdatum FROM mitarbeiter WHERE lower(personalnummer) = $1' 
+		into v_mitarbeiter_id, v_eintrittsdatum using lower(p_personalnummer);
+
 	if v_mitarbeiter_id is null then
 		set role postgres;
 		raise exception 'Mitarbeiter ''%'' existiert nicht!', p_personalnummer;
 	end if;
 
+	-- Pruefen, ob Austrittsdatum vor Eintrittsdatum liegt. Falls dies eintrifft: Fehlermeldung, da nicht moeglich
+	if p_letzter_arbeitstag < v_eintrittsdatum then 
+		set role postgres;
+		raise exception 'Austrittsdatum ''%'' liegt vor Eintrittsdatum ''%''. Das ist unlogisch!', p_letzter_arbeitstag, v_eintrittsdatum;
+	end if;
+
 	-- Pruefen, ob Austrittsgrund in Datenbank hinterlegt ist
-	execute 'SELECT austrittsgrund_id FROM austrittsgruende WHERE austrittsgrund = $1' into v_austrittsgrund_id using p_austrittsgrund;
+	execute 'SELECT austrittsgrund_id FROM austrittsgruende WHERE lower(austrittsgrund) = $1' into v_austrittsgrund_id using lower(p_austrittsgrund);
 
 	-- ... und falls nicht, Meldung ausgeben, dass Ausstrittsgrund noch in Datenbank eingetragen werden muss
 	if v_austrittsgrund_id is null then
@@ -4691,7 +4700,8 @@ begin
 	end if;
 	
 	-- Austrittsgrund mit Mitarbeiter verknuepfen
-	execute 'UPDATE mitarbeiter SET austrittsdatum = $1, austrittsgrund_id = $2 WHERE personalnummer = $3' using p_letzter_arbeitstag, v_austrittsgrund_id, p_personalnummer;
+	execute 'UPDATE mitarbeiter SET austrittsdatum = $1, austrittsgrund_id = $2 WHERE lower(personalnummer) = $3' 
+		using p_letzter_arbeitstag, v_austrittsgrund_id, lower(p_personalnummer);
 	
 	-- in allen Assoziationstabellen muss fuer den aktuellen Eintrag in Spalte "Bis_Datum" das '9999-12-31' durch den letzten Arbeitstag ersetzt werden
 	execute 'UPDATE Aussertarifliche SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
@@ -4823,12 +4833,13 @@ begin
    		values (v_krankenversicherung_id, v_krankenversicherungsbeitrag_id, p_mandant_id, p_neuer_eintrag_gueltig_ab, '9999-12-31');
 
     set role postgres;
-   
+
 exception
 
     when unique_violation then
     	set role postgres;
         raise notice 'Diese GKV-Beitragssätze und GKV-Beitragsbemessungsgrenzen sind bereits aktuell!';
+   
 end;
 $$
 language plpgsql;
@@ -4858,14 +4869,14 @@ begin
     execute 'SET app.current_tenant=' || p_mandant_id;
    
     -- Pruefung, ob untergeordnete Abteilung vorhanden ist
-	execute 'SELECT abteilung_id FROM abteilungen WHERE abteilung = $1' into v_untere_abteilung_id using p_untere_abteilung;
+	execute 'SELECT abteilung_id FROM abteilungen WHERE lower(abteilung) = $1' into v_untere_abteilung_id using lower(p_untere_abteilung);
 	if v_untere_abteilung_id is null then
 		set role postgres;
 		raise exception 'Die untergeordnete Abteilung ''%'' ist nicht angelegt!', p_untere_abteilung;
 	end if;
 
 	-- Pruefung, ob uebergeordnete Abteilung vorhanden ist
-	execute 'SELECT abteilung_id FROM abteilungen WHERE abteilung = $1' into v_obere_abteilung_id using p_obere_abteilung;
+	execute 'SELECT abteilung_id FROM abteilungen WHERE lower(abteilung) = $1' into v_obere_abteilung_id using lower(p_obere_abteilung);
 	if v_obere_abteilung_id is null then
 		set role postgres;
 		raise exception 'Die uebergeordnete Abteilung ''%'' ist nicht angelegt!', p_obere_abteilung;
@@ -4876,11 +4887,6 @@ begin
 
     set role postgres;
    
-exception
-
-    when unique_violation then
-    	set role postgres;
-        raise notice 'Diese GKV-Beitragssätze und GKV-Beitragsbemessungsgrenzen sind bereits aktuell!';
 end;
 $$
 language plpgsql;
