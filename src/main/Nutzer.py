@@ -1057,25 +1057,14 @@ class Nutzer:
         export_daten = [self.mandant_id, personalnummer]
         self._export_zu_db('delete_mitarbeiterdaten', export_daten, schema)
 
-    def delete_mandantendaten(self):
+    def delete_mandantendaten(self, schema='public'):
         """
         Methode ruft die Stored Procedure 'delete_mandantendaten' auf, welche alle Daten des Mandanten aus allen
         Tabellen entfernt.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-        conn = self._datenbankbverbindung_aufbauen()
-
-        # Ein Cursor-Objekt erstellen
-        cur = conn.cursor()
-
-        # Stored Procedure aufrufen
-        cur.callproc('delete_mandantendaten', [self.mandant_id])
-
-        # Commit der Änderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
+        export_daten = [self.mandant_id]
+        self._export_zu_db('delete_mandantendaten', export_daten, schema)
 
     def _import_excel_daten(self, excel_datei_pfad):
         """
