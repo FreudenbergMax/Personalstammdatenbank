@@ -994,91 +994,68 @@ class Nutzer:
         export_daten = [self.mandant_id, abteilung_unter, abteilung_ueber]
         self._export_zu_db('update_erstelle_abteilungshierarchie', export_daten, schema)
 
-    def update_krankenversicherungsbeitraege(self, update_krankenversicherungsbeitraege):
+    def update_krankenversicherungsbeitraege(self, update_krankenversicherungsbeitraege, schema='public'):
         """
         Diese Methode ordnet in der Datenbanke eine Abteilung einer anderen unter (im Rahmen der Bachelorarbeit
         dargestellt durch eine Excel-Datei), in dem der Stored Procedure
         'update_erstelle_abteilungshierarchie' aufgerufen wird.
         :param update_krankenversicherungsbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{update_krankenversicherungsbeitraege}",
-                                    index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(update_krankenversicherungsbeitraege)
 
         # Daten aus importierter Excel-Tabelle '1 Krankenversicherungsbeitraege.xlsx' pruefen
-        ermaessigter_beitragssatz = self._existenz_boolean_daten_feststellen(liste_ma_daten[0],
+        ermaessigter_beitragssatz = self._existenz_boolean_daten_feststellen(daten[0],
                                                                              'ermaessigter Beitragssatz',
                                                                              True)
-        ag_gkv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[1],
+        ag_gkv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(daten[1],
                                                                             99,
                                                                             'Arbeitgeberbeitrag GKV in Prozent',
                                                                             True)
-        an_gkv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(liste_ma_daten[2],
+        an_gkv_beitrag_in_prozent = self._existenz_zahlen_daten_feststellen(daten[2],
                                                                             99,
                                                                             'Arbeitnehmerbeitrag GKV in Prozent',
                                                                             True)
-        beitragsbemessungsgrenze_gkv_ost = self._existenz_zahlen_daten_feststellen(liste_ma_daten[3],
+        beitragsbemessungsgrenze_gkv_ost = self._existenz_zahlen_daten_feststellen(daten[3],
                                                                                    99999999,
                                                                                    'Beitragsbemessungsgrenze GKV Ost',
                                                                                    True)
-        beitragsbemessungsgrenze_gkv_west = self._existenz_zahlen_daten_feststellen(liste_ma_daten[4],
+        beitragsbemessungsgrenze_gkv_west = self._existenz_zahlen_daten_feststellen(daten[4],
                                                                                     99999999,
                                                                                     'Beitragsbemessungsgrenze GKV West',
                                                                                     True)
-        neuer_eintrag_gueltig_ab = self._existenz_date_daten_feststellen(liste_ma_daten[5], 'Gueltig ab', True)
+        neuer_eintrag_gueltig_ab = self._existenz_date_daten_feststellen(daten[5], 'Gueltig ab', True)
         alter_eintrag_gueltig_bis = self._vorherigen_tag_berechnen(neuer_eintrag_gueltig_ab)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
+        export_daten = [self.mandant_id,
+                        ermaessigter_beitragssatz,
+                        ag_gkv_beitrag_in_prozent,
+                        an_gkv_beitrag_in_prozent,
+                        beitragsbemessungsgrenze_gkv_ost,
+                        beitragsbemessungsgrenze_gkv_west,
+                        alter_eintrag_gueltig_bis,
+                        neuer_eintrag_gueltig_ab]
+        self._export_zu_db('update_krankenversicherungsbeitraege', export_daten, schema)
 
-        # Stored Procedure aufrufen
-        cur.callproc('update_krankenversicherungsbeitraege', [self.mandant_id,
-                                                              ermaessigter_beitragssatz,
-                                                              ag_gkv_beitrag_in_prozent,
-                                                              an_gkv_beitrag_in_prozent,
-                                                              beitragsbemessungsgrenze_gkv_ost,
-                                                              beitragsbemessungsgrenze_gkv_west,
-                                                              alter_eintrag_gueltig_bis,
-                                                              neuer_eintrag_gueltig_ab])
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
-
-    def delete_mitarbeiterdaten(self, mitarbeiter):
+    def delete_mitarbeiterdaten(self, mitarbeiter, schema='public'):
         """
         Methode ruft die Stored Procedure 'delete_mitarbeiterdaten' auf, welche alle personenbezogenen Daten
         eines Mitarbeiters aus den Assoziationstabellen, der Tabelle 'Privat_Krankenversicherte' und der
         zentralen Tabelle entfernt
         :param mitarbeiter: Name der Excel-Datei, die die Personalnummer des Mitarbeiters enthaelt, der entfernt
                             werden soll
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
-
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Übertrag in Liste "liste_ma_daten"
-        df_ma_daten = pd.read_excel(f"{mitarbeiter}", index_col='Daten', na_filter=False)
-        liste_ma_daten = list(df_ma_daten.iloc[:, 0])
+        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+        daten = self._import_excel_daten(mitarbeiter)
 
         # Daten aus importierter Excel-Tabelle 'Personalnummer.xlsx' pruefen
-        personalnummer = self._existenz_str_daten_feststellen(liste_ma_daten[0], 'Personalnummer', 32, True)
+        personalnummer = self._existenz_str_daten_feststellen(daten[0], 'Personalnummer', 32, True)
 
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
-
-        # Stored Procedure aufrufen
-        cur.callproc('delete_mitarbeiterdaten', [self.mandant_id, personalnummer])
-
-        # Commit der Änderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
+        export_daten = [self.mandant_id, personalnummer]
+        self._export_zu_db('delete_mitarbeiterdaten', export_daten, schema)
 
     def delete_mandantendaten(self):
         """

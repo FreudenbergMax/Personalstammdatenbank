@@ -1073,7 +1073,8 @@ create table GKV_Beitraege(
 	AN_Krankenversicherungsbeitrag_in_Prozent decimal(5, 3) not null,
 	Beitragsbemessungsgrenze_KV_Ost decimal(10, 2) not null,
 	Beitragsbemessungsgrenze_KV_West decimal(10, 2) not null,
-	unique(Mandant_ID, AG_Krankenversicherungsbeitrag_in_Prozent, AN_Krankenversicherungsbeitrag_in_Prozent, Beitragsbemessungsgrenze_KV_Ost, Beitragsbemessungsgrenze_KV_West),
+	unique(Mandant_ID, AG_Krankenversicherungsbeitrag_in_Prozent, AN_Krankenversicherungsbeitrag_in_Prozent, 
+			Beitragsbemessungsgrenze_KV_Ost, Beitragsbemessungsgrenze_KV_West),
 	constraint fk_gkvbeitraege_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
@@ -4758,6 +4759,7 @@ $$
 declare
 	v_krankenversicherungsbeitrag_id integer;
 	v_krankenversicherung_id integer;
+	v_datum_von date;
 begin
     
     set session role tenant_user;
@@ -4823,6 +4825,13 @@ begin
 				p_beitragsbemessungsgrenze_kv_ost,
 				p_beitragsbemessungsgrenze_kv_west;
     end if;
+
+	-- pruefen, ob 'Datum_Bis' ein juengeres Datum hat als "Datum_Von"
+	execute 'SELECT datum_von FROM hat_gkv_beitraege WHERE datum_bis = ''9999-12-31''' into v_datum_von;
+	if v_datum_von > p_alter_eintrag_gueltig_bis then
+		set role postgres;
+		raise exception 'Startdatum ''%'' des alten Eintrags liegt vor letztgueltiger Tag ''%''. Das ist unlogisch!', v_datum_von, p_alter_eintrag_gueltig_bis;
+	end if;
    	
    	-- beim veralteten Eintrag das 'Bis_Datum' auf den letzten Tag der Gueltigkeit updaten...
     execute 'UPDATE hat_gkv_beitraege SET Datum_Bis = $1 WHERE krankenversicherung_id = $2 AND Datum_Bis = ''9999-12-31''' 
@@ -4833,12 +4842,6 @@ begin
    		values (v_krankenversicherung_id, v_krankenversicherungsbeitrag_id, p_mandant_id, p_neuer_eintrag_gueltig_ab, '9999-12-31');
 
     set role postgres;
-
-exception
-
-    when unique_violation then
-    	set role postgres;
-        raise notice 'Diese GKV-Beitragssätze und GKV-Beitragsbemessungsgrenzen sind bereits aktuell!';
    
 end;
 $$

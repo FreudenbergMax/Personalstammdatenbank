@@ -70,7 +70,7 @@ class TestNutzerInsertAussertariflicherVerguetungsbestandteil(unittest.TestCase)
 
         # Mitarbeiter einfuegen
         self.testfirma.get_nutzer("M100001"). \
-            insert_neuer_mitarbeiter('testdaten_insert_mitarbeiter/Mitarbeiter aussertariflich.xlsx', self.testschema)
+            insert_neuer_mitarbeiter('testdaten_insert_mitarbeiter/Mitarbeiter - aussertariflich.xlsx', self.testschema)
 
     def test_erfolgreicher_eintrag(self):
         """
