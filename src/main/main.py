@@ -29,7 +29,7 @@ testfirma.get_nutzer("M100001").\
 testfirma.get_nutzer("M100001").\
     insert_anzahl_kinder_an_pv_beitrag('insert Sozialversicherungsdaten/5 Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx')
 testfirma.get_nutzer("M100001").\
-    insert_arbeitsort_sachsen_ag_pv_beitrag('insert Sozialversicherungsdaten/6 wohnhaft Sachsen Arbeitgeber PV-Beitrag.xlsx')
+    insert_arbeitsort_sachsen_ag_pv_beitrag('insert Sozialversicherungsdaten/6 Arbeitsort Sachsen Arbeitgeber PV-Beitrag.xlsx')
 testfirma.get_nutzer("M100001").\
     insert_arbeitslosenversicherungsbeitraege('insert Sozialversicherungsdaten/7 Arbeitslosenversicherungsbeitraege.xlsx')
 testfirma.get_nutzer("M100001").\
@@ -47,11 +47,11 @@ testfirma.get_nutzer("M100001").insert_tarif('insert Entgeltdaten/2 Tarif.xlsx')
 testfirma.get_nutzer("M100001").insert_verguetungsbestandteil('insert Entgeltdaten/3 Verguetungsbestandteil.xlsx')
 
 # zentrale Funktion: neuen Mitarbeiter anlegen!
-testfirma.get_nutzer("M100001").insert_neuer_mitarbeiter('insert personenbezogene Daten/Mitarbeiter.xlsx')
+testfirma.get_nutzer("M100001").insert_neuer_mitarbeiter('insert personenbezogene Daten/10 Mitarbeiter.xlsx')
 
 # Entgeltbestandteil fuer aussertariflichen Mitarbeiter anlegen
-testfirma.get_nutzer("M100001").\
-    insert_aussertariflicher_verguetungsbestandteil('insert personenbezogene Daten/11 aussertariflicher Verguetungsbestandteil.xlsx')
+#testfirma.get_nutzer("M100001").\
+#    insert_aussertarifliches_verguetungsbestandteil('insert personenbezogene Daten/11 aussertariflicher Verguetungsbestandteil.xlsx')
 
 # Update personenbezogene Daten
 testfirma.get_nutzer("M100001").update_adresse('update personenbezogene Daten/1 Update Adresse.xlsx')
@@ -65,8 +65,8 @@ testfirma.get_nutzer("M100001").\
     update_krankenversicherungsbeitraege('update Sozialversicherungsdaten/1 Krankenversicherungsbeitraege.xlsx')
 
 # Delete Daten
-testfirma.get_nutzer("M100001").delete_mitarbeiterdaten('delete personenbezogene Daten/Personalnummer.xlsx')
-testfirma.get_nutzer("M100001").delete_mandantendaten()
+#testfirma.get_nutzer("M100001").delete_mitarbeiterdaten('delete personenbezogene Daten/Personalnummer.xlsx')
+#testfirma.get_nutzer("M100001").delete_mandantendaten()
 
 
 
