@@ -293,22 +293,22 @@ class Nutzer:
                                                                             99,
                                                                             'Arbeitnehmerbeitrag GKV in Prozent',
                                                                             True)
-        beitragsbemessungsgrenze_gkv_ost = self._existenz_zahlen_daten_feststellen(daten[3],
-                                                                                   99999999,
-                                                                                   'Beitragsbemessungsgrenze GKV Ost',
-                                                                                   True)
-        beitragsbemessungsgrenze_gkv_west = self._existenz_zahlen_daten_feststellen(daten[4],
-                                                                                    99999999,
-                                                                                    'Beitragsbemessungsgrenze GKV West',
-                                                                                    True)
+        beitragsbemessungsgrenze_gkv = self._existenz_zahlen_daten_feststellen(daten[3],
+                                                                               99999999,
+                                                                               'Beitragsbemessungsgrenze GKV',
+                                                                               True)
+        jahresarbeitsentgeltgrenze_gkv = self._existenz_zahlen_daten_feststellen(daten[4],
+                                                                                 99999999,
+                                                                                 'Jahresarbeitsentgeltgrenze GKV',
+                                                                                 True)
         eintragungsdatum = self._existenz_date_daten_feststellen(daten[5], 'Eintragungsdatum', True)
 
         export_daten = [self.mandant_id,
                         ermaessigter_beitragssatz,
                         ag_gkv_beitrag_in_prozent,
                         an_gkv_beitrag_in_prozent,
-                        beitragsbemessungsgrenze_gkv_ost,
-                        beitragsbemessungsgrenze_gkv_west,
+                        beitragsbemessungsgrenze_gkv,
+                        jahresarbeitsentgeltgrenze_gkv,
                         eintragungsdatum]
 
         self._export_zu_db('insert_krankenversicherungsbeitraege', export_daten, schema)
@@ -424,22 +424,22 @@ class Nutzer:
         # Daten aus importierter Excel-Tabelle '5 Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx' pruefen
         anzahl_kinder = self._existenz_zahlen_daten_feststellen(daten[0], 99, 'Anzahl Kinder', True)
         an_beitrag_pv_in_prozent = self._existenz_zahlen_daten_feststellen(daten[1], 99, 'AN-Beitrag PV in %', True)
-        beitragsbemessungsgrenze_pv_ost = self._existenz_zahlen_daten_feststellen(daten[2],
-                                                                                  99999999,
-                                                                                  'Beitragsbemessungsgrenze PV Ost',
-                                                                                  True)
-        beitragsbemessungsgrenze_pv_west = self._existenz_zahlen_daten_feststellen(daten[3],
-                                                                                   99999999,
-                                                                                   'Beitragsbemessungsgrenze PV West',
-                                                                                   True)
+        beitragsbemessungsgrenze_pv = self._existenz_zahlen_daten_feststellen(daten[2],
+                                                                              99999999,
+                                                                              'Beitragsbemessungsgrenze PV',
+                                                                              True)
+        jahresarbeitsentgeltgrenze_pv = self._existenz_zahlen_daten_feststellen(daten[3],
+                                                                                99999999,
+                                                                                'Jahresarbeitsentgeltgrenze PV',
+                                                                                True)
 
         eintragungsdatum = self._existenz_date_daten_feststellen(daten[4], 'Eintragungsdatum', True)
 
         export_daten = [self.mandant_id,
                         anzahl_kinder,
                         an_beitrag_pv_in_prozent,
-                        beitragsbemessungsgrenze_pv_ost,
-                        beitragsbemessungsgrenze_pv_west,
+                        beitragsbemessungsgrenze_pv,
+                        jahresarbeitsentgeltgrenze_pv,
                         eintragungsdatum]
 
         self._export_zu_db('insert_anzahl_kinder_an_pv_beitrag', export_daten, schema)
@@ -1018,14 +1018,14 @@ class Nutzer:
                                                                             99,
                                                                             'Arbeitnehmerbeitrag GKV in Prozent',
                                                                             True)
-        beitragsbemessungsgrenze_gkv_ost = self._existenz_zahlen_daten_feststellen(daten[3],
-                                                                                   99999999,
-                                                                                   'Beitragsbemessungsgrenze GKV Ost',
-                                                                                   True)
-        beitragsbemessungsgrenze_gkv_west = self._existenz_zahlen_daten_feststellen(daten[4],
-                                                                                    99999999,
-                                                                                    'Beitragsbemessungsgrenze GKV West',
-                                                                                    True)
+        beitragsbemessungsgrenze_gkv = self._existenz_zahlen_daten_feststellen(daten[3],
+                                                                               99999999,
+                                                                               'Beitragsbemessungsgrenze GKV',
+                                                                               True)
+        jahresarbeitsentgeltgrenze_gkv = self._existenz_zahlen_daten_feststellen(daten[4],
+                                                                                 99999999,
+                                                                                 'Jahresarbeitsentgeltgrenze GKV',
+                                                                                 True)
         neuer_eintrag_gueltig_ab = self._existenz_date_daten_feststellen(daten[5], 'Gueltig ab', True)
         alter_eintrag_gueltig_bis = self._vorherigen_tag_berechnen(neuer_eintrag_gueltig_ab)
 
@@ -1033,8 +1033,8 @@ class Nutzer:
                         ermaessigter_beitragssatz,
                         ag_gkv_beitrag_in_prozent,
                         an_gkv_beitrag_in_prozent,
-                        beitragsbemessungsgrenze_gkv_ost,
-                        beitragsbemessungsgrenze_gkv_west,
+                        beitragsbemessungsgrenze_gkv,
+                        jahresarbeitsentgeltgrenze_gkv,
                         alter_eintrag_gueltig_bis,
                         neuer_eintrag_gueltig_ab]
         self._export_zu_db('update_krankenversicherungsbeitraege', export_daten, schema)

@@ -1071,10 +1071,10 @@ create table GKV_Beitraege(
 	Mandant_ID integer not null,
 	AG_Krankenversicherungsbeitrag_in_Prozent decimal(5, 3) not null,
 	AN_Krankenversicherungsbeitrag_in_Prozent decimal(5, 3) not null,
-	Beitragsbemessungsgrenze_KV_Ost decimal(10, 2) not null,
-	Beitragsbemessungsgrenze_KV_West decimal(10, 2) not null,
+	Beitragsbemessungsgrenze_GKV decimal(10, 2) not null,
+	Jahresarbeitsentgeltgrenze_GKV decimal(10, 2) not null,
 	unique(Mandant_ID, AG_Krankenversicherungsbeitrag_in_Prozent, AN_Krankenversicherungsbeitrag_in_Prozent, 
-			Beitragsbemessungsgrenze_KV_Ost, Beitragsbemessungsgrenze_KV_West),
+			Beitragsbemessungsgrenze_GKV, Jahresarbeitsentgeltgrenze_GKV),
 	constraint fk_gkvbeitraege_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
@@ -1307,9 +1307,9 @@ create table AN_Pflegeversicherungsbeitraege_gesetzlich (
 	AN_PV_Beitrag_ID serial primary key,
 	Mandant_ID integer not null,
 	AN_Anteil_PV_Beitrag_in_Prozent decimal(5, 3) not null,
-	Beitragsbemessungsgrenze_PV_Ost decimal(10, 2) not null,
-	Beitragsbemessungsgrenze_PV_West decimal(10, 2) not null,
-	unique(Mandant_ID, AN_Anteil_PV_Beitrag_in_Prozent, Beitragsbemessungsgrenze_PV_Ost, Beitragsbemessungsgrenze_PV_West),
+	Beitragsbemessungsgrenze_PV decimal(10, 2) not null,
+	Jahresarbeitsentgeltgrenze_PV decimal(10, 2) not null,
+	unique(Mandant_ID, AN_Anteil_PV_Beitrag_in_Prozent, Beitragsbemessungsgrenze_PV, Jahresarbeitsentgeltgrenze_PV),
 	constraint fk_anpflegeversicherungsbeitraegegesetzlich_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
@@ -1777,8 +1777,8 @@ create or replace function insert_krankenversicherungsbeitraege (
 	p_ermaessigter_beitragssatz boolean,
 	p_ag_krankenversicherungsbeitrag_in_prozent decimal(5, 3),
 	p_an_krankenversicherungsbeitrag_in_prozent decimal(5, 3),
-	p_beitragsbemessungsgrenze_kv_ost decimal(10, 2),
-	p_beitragsbemessungsgrenze_kv_west decimal(10, 2),
+	p_beitragsbemessungsgrenze_gkv decimal(10, 2),
+	p_jahresarbeitsentgeltgrenze_gkv decimal(10, 2),
 	p_eintragungsdatum date
 ) returns void as
 $$
@@ -1819,15 +1819,15 @@ begin
 			 WHERE 
 				ag_krankenversicherungsbeitrag_in_prozent = $1 AND
 				an_krankenversicherungsbeitrag_in_prozent = $2 AND
-				beitragsbemessungsgrenze_kv_ost = $3 AND
-				beitragsbemessungsgrenze_kv_west = $4' 
+				beitragsbemessungsgrenze_gkv = $3 AND
+				jahresarbeitsentgeltgrenze_gkv = $4' 
    			into 
    				v_krankenversicherungsbeitrag_id 
 			using 
 				p_ag_krankenversicherungsbeitrag_in_prozent, 
 				p_an_krankenversicherungsbeitrag_in_prozent,
-				p_beitragsbemessungsgrenze_kv_ost,
-				p_beitragsbemessungsgrenze_kv_west;
+				p_beitragsbemessungsgrenze_gkv,
+				p_jahresarbeitsentgeltgrenze_gkv;
     
     -- ... und falls sie nicht existiert, dann eintragen
     if v_krankenversicherungsbeitrag_id is null then
@@ -1835,14 +1835,14 @@ begin
 	   		GKV_Beitraege(Mandant_ID, 
 				   		  AG_Krankenversicherungsbeitrag_in_Prozent,
 						  AN_Krankenversicherungsbeitrag_in_Prozent,
-						  Beitragsbemessungsgrenze_KV_Ost,
-						  Beitragsbemessungsgrenze_KV_West)
+						  Beitragsbemessungsgrenze_GKV,
+						  Jahresarbeitsentgeltgrenze_GKV)
 	   	values
 	   		(p_mandant_id, 
 	   		 p_ag_krankenversicherungsbeitrag_in_prozent,
 			 p_an_krankenversicherungsbeitrag_in_prozent,
-			 p_beitragsbemessungsgrenze_kv_ost,
-			 p_beitragsbemessungsgrenze_kv_west);
+			 p_beitragsbemessungsgrenze_gkv,
+			 p_jahresarbeitsentgeltgrenze_gkv);
 		
 		-- Nochmal krankenversicherungsbeitrag_id ziehen, da diese als Schluessel fuer die Assoziation 'hat_GKV_Beitraege' benoetigt wird
 		execute 'SELECT 
@@ -1852,15 +1852,15 @@ begin
 			 WHERE 
 				ag_krankenversicherungsbeitrag_in_prozent = $1 AND
 				an_krankenversicherungsbeitrag_in_prozent = $2 AND
-				beitragsbemessungsgrenze_kv_ost = $3 AND
-				beitragsbemessungsgrenze_kv_west = $4' 
+				beitragsbemessungsgrenze_gkv = $3 AND
+				jahresarbeitsentgeltgrenze_gkv = $4' 
    			into 
    				v_krankenversicherungsbeitrag_id 
 			using 
 				p_ag_krankenversicherungsbeitrag_in_prozent, 
 				p_an_krankenversicherungsbeitrag_in_prozent,
-				p_beitragsbemessungsgrenze_kv_ost,
-				p_beitragsbemessungsgrenze_kv_west;
+				p_beitragsbemessungsgrenze_gkv,
+				p_jahresarbeitsentgeltgrenze_gkv;
     end if;
    
     -- Datensatz in Assoziation 'hat_GKV_Beitraege', welche die Tabellen 'Krankenversicherungen' und 'GKV_Beitraege' verbindet, eintragen
@@ -2147,8 +2147,8 @@ create or replace function insert_anzahl_kinder_an_pv_beitrag (
 	p_mandant_id integer,
 	p_anzahl_kinder integer,
 	p_an_anteil_pv_beitrag_in_prozent decimal(5, 3),
-	p_beitragsbemessungsgrenze_pv_ost decimal(10, 2),
-	p_beitragsbemessungsgrenze_pv_west decimal(10, 2),
+	p_beitragsbemessungsgrenze_pv decimal(10, 2),
+	p_jahresarbeitsentgeltgrenze_pv decimal(10, 2),
 	p_eintragungsdatum date
 ) returns void as
 $$
@@ -2188,25 +2188,25 @@ begin
 				an_pflegeversicherungsbeitraege_gesetzlich
 			 WHERE 
 				an_anteil_pv_beitrag_in_prozent = $1 AND
-				beitragsbemessungsgrenze_pv_ost = $2 AND
-				beitragsbemessungsgrenze_pv_west = $3' 
+				beitragsbemessungsgrenze_pv = $2 AND
+				jahresarbeitsentgeltgrenze_pv = $3' 
    			into 
    				v_an_pv_beitrag_id
 			using 
 				p_an_anteil_pv_beitrag_in_prozent,
-				p_beitragsbemessungsgrenze_pv_ost,
-				p_beitragsbemessungsgrenze_pv_west;
+				p_beitragsbemessungsgrenze_pv,
+				p_jahresarbeitsentgeltgrenze_pv;
    	
 	-- ... falls nicht, dann eintragen
    	if v_an_pv_beitrag_id is null then
 	   	insert into AN_Pflegeversicherungsbeitraege_gesetzlich(Mandant_ID, 
 	   														   AN_Anteil_PV_Beitrag_in_Prozent, 
-	   														   Beitragsbemessungsgrenze_PV_Ost, 
-	   														   Beitragsbemessungsgrenze_PV_West)
+	   														   Beitragsbemessungsgrenze_PV, 
+	   														   Jahresarbeitsentgeltgrenze_PV)
 	   		values (p_mandant_id, 
 	   				p_an_anteil_pv_beitrag_in_prozent,
-					p_beitragsbemessungsgrenze_pv_ost,
-					p_beitragsbemessungsgrenze_pv_west);
+					p_beitragsbemessungsgrenze_pv,
+					p_jahresarbeitsentgeltgrenze_pv);
 		
 		-- Nochmal an_pv_beitrag_id ziehen, da diese als Schluessel fuer die Assoziation 'hat_GKV_Zusatzbeitrag' benoetigt wird
 		execute 'SELECT 
@@ -2215,14 +2215,14 @@ begin
 					an_pflegeversicherungsbeitraege_gesetzlich
 				 WHERE 
 					an_anteil_pv_beitrag_in_prozent = $1 AND
-					beitragsbemessungsgrenze_pv_ost = $2 AND
-					beitragsbemessungsgrenze_pv_west = $3' 
-	   			into 
-	   				v_an_pv_beitrag_id
-				using 
+					beitragsbemessungsgrenze_pv = $2 AND
+					jahresarbeitsentgeltgrenze_pv = $3' 
+				 into 
+					v_an_pv_beitrag_id
+				 using 
 					p_an_anteil_pv_beitrag_in_prozent,
-					p_beitragsbemessungsgrenze_pv_ost,
-					p_beitragsbemessungsgrenze_pv_west;
+					p_beitragsbemessungsgrenze_pv,
+					p_jahresarbeitsentgeltgrenze_pv;
 	end if;
 	
 	-- Datensatz in Assoziation 'hat_gesetzlichen_AN_PV_Beitragssatz', welche die Tabellen 'Anzahl_Kinder_unter_25' und 
@@ -4750,8 +4750,8 @@ create or replace function update_krankenversicherungsbeitraege (
 	p_ermaessigter_beitragssatz boolean,
 	p_ag_krankenversicherungsbeitrag_in_prozent decimal(5, 3),
 	p_an_krankenversicherungsbeitrag_in_prozent decimal(5, 3),
-	p_beitragsbemessungsgrenze_kv_ost decimal(10, 2),
-	p_beitragsbemessungsgrenze_kv_west decimal(10, 2),
+	p_beitragsbemessungsgrenze_gkv decimal(10, 2),
+	p_jahresarbeitsentgeltgrenze_gkv decimal(10, 2),
 	p_alter_eintrag_gueltig_bis date,
 	p_neuer_eintrag_gueltig_ab date
 ) returns void as
@@ -4782,15 +4782,15 @@ begin
 			 WHERE 
 				ag_krankenversicherungsbeitrag_in_prozent = $1 AND
 				an_krankenversicherungsbeitrag_in_prozent = $2 AND
-				beitragsbemessungsgrenze_kv_ost = $3 AND
-				beitragsbemessungsgrenze_kv_west = $4' 
+				beitragsbemessungsgrenze_gkv = $3 AND
+				jahresarbeitsentgeltgrenze_gkv = $4' 
    			into 
    				v_krankenversicherungsbeitrag_id 
 			using 
 				p_ag_krankenversicherungsbeitrag_in_prozent, 
 				p_an_krankenversicherungsbeitrag_in_prozent,
-				p_beitragsbemessungsgrenze_kv_ost,
-				p_beitragsbemessungsgrenze_kv_west;
+				p_beitragsbemessungsgrenze_gkv,
+				p_jahresarbeitsentgeltgrenze_gkv;
     
     -- ... und falls sie nicht existiert, dann eintragen
     if v_krankenversicherungsbeitrag_id is null then
@@ -4798,32 +4798,32 @@ begin
 	   		GKV_Beitraege(Mandant_ID, 
 				   		  AG_Krankenversicherungsbeitrag_in_Prozent,
 						  AN_Krankenversicherungsbeitrag_in_Prozent,
-						  Beitragsbemessungsgrenze_KV_Ost,
-						  Beitragsbemessungsgrenze_KV_West)
+						  Beitragsbemessungsgrenze_GKV,
+						  Jahresarbeitsentgeltgrenze_GKV)
 	   	values
 	   		(p_mandant_id, 
 	   		 p_ag_krankenversicherungsbeitrag_in_prozent,
 			 p_an_krankenversicherungsbeitrag_in_prozent,
-			 p_beitragsbemessungsgrenze_kv_ost,
-			 p_beitragsbemessungsgrenze_kv_west);
+			 p_beitragsbemessungsgrenze_gkv,
+			 p_jahresarbeitsentgeltgrenze_gkv);
 		
 		-- Nochmal krankenversicherungsbeitrag_id abfragen, da diese als Schluessel fuer die Assoziation 'hat_GKV_Beitraege' benoetigt wird
 		execute 'SELECT 
-				krankenversicherungsbeitrag_id
-			 FROM 
-				gkv_beitraege 
-			 WHERE 
-				ag_krankenversicherungsbeitrag_in_prozent = $1 AND
-				an_krankenversicherungsbeitrag_in_prozent = $2 AND
-				beitragsbemessungsgrenze_kv_ost = $3 AND
-				beitragsbemessungsgrenze_kv_west = $4' 
-   			into 
-   				v_krankenversicherungsbeitrag_id 
-			using 
-				p_ag_krankenversicherungsbeitrag_in_prozent, 
-				p_an_krankenversicherungsbeitrag_in_prozent,
-				p_beitragsbemessungsgrenze_kv_ost,
-				p_beitragsbemessungsgrenze_kv_west;
+				 	krankenversicherungsbeitrag_id
+			 	 FROM 
+					gkv_beitraege 
+			 	 WHERE 
+					ag_krankenversicherungsbeitrag_in_prozent = $1 AND
+					an_krankenversicherungsbeitrag_in_prozent = $2 AND
+					beitragsbemessungsgrenze_gkv = $3 AND
+					jahresarbeitsentgeltgrenze_gkv = $4' 
+				 into 
+					v_krankenversicherungsbeitrag_id 
+				 using 
+					p_ag_krankenversicherungsbeitrag_in_prozent, 
+					p_an_krankenversicherungsbeitrag_in_prozent,
+					p_beitragsbemessungsgrenze_gkv,
+					p_jahresarbeitsentgeltgrenze_gkv;
     end if;
 
 	-- pruefen, ob 'Datum_Bis' ein juengeres Datum hat als "Datum_Von"
