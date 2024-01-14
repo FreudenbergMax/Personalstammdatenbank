@@ -44,7 +44,7 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Abteilung 'Human Resources Personalcontrolling' oder "
                                                  "Abteilungskuerzel 'HR PC' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_abteilung(integer,character "
-                                                 "varying,character varying) Zeile 17 bei RAISE\n")
+                                                 "varying,character varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM abteilungen",
@@ -69,7 +69,7 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Abteilung 'Human Resources Personalcontrolling' oder "
                                                  "Abteilungskuerzel 'HRPC' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_abteilung(integer,character "
-                                                 "varying,character varying) Zeile 17 bei RAISE\n")
+                                                 "varying,character varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM abteilungen",
@@ -94,7 +94,7 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Abteilung 'HumanResources Personalcontrolling' oder "
                                                  "Abteilungskuerzel 'HR PC' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_abteilung(integer,character "
-                                                 "varying,character varying) Zeile 17 bei RAISE\n")
+                                                 "varying,character varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM abteilungen",
@@ -121,7 +121,7 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Abteilung 'human resources personalcontrolling' oder "
                                                  "Abteilungskuerzel 'HR PC' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_abteilung(integer,character "
-                                                 "varying,character varying) Zeile 17 bei RAISE\n")
+                                                 "varying,character varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM abteilungen",
@@ -148,7 +148,7 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Abteilung 'Human Resources Personalcontrolling' oder "
                                                  "Abteilungskuerzel 'hr pc' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_abteilung(integer,character "
-                                                 "varying,character varying) Zeile 17 bei RAISE\n")
+                                                 "varying,character varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM abteilungen",

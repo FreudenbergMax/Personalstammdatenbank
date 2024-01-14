@@ -38,13 +38,9 @@ class TestNutzerAnlegen(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             self.testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.testschema)
 
-        self.assertEqual(str(context.exception), "FEHLER:  Diese Personalnummer wird bereits verwendet!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion pruefe_einmaligkeit_personalnummer("
-                                                 "integer,character varying,character varying) Zeile 13 bei RAISE\n"
-                                                 "SQL-Anweisung »call pruefe_einmaligkeit_personalnummer("
-                                                 "p_mandant_id, 'nutzer', p_personalnummer)«\n"
-                                                 "PL/pgSQL-Funktion nutzer_anlegen(integer,character varying,character "
-                                                 "varying,character varying) Zeile 9 bei CALL\n")
+        self.assertEqual(str(context.exception), "FEHLER:  Personalnummer 'M100001' wird bereits verwendet!\n"
+                                                 "CONTEXT:  PL/pgSQL-Funktion nutzer_anlegen(integer,character varying,"
+                                                 "character varying,character varying) Zeile 16 bei RAISE\n")
 
     def test_vorname_zahl(self):
         """

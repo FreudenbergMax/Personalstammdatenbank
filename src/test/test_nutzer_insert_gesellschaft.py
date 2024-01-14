@@ -44,7 +44,7 @@ class TestNutzerInsertGesellschaft(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Gesellschaft 'Beispielfirma GmbH' oder 'Bf GmbH' bereits "
                                                  "vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_gesellschaft(integer,character "
-                                                 "varying,character varying) Zeile 16 bei RAISE\n")
+                                                 "varying,character varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM gesellschaften",
@@ -70,7 +70,7 @@ class TestNutzerInsertGesellschaft(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Gesellschaft 'Beispielfirma GmbH' oder 'BfGmbH' bereits "
                                                  "vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_gesellschaft(integer,character "
-                                                 "varying,character varying) Zeile 16 bei RAISE\n")
+                                                 "varying,character varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM gesellschaften",
@@ -96,7 +96,7 @@ class TestNutzerInsertGesellschaft(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Gesellschaft 'BeispielfirmaGmbH' oder 'Bf GmbH' bereits "
                                                  "vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_gesellschaft(integer,character "
-                                                 "varying,character varying) Zeile 16 bei RAISE\n")
+                                                 "varying,character varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM gesellschaften",
@@ -123,7 +123,7 @@ class TestNutzerInsertGesellschaft(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Gesellschaft 'beispielfirma gmbh' oder 'Bf GmbH' bereits "
                                                  "vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_gesellschaft(integer,character "
-                                                 "varying,character varying) Zeile 16 bei RAISE\n")
+                                                 "varying,character varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM gesellschaften",
@@ -150,7 +150,7 @@ class TestNutzerInsertGesellschaft(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Gesellschaft 'Beispielfirma GmbH' oder 'bf gmbh' bereits "
                                                  "vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_gesellschaft(integer,character "
-                                                 "varying,character varying) Zeile 16 bei RAISE\n")
+                                                 "varying,character varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM gesellschaften",

@@ -61,7 +61,7 @@ class TestNutzerUpdateAbteilungshierarchie(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Die untergeordnete Abteilung 'Human Resources Personal "
                                                  "Controlling' ist nicht angelegt!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion update_erstelle_abteilungshierarchie("
-                                                 "integer,character varying,character varying) Zeile 14 bei RAISE\n")
+                                                 "integer,character varying,character varying) Zeile 13 bei RAISE\n")
 
     def test_oberabteilung_existiert_nicht(self):
         """
@@ -76,7 +76,7 @@ class TestNutzerUpdateAbteilungshierarchie(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Die uebergeordnete Abteilung 'HumanResources' ist nicht "
                                                  "angelegt!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion update_erstelle_abteilungshierarchie"
-                                                 "(integer,character varying,character varying) Zeile 21 bei RAISE\n")
+                                                 "(integer,character varying,character varying) Zeile 19 bei RAISE\n")
 
     def tearDown(self):
         """

@@ -118,7 +118,7 @@ class TestNutzerInsertAussertariflicherVerguetungsbestandteil(unittest.TestCase)
                                                  "aktuellen Verguetungsbestandteil 'Grundgehalt'!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion "
                                                  "insert_aussertarifliches_verguetungsbestandteil(integer,character "
-                                                 "varying,character varying,numeric,date) Zeile 45 bei RAISE\n")
+                                                 "varying,character varying,numeric,date) Zeile 40 bei RAISE\n")
 
         # Pruefen, ob Daten nur einmal eingetragen wurden
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "
@@ -172,7 +172,7 @@ class TestNutzerInsertAussertariflicherVerguetungsbestandteil(unittest.TestCase)
                                                  "Beschaeftigter hinterlegt!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion "
                                                  "insert_aussertarifliches_verguetungsbestandteil(integer,character "
-                                                 "varying,character varying,numeric,date) Zeile 35 bei RAISE\n")
+                                                 "varying,character varying,numeric,date) Zeile 32 bei RAISE\n")
 
         # Pruefen, ob auch tatsaechlich aufgrund fehlenden aussertariflichen Mitarbeiter kein Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "
@@ -193,7 +193,7 @@ class TestNutzerInsertAussertariflicherVerguetungsbestandteil(unittest.TestCase)
         self.assertEqual(str(context.exception), "FEHLER:  Bitte erst Mitarbeiter 'M100004' anlegen!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion "
                                                  "insert_aussertarifliches_verguetungsbestandteil(integer,character "
-                                                 "varying,character varying,numeric,date) Zeile 26 bei RAISE\n")
+                                                 "varying,character varying,numeric,date) Zeile 24 bei RAISE\n")
 
         # Pruefen, ob auch tatsaechlich aufgrund fehlenden Mitarbeiters kein Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "
@@ -214,7 +214,7 @@ class TestNutzerInsertAussertariflicherVerguetungsbestandteil(unittest.TestCase)
         self.assertEqual(str(context.exception), "FEHLER:  Bitte erst Verguetungsbestandteil 'Bonus' anlegen!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion "
                                                  "insert_aussertarifliches_verguetungsbestandteil(integer,character "
-                                                 "varying,character varying,numeric,date) Zeile 17 bei RAISE\n")
+                                                 "varying,character varying,numeric,date) Zeile 16 bei RAISE\n")
 
         # Pruefen, ob auch tatsaechlich aufgrund fehlenden Verguetungsbestandteils kein Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "

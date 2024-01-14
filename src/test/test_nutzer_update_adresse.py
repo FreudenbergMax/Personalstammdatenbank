@@ -128,7 +128,7 @@ class TestNutzerUpdateAdresse(unittest.TestCase):
                                                  "CONTEXT:  PL/pgSQL-Funktion update_adresse(integer,character varying,"
                                                  "date,date,character varying,character varying,character varying,"
                                                  "character varying,character varying,character varying,character "
-                                                 "varying) Zeile 34 bei RAISE\n")
+                                                 "varying) Zeile 31 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM wohnt_in", self.testschema)
@@ -181,7 +181,7 @@ class TestNutzerUpdateAdresse(unittest.TestCase):
                                                  "CONTEXT:  PL/pgSQL-Funktion update_adresse(integer,character varying,"
                                                  "date,date,character varying,character varying,character varying,"
                                                  "character varying,character varying,character varying,character "
-                                                 "varying) Zeile 14 bei RAISE\n")
+                                                 "varying) Zeile 13 bei RAISE\n")
 
     def tearDown(self):
         """

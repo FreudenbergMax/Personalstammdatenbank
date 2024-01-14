@@ -266,6 +266,7 @@ create table Nutzer(
 	Personalnummer varchar(32) not null,
 	Vorname varchar(64) not null,
 	Nachname varchar(64) not null,
+	unique(Mandant_ID, Personalnummer),
 	constraint fk_Nutzer_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
@@ -1656,8 +1657,6 @@ declare
 	v_mandant varchar(128);
 	v_mandant_id integer;
 begin
-	
-	set role postgres;
 
 	-- Prüfung, ob der Name des Mandanten (bzw. der Firma) bereits existiert. Falls ja, so soll eine Exception geworfen werden. Andernfalls soll der Mandant angelegt werden
 	execute 'SELECT firma FROM mandanten WHERE firma = $1' INTO v_mandant USING p_firma;
@@ -1670,6 +1669,7 @@ begin
     
 	-- Mandant_ID des soeben angelegten Mandanten abfragen, damit diese im Mandant-Objekt auf der Python-Seite gespeichert werden kann.
 	execute 'SELECT mandant_id FROM mandanten WHERE firma = $1' INTO v_mandant_id USING p_firma;
+
 	return v_mandant_id;
 
 end;
@@ -1689,52 +1689,19 @@ $$
 declare
 	v_nutzer_id integer;
 begin
-	
-	set session role tenant_user;
-	execute 'SET app.current_tenant=' || p_mandant_id;
-
-	call pruefe_einmaligkeit_personalnummer(p_mandant_id, 'nutzer', p_personalnummer);
 
     insert into Nutzer(Mandant_ID, Personalnummer, Vorname, Nachname)
 		values(p_mandant_id, p_personalnummer, p_vorname, p_nachname);
 	
 	-- Mandant_ID des soeben angelegten Mandanten abfragen, damit diese im Mandant-Objekt auf der Python-Seite gespeichert werden kann.
-	execute 'SELECT nutzer_id FROM nutzer WHERE personalnummer = $1' INTO v_nutzer_id USING p_personalnummer;
+	execute 'SELECT nutzer_id FROM nutzer WHERE personalnummer = $1' INTO v_nutzer_id USING p_personalnummer;	
 
-	set role postgres;
-	
 	return v_nutzer_id;
+
+exception
+    when unique_violation then
+        raise exception 'Personalnummer ''%'' wird bereits verwendet!', p_personalnummer;
 	
-end;
-$$
-language plpgsql;
-
-/*
- * Diese Funktion prüft, ob die Personalnummer für einen neuen Mitarbeiter bereits vergeben ist. Ist die Personalnummer vergeben, so 
- * wird eine Exception geworfen. Diese Funktion wird aufgerufen, wenn ein neuer Mitarbeiter in die Datenbank eingetragen werden soll.
- */
-create or replace procedure pruefe_einmaligkeit_personalnummer(
-	p_mandant_id integer,
-	p_tabelle varchar(64),
-	p_personalnummer varchar(32)
-) as
-$$
-declare
-	v_vorhandene_personalnummer varchar(32);
-begin
-
-	set session role tenant_user;
-	execute 'SET app.current_tenant=' || p_mandant_id;
-	
-    execute 'SELECT personalnummer FROM '|| p_tabelle ||' WHERE personalnummer = $1' INTO v_vorhandene_personalnummer USING p_personalnummer;
-
-    if v_vorhandene_personalnummer is not null then
-    	set role postgres;
-    	raise exception 'Diese Personalnummer wird bereits verwendet!';
-	end if;
-
-	set role postgres;
-
 end;
 $$
 language plpgsql;
@@ -1748,13 +1715,12 @@ create or replace procedure nutzer_entfernen(
 ) as
 $$
 begin
-
-	set session role tenant_user;
-	execute 'SET app.current_tenant=' || p_mandant_id;
 	
-    delete from nutzer where Personalnummer = p_personalnummer and Mandant_ID = p_mandant_id;
-
-	set role postgres;
+    delete from 
+   		nutzer 
+   	where 
+   		Personalnummer = p_personalnummer and 
+   		Mandant_ID = p_mandant_id;
 
 end;
 $$
@@ -1794,8 +1760,6 @@ begin
     
     -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden müssen,...
     if v_krankenversicherung_id is not null then
-    
-		set role postgres;
 		raise exception 'Ermaessigung = ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_krankenversicherungsbeitraege''-Funktion!', p_ermaessigter_beitragssatz;   
     
 	--... ansonsten neue Kinderanzahl eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_GKV_Beitraege' benoetigt
@@ -1907,8 +1871,6 @@ begin
     
     -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden müssen, ...
     if v_krankenkasse_id is not null then
-    
-		set role postgres;
 		raise exception 'Gesetzliche Krankenkasse ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_gesetzliche_krankenkasse''-Funktion!', p_krankenkasse;   
     
 	--... ansonsten neue gesetzliche Krankenkasse eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_GKV_Zusatzbeitrag' benoetigt
@@ -1962,11 +1924,8 @@ begin
     insert into hat_Umlagen_gesetzlich(gesetzliche_Krankenkasse_ID, Umlage_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_krankenkasse_id, v_umlage_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
 
-    set role postgres;
-
 exception
     when unique_violation then
-    	set role postgres;
         raise exception 'Gesetzliche Krankenkasse ''%'' oder dessen Kuerzel ''%'' bereits vorhanden!', p_krankenkasse, p_krankenkassenkuerzel;
 
 end;
@@ -2007,8 +1966,6 @@ begin
     
     -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden muessen, ...
     if v_krankenkasse_id is not null then
-    
-		set role postgres;
 		raise exception 'Private Krankenkasse ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_privatkrankenkasse''-Funktion!', p_krankenkasse;   
     
 	--... ansonsten neue Privatkrankenkasse eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_Umlagen_privat' benoetigt
@@ -2041,11 +1998,8 @@ begin
     insert into hat_Umlagen_privat(Privatkrankenkasse_ID, Umlage_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_krankenkasse_id, v_umlage_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
 
-    set role postgres;
-
 exception
     when unique_violation then
-    	set role postgres;
         raise exception 'Private Krankenkasse ''%'' oder dessen Kuerzel ''%'' bereits vorhanden!', p_krankenkasse, p_krankenkassenkuerzel;
 
 end;
@@ -2086,8 +2040,6 @@ begin
     
     -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden muessen, ...
     if v_krankenkasse_id is not null then
-    
-		set role postgres;
 		raise exception 'Gemeldete Krankenkasse ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_gemeldete_Krankenkasse''-Funktion!', p_krankenkasse;   
     
 	--... ansonsten neue Krankenkasse eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_Umlagen_anderweitig' benoetigt
@@ -2120,11 +2072,8 @@ begin
     insert into hat_Umlagen_anderweitig(gemeldete_Krankenkasse_ID, Umlage_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_krankenkasse_id, v_umlage_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
 
-    set role postgres;
-
 exception
     when unique_violation then
-    	set role postgres;
         raise exception 'Gemeldete Krankenkasse ''%'' oder dessen Kuerzel ''%'' bereits vorhanden!', p_krankenkasse, p_krankenkassenkuerzel;
 
 end;
@@ -2164,8 +2113,6 @@ begin
     
     -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden müssen
     if v_anzahl_kinder_unter_25_id is not null then
-    
-		set role postgres;
 		raise exception 'Kinderanzahl ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_anzahl_kinder''-Funktion!', p_anzahl_kinder; 
 	
 	--... ansonsten neue Kinderanzahl eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_gesetzlichen_AN_PV_Beitragssatz' benoetigt
@@ -2227,8 +2174,6 @@ begin
 	-- 'AN_Pflegeversicherungsbeitraege_gesetzlich' verbindet, eintragen
 	insert into hat_gesetzlichen_AN_PV_Beitragssatz(Anzahl_Kinder_unter_25_ID, AN_PV_Beitrag_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_anzahl_kinder_unter_25_id, v_an_pv_beitrag_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
-   	
-    set role postgres;
 
 end;
 $$
@@ -2264,8 +2209,6 @@ begin
     
     -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden muessen
     if v_arbeitsort_sachsen_id is not null then
-    
-		set role postgres;
 		raise exception 'arbeitsort_sachsen = ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_arbeitsort_sachsen''-Funktion!', p_in_sachsen;   
 	
 	--... ansonsten eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_gesetzlichen_AG_PV_Beitragssatz' benoetigt
@@ -2298,8 +2241,6 @@ begin
 	-- 'AG_Pflegeversicherungsbeitraege_gesetzlich' verbindet, eintragen
     insert into hat_gesetzlichen_AG_PV_Beitragssatz(arbeitsort_sachsen_ID, AG_PV_Beitrag_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_arbeitsort_sachsen_id, v_ag_pv_beitrag_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
-
-    set role postgres;
 
 end;
 $$
@@ -2338,8 +2279,6 @@ begin
     
     -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden muessen
     if v_arbeitslosenversicherung_id is not null then
-    
-		set role postgres;
 		raise exception 'Arbeitslosenversicherung ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_arbeitslosenversicherung''-Funktion!';   
 	
 	--... ansonsten eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_AV_Beitraege' benoetigt
@@ -2410,8 +2349,6 @@ begin
 	-- 'Arbeitslosenversicherungsbeitraege' verbindet, eintragen
     insert into hat_AV_Beitraege(Arbeitslosenversicherung_ID, Arbeitslosenversicherungsbeitrag_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_arbeitslosenversicherung_id, v_arbeitslosenversicherungsbeitrag_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
-    
-    set role postgres;
 
 end;
 $$
@@ -2451,8 +2388,6 @@ begin
     
     -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden muessen
     if v_rentenversicherung_id is not null then
-    
-		set role postgres;
 		raise exception 'Rentenversicherung ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_rentenversicherung''-Funktion!';   
 	
 	--... ansonsten eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_RV_Beitraege' benoetigt
@@ -2523,8 +2458,6 @@ begin
 	-- 'Rentenversicherungsbeitraege' verbindet, eintragen
     insert into hat_RV_Beitraege(Rentenversicherung_ID, Rentenversicherungsbeitrag_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_rentenversicherung_id, v_rentenversicherungsbeitrag_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
-    
-    set role postgres;
 
 end;
 $$
@@ -2566,8 +2499,6 @@ begin
     
     -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden muessen
     if v_minijob_id is not null then
-    
-		set role postgres;
 		raise exception 'Kurzfristige Beschaeftigung = ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_Minijob''-Funktion!', p_kurzfristig_beschaeftigt;   
 	
 	--... ansonsten eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_Pauschalabgaben' benoetigt
@@ -2656,8 +2587,6 @@ begin
 	-- Datensatz in Assoziation 'hat_Pauschalabgaben', welche die Tabellen 'Minijobs' und 'Pauschalabgaben' verbindet, eintragen
     insert into hat_Pauschalabgaben(Minijob_ID, Pauschalabgabe_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_minijob_id, v_pauschalabgabe_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
-    
-    set role postgres;
 
 end;
 $$
@@ -2687,8 +2616,6 @@ begin
    		Berufsgenossenschaften(Mandant_ID, Berufsgenossenschaft, Abkuerzung)
    	values 
    		(p_mandant_id, p_berufsgenossenschaft, p_abkuerzung);
-    
-    set role postgres;
    
 exception
     when unique_violation then
@@ -2731,7 +2658,6 @@ begin
 
 	-- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Gesellschaft hinterlegt werden muss!
     if v_gesellschaft_id is null then
-		set role postgres;
 		raise exception 'Gesellschaft ''%'' mit Abkuerzung ''%'' nicht vorhanden!', p_gesellschaft, p_abkuerzung_gesellschaft;   
     end if;
    
@@ -2741,18 +2667,14 @@ begin
 
 	-- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Berufsgenossenschaft hinterlegt werden muss!
     if v_berufsgenossenschaft_id is null then
-		set role postgres;
 		raise exception 'Berufsgenossenschaft ''%'' mit Abkuerzung ''%'' nicht vorhanden!', p_berufsgenossenschaft, p_abkuerzung_berufsgenossenschaft;   
     end if;
     
     insert into Unfallversicherungsbeitraege(Gesellschaft_ID, Berufsgenossenschaft_ID, Mandant_ID, Beitrag, Beitragsjahr) 
    		values (v_gesellschaft_id, v_berufsgenossenschaft_id, p_mandant_id, p_beitrag, p_beitragsjahr);
-	
-   	set role postgres;
 
 exception
     when unique_violation then
-    	set role postgres;
         raise exception 'Unfallversicherungsbeitrag ist fuer das Jahr ''%'' bereits vermerkt!', p_beitragsjahr;
 end;
 $$
@@ -2782,8 +2704,6 @@ begin
    		Gewerkschaften(Mandant_ID, Gewerkschaft)
    	values 
    		(p_mandant_id, p_gewerkschaft);
-    
-    set role postgres;
    
 exception
     when unique_violation then
@@ -2816,7 +2736,6 @@ begin
     
     -- ... und falls sie noch nicht existiert, dann Meldung ausgeben
     if v_gewerkschaft_id is null then
-    	set role postgres;
 		raise exception 'Gewerkschaft ''%'' existiert nicht! Bitte tragen Sie erst eine Gewerkschaft ein!', p_gewerkschaft; 
     end if;
    
@@ -2825,8 +2744,6 @@ begin
     
     -- ... und falls sie bereits existiert, Meldung ausgeben
     if v_tarif_id is not null then
-    
-		set role postgres;
 		raise exception 'Tarif ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_Tarif''-Funktion!';   
 	
     end if; 
@@ -2834,8 +2751,6 @@ begin
    	-- ... ansonsten eintragen
 	insert into Tarife(Mandant_ID, Tarifbezeichnung, Gewerkschaft_ID)
 		values(p_mandant_id, p_tarifbezeichnung, v_gewerkschaft_id);
-
-    set role postgres;
 
 exception
     when unique_violation then
@@ -2863,8 +2778,6 @@ begin
 		Verguetungsbestandteile(Mandant_ID, Verguetungsbestandteil, Auszahlungsmonat) 
 	values 
 		(p_mandant_id, p_verguetungsbestandteil, p_auszahlungsmonat);
-    
-    set role postgres;
    
 exception
     when unique_violation then
@@ -2901,7 +2814,6 @@ begin
 
 	-- ... und falls nicht, dann Meldung ausgeben, dass dieser Verguetungsbestandteil erst hinterlegt werden muss!
 	if v_verguetungsbestandteil_id is null then
-		set role postgres;
 		raise exception 'Bitte erst Verguetungsbestandteil ''%'' anlegen!', p_Verguetungsbestandteil;
 	end if;
 
@@ -2910,14 +2822,11 @@ begin
 
 	-- ... falls Tarif nicht vorhanden ist, dann Meldung ausgeben, dass dieser erst hinterlegt werden muss!
 	if v_tarif_id is null then
-		set role postgres;
 		raise exception 'Bitte erst Tarif ''%'' anlegen!', p_tarifbezeichnung;
 	end if;
 	
     insert into hat_Verguetungsbestandteil_Tarif(Tarif_ID, Verguetungsbestandteil_ID, Mandant_ID, Betrag, Datum_Von, Datum_Bis) 
    		values (v_tarif_id, v_verguetungsbestandteil_id, p_mandant_id, p_betrag, p_gueltig_ab, '9999-12-31');
-   	
-   	set role postgres;
 
 exception
     when unique_violation then
@@ -2950,15 +2859,11 @@ begin
    		Geschlechter(Mandant_ID, Geschlecht) 
    	values 
    		(p_mandant_id, p_geschlecht);
-    
-    set role postgres;
 
 exception
     when unique_violation then
-    	set role postgres;
         raise exception 'Geschlecht ''%'' bereits vorhanden!', p_geschlecht;
     when check_violation then
-    	set role postgres;
     	raise exception 'Fuer Geschlechter sind nur folgende Werte erlaubt: ''maennlich'', ''weiblich'', ''divers''!';
 
 end;
@@ -2988,8 +2893,6 @@ begin
    		Mitarbeitertypen(Mandant_ID, Mitarbeitertyp) 
    	values 
    		(p_mandant_id, p_mitarbeitertyp);
-    
-    set role postgres;
 
 exception
     when unique_violation then
@@ -3018,15 +2921,11 @@ begin
    		Steuerklassen(Mandant_ID, Steuerklasse) 
    	values 
    		(p_mandant_id, p_steuerklasse);
-    
-    set role postgres;
    	
 exception
     when unique_violation then
-    	set role postgres;
         raise exception 'Steuerklasse ''%'' bereits vorhanden!', p_steuerklasse;
     when check_violation then
-    	set role postgres;
     	raise exception 'Fuer Steuerklassen sind nur folgende Werte erlaubt: 1, 2, 3, 4, 5, 6!';
     
 end;
@@ -3057,12 +2956,9 @@ begin
    		Abteilungen(Mandant_ID, Abteilung, Abkuerzung, untersteht_Abteilung)
    	values 
    		(p_mandant_id, p_abteilung, p_abkuerzung, null);
-    
-    set role postgres;
 
 exception
     when unique_violation then
-    	set role postgres;
         raise exception 'Abteilung ''%'' oder Abteilungskuerzel ''%'' bereits vorhanden!', p_abteilung, p_abkuerzung;
 end;
 $$
@@ -3091,12 +2987,9 @@ begin
    		Jobtitel(Mandant_ID, Jobtitel)
    	values 
    		(p_mandant_id, p_jobtitel);
-    
-    set role postgres;
 
 exception
     when unique_violation then
-    	set role postgres;
         raise exception 'Jobtitel ''%'' bereits vorhanden!', p_jobtitel;
 
 end;
@@ -3126,8 +3019,6 @@ begin
    		Erfahrungsstufen(Mandant_ID, Erfahrungsstufe)
    	values 
    		(p_mandant_id, p_erfahrungsstufe);
-    
-    set role postgres;
    
 exception
     when unique_violation then
@@ -3161,8 +3052,6 @@ begin
    		Gesellschaften(Mandant_ID, Gesellschaft, Abkuerzung, untersteht_Gesellschaft)
    	values 
    		(p_mandant_id, p_gesellschaft, p_abkuerzung, null);
-    
-    set role postgres;
    
 exception
     when unique_violation then
@@ -3196,13 +3085,10 @@ begin
    	values 
    		(p_mandant_id, p_austrittsgrundkategorie);
 
-    set role postgres;
-
 exception
     when unique_violation then
         raise exception 'Austrittsgrundkategorie ''%'' bereits vorhanden!', p_austrittsgrundkategorie;
     when check_violation then
-    	set role postgres;
     	raise exception 'Fuer Austrittsgrundkategorien sind nur folgende Werte erlaubt: ''verhaltensbedingt'', ''personenbedingt'', ''betriebsbedingt''!';
 
 end;
@@ -3238,8 +3124,6 @@ begin
    		Austrittsgruende(Mandant_ID, Austrittsgrund, Kategorie_Austrittsgruende_ID) 
    	values 
    		(p_mandant_id, p_austrittsgrund, v_kategorie_austrittsgruende_id);
-
-    set role postgres;
  
 exception
     when unique_violation then
@@ -3433,8 +3317,6 @@ begin
 	if p_rentenversichert and p_ist_kurzfristig_beschaeftigt is false then
 		call insert_tbl_hat_gesetzliche_rentenversicherung(p_mandant_id, p_personalnummer, p_eintrittsdatum);
 	end if;
-	
-	set role postgres;
 
 end;
 $$
@@ -3495,13 +3377,10 @@ begin
 			   p_private_emailadresse,
 			   p_dienstliche_telefonnummer,
 			   p_dienstliche_emailadresse,
-			   p_befristet_bis);    
-           
-	set role postgres;
+			   p_befristet_bis);
 
 exception
     when unique_violation then
-    	set role postgres;
         raise exception 'Personalnummer ''%'' bereits vorhanden!', p_personalnummer;  
 	
 end;
@@ -3526,11 +3405,8 @@ begin
    	values 
    		(p_mandant_id, p_land);
 
-    set role postgres;
-
 exception
     when unique_violation then
-    	set role postgres;
         raise notice 'Land ''%'' bereits vorhanden!', p_land;
    
 end;
@@ -3560,11 +3436,8 @@ begin
    	values 
    		(p_mandant_id, p_region, v_land_id);
 
-    set role postgres;
-
 exception
     when unique_violation then
-    	set role postgres;
         raise notice 'Region ''%'' bereits vorhanden!', p_region;
 
 end;
@@ -3593,12 +3466,9 @@ begin
    		Staedte(Mandant_ID, Stadt, Region_ID) 
    	values 
    		(p_mandant_id, p_stadt, v_region_id);
-    
-    set role postgres;
 
 exception
     when unique_violation then
-    	set role postgres;
         raise notice 'Stadt ''%'' bereits vorhanden!', p_stadt;
 
 end;
@@ -3628,12 +3498,9 @@ begin
    		Postleitzahlen(Mandant_ID, Postleitzahl, ost_west_ausland, Stadt_ID) 
    	values 
    		(p_mandant_id, p_postleitzahl, p_ost_west_ausland, v_stadt_id);
-    
-    set role postgres;
  
 exception
     when unique_violation then
-    	set role postgres;
         raise notice 'Postleitzahl ''%'' bereits vorhanden!', p_postleitzahl;
 
 end;
@@ -3664,12 +3531,9 @@ begin
 		strassenbezeichnungen(Mandant_ID, Strasse, Hausnummer, Postleitzahl_ID) 
 	values 
 		(p_mandant_id, p_strasse, p_hausnummer, v_postleitzahlen_id);
-    
-    set role postgres;
 
 exception
         when unique_violation then
-        	set role postgres;
         	v_strassenbezeichnung := p_strasse || p_hausnummer;
             raise notice 'Strassenbezeichnung ''%'' bereits vorhanden!', v_strassenbezeichnung;
 
@@ -3704,12 +3568,9 @@ begin
     	wohnt_in(Mitarbeiter_ID, Strassenbezeichnung_ID, Mandant_ID, Datum_Von, Datum_Bis) 
    	values 
    		(v_mitarbeiter_ID, v_strassenbezeichnung_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-	
-   	set role postgres;
 
 exception
     when unique_violation then
-    	set role postgres;
         raise notice 'Mitarbeiter ist bereits mit diesem aktuellen Wohnort vermerkt!';
            
 end;
@@ -3739,7 +3600,6 @@ begin
 
 	-- ... und falls nicht, dann Meldung ausgeben, dass das Geschlecht erst hinterlegt werden muss!
 	if v_geschlecht_id is null then
-		set role postgres;
 		raise exception 'Bitte erst Geschlecht ''%'' anlegen!', p_geschlecht;
 	end if;
 
@@ -3748,8 +3608,6 @@ begin
 	
     insert into hat_Geschlecht(Mitarbeiter_ID, Geschlecht_ID, Mandant_ID, Datum_Von, Datum_Bis) 
    		values (v_mitarbeiter_id, v_geschlecht_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-   	
-   	set role postgres;
 
 exception
         when unique_violation then
@@ -3782,7 +3640,6 @@ begin
 
 	-- ... und falls nicht, dann Meldung ausgeben, dass der Mitarbeitertyp erst hinterlegt werden muss!
 	if v_mitarbeitertyp_id is null then
-		set role postgres;
 		raise exception 'Bitte erst Mitarbeitertyp ''%'' anlegen!', p_mitarbeitertyp;
 	end if;
 
@@ -3791,12 +3648,9 @@ begin
     
     insert into ist_Mitarbeitertyp(Mitarbeiter_ID, Mitarbeitertyp_ID, Mandant_ID, Datum_Von, Datum_Bis) 
    		values (v_mitarbeiter_id, v_mitarbeitertyp_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-	
-   	set role postgres;
 
 exception
     when unique_violation then
-    	set role postgres;
         raise notice 'Mitarbeiter ist bereits aktuell Mitarbeitertyp''%''!', p_mitarbeitertyp;
    	
 end;
@@ -3826,7 +3680,6 @@ begin
     
     -- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Steuerklasse hinterlegt werden muss!
     if v_steuerklasse_id is null then
-		set role postgres;
 			raise exception 'Sie muessen erst die Steuerklasse ''%'' anlegen!', p_steuerklasse;   
     end if;
    
@@ -3835,12 +3688,9 @@ begin
     
     insert into in_Steuerklasse(Mitarbeiter_ID, Steuerklasse_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_steuerklasse_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-	
-   	set role postgres;
 
 exception
     when unique_violation then
-    	set role postgres;
         raise notice 'Es ist bereits vermerkt, dass der Mitarbeiter aktuell in Steuerklasse ''%'' ist!', p_steuerklasse;
    	
 end;
@@ -3864,8 +3714,6 @@ begin
    		Wochenarbeitsstunden(Mandant_ID, Anzahl_Wochenstunden) 
    	values 
    		(p_mandant_id, p_wochenarbeitsstunden);
-    
-    set role postgres;
   
 exception
     when unique_violation then
@@ -3898,8 +3746,6 @@ begin
     
     insert into arbeitet_x_Wochenstunden(Mitarbeiter_ID, Wochenarbeitsstunden_ID, Mandant_ID, Datum_Von, Datum_Bis) 
    		values (v_mitarbeiter_id, v_wochenarbeitsstunden_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-	
-   	set role postgres;
    
 exception
     when unique_violation then
@@ -3934,7 +3780,6 @@ begin
 
 	-- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Abteilung hinterlegt werden muss!
     if v_abteilung_id is null then
-		set role postgres;
 		raise exception 'Sie muessen erst die Abteilung ''%'' anlegen!', p_abteilung;   
     end if;
    
@@ -3943,12 +3788,9 @@ begin
     
     insert into eingesetzt_in(Mitarbeiter_ID, Abteilung_ID, Mandant_ID, Fuehrungskraft, Datum_Von, Datum_Bis) 
    		values (v_mitarbeiter_id, v_abteilung_id, p_mandant_id, p_fuehrungskraft, p_eintrittsdatum, '9999-12-31');
-	
-   	set role postgres;
 
 exception
     when unique_violation then
-    	set role postgres;
         raise notice 'Mitarbeiter ist bereits in der aktuellen Abteilung ''%'' vermerkt!', p_abteilung;
    
 end;
@@ -3980,7 +3822,6 @@ begin
 
 	-- ... und falls sie nicht existiert, Meldung ausgeben, dass erst der Jobtitel hinterlegt werden muss!
     if v_jobtitel_id is null then
-		set role postgres;
 		raise exception 'Sie muessen erst den Jobtitel ''%'' anlegen!', p_jobtitel;   
     end if;
 
@@ -3989,7 +3830,6 @@ begin
 
 	-- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Erfahrungsstufe hinterlegt werden muss!
     if v_erfahrungsstufe_id is null then
-		set role postgres;
 		raise exception 'Sie muessen erst die Erfahrungsstufe ''%'' anlegen!', p_erfahrungsstufe;   
     end if;
     
@@ -3999,8 +3839,6 @@ begin
 	-- Mitarbeiter_ID ziehen, da diese benoetigt wird, um einen Datensatz in der Assoziation 'in_Steuerklasse' anzulegen
     insert into hat_Jobtitel(Mitarbeiter_ID, Jobtitel_ID, Erfahrungsstufe_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values(v_mitarbeiter_ID, v_jobtitel_id, v_erfahrungsstufe_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-	
-   	set role postgres;
 
 exception
     when unique_violation then
@@ -4033,7 +3871,6 @@ begin
 	
 	-- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Gesellschaft hinterlegt werden muss!
     if v_gesellschaft_id is null then
-		set role postgres;
 		raise exception 'Sie muessen erst die Gesellschaft ''%'' anlegen!', p_gesellschaft;   
     end if;
 
@@ -4042,8 +3879,6 @@ begin
 	
     insert into in_Gesellschaft (Mitarbeiter_ID, Gesellschaft_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_ID, v_gesellschaft_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-	
-   	set role postgres;
 
 exception
     when unique_violation then
@@ -4080,8 +3915,6 @@ begin
    	exception
         when unique_violation then
             raise notice 'Mitarbeiter ist bereits in dieser Gesellschaft!';
-	
-   	set role postgres;
    	
 end;
 $$
@@ -4109,11 +3942,9 @@ begin
    		Aussertarifliche(Mitarbeiter_ID, Mandant_ID, Datum_Von, Datum_Bis)
    	values 
    		(v_mitarbeiter_ID, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-    
-    set role postgres;
+
 exception
     when unique_violation then
-    	set role postgres;
         raise notice 'Mitarbeiter bereits als Aussertariflicher eingetragen!';
 
 end;
@@ -4145,7 +3976,6 @@ begin
     
     -- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Privatkrankenkasse hinterlegt werden muss!
     if v_privatkrankenkasse_id is null then
-		set role postgres;
 		raise exception 'Privatkrankenkasse ''%'' nicht angelegt. Bitte legen Sie zuerst diese Privatkrankenkasse an!', p_krankenkasse;   
     end if;
    	
@@ -4154,15 +3984,12 @@ begin
    
     -- ... und falls nicht existiert, Meldung ausgeben, dass erst der Mitarbeiter hinterlegt werden muss!
     if v_mitarbeiter_id is null then
-		set role postgres;
 		raise exception 'Mitarbeiter ''%'' ist nicht eingetragen!', p_personalnummer;   
     end if;
    	
    	-- Assoziation 'hat_Privatkrankenkasse', welche die Tabellen 'Mitarbeiter' und 'Privatkrankenkassen' miteinander verknuepft, mit Daten befuellen
     insert into hat_Privatkrankenkasse(Mitarbeiter_ID, Privatkrankenkasse_ID, Mandant_ID, AG_Zuschuss_private_Krankenversicherung, AG_Zuschuss_private_Pflegeversicherung, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_privatkrankenkasse_id, p_mandant_id, p_ag_zuschuss_krankenversicherung, p_ag_zuschuss_pflegeversicherung, p_eintrittsdatum, '9999-12-31');
-	
-   	set role postgres;
    	
 end;
 $$
@@ -4191,7 +4018,6 @@ begin
     
     -- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Krankenversicherung hinterlegt werden muss!
     if v_krankenversicherung_id is null then
-		set role postgres;
 		if p_ermaessigter_kv_beitrag then
 			raise exception 'Sie muessen erst noch die Moeglichkeit, ermaessigte Beitragssaetze zu beruecksichtigen, anlegen!';   
 		else
@@ -4203,12 +4029,9 @@ begin
     
     insert into hat_gesetzliche_Krankenversicherung(Mitarbeiter_ID, Krankenversicherung_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_krankenversicherung_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-	
-   	set role postgres;
 
 exception
     when unique_violation then
-    	set role postgres;
         raise notice 'Es ist bereits vermerkt, dass der Mitarbeiter gesetzlich krankenversichert ist!';
    	
 end;
@@ -4240,7 +4063,6 @@ begin
     
     -- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Krankenkasse hinterlegt werden muss!
     if v_krankenkasse_ID is null then
-		set role postgres;
 		raise exception 'Krankenkasse ''%'' noch nicht hinterlegt! Bitte tragen Sie zuerst die Krankenkasse ein!', p_krankenkasse;   
     end if;
    
@@ -4248,12 +4070,9 @@ begin
     
     insert into ist_in_GKV(Mitarbeiter_ID, gesetzliche_Krankenkasse_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_Krankenkasse_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-	
-   	set role postgres;
 
 exception
     when unique_violation then
-    	set role postgres;
         raise notice 'Mitarbeiter ist bereits aktuell in Krankenkasse ''%'' vermerkt!', p_krankenkasse;
    	
 end;
@@ -4286,12 +4105,9 @@ begin
     
     insert into hat_x_Kinder_unter_25(Mitarbeiter_ID, Anzahl_Kinder_unter_25_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_anzahl_kinder_unter25_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-	
-   	set role postgres;
 
 exception
     when unique_violation then
-    	set role postgres;
         raise notice 'Aktuelle Anzahl der Kinder für Mitarbeiter ''%'' ist bereits vermerkt!', p_personalnummer;
    	
 end;
@@ -4321,12 +4137,9 @@ begin
     
     insert into arbeitet_in_sachsen(Mitarbeiter_ID, arbeitsort_sachsen_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_arbeitsort_sachsen_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-	
-   	set role postgres;
 
 exception
     when unique_violation then
-    	set role postgres;
         raise notice 'Es ist bereits vermerkt, ob Mitarbeiter ''%'' in Sachsen wohnt!', p_personalnummer;
    	
 end;
@@ -4356,7 +4169,6 @@ begin
     
     -- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Arbeitslosenversicherungsdaten hinterlegt werden muessen!
     if v_arbeitslosenversicherung_id is null then
-		set role postgres;
 		raise exception 'Sie muessen erst AV-Beitraege und Beitragsbemessungsgrenzen anlegen, bevor Sie Mitarbeiter anlegen!';   
     end if;
    
@@ -4364,12 +4176,9 @@ begin
     
     insert into hat_gesetzliche_Arbeitslosenversicherung(Mitarbeiter_ID, Arbeitslosenversicherung_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_arbeitslosenversicherung_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-	
-   	set role postgres;
 
 exception
     when unique_violation then
-    	set role postgres;
         raise notice 'Es ist bereits vermerkt, dass der Mitarbeiter gesetzlich arbeitslosenversichert ist!';
    	
 end;
@@ -4399,7 +4208,6 @@ begin
     
     -- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Rentenversicherungsdaten hinterlegt werden muessen!
     if v_rentenversicherung_id is null then
-		set role postgres;
 		raise exception 'Sie muessen erst RV-Beitraege und Beitragsbemessungsgrenzen anlegen, bevor Sie Mitarbeiter anlegen!';   
     end if;
    
@@ -4407,12 +4215,9 @@ begin
     
     insert into hat_gesetzliche_Rentenversicherung(Mitarbeiter_ID, Rentenversicherung_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_rentenversicherung_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-	
-   	set role postgres;
 
 exception
     when unique_violation then
-    	set role postgres;
         raise notice 'Es ist bereits vermerkt, dass der Mitarbeiter gesetzlich rentenversichert ist!';
    	
 end;
@@ -4444,7 +4249,6 @@ begin
     
     -- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Krankenkasse hinterlegt werden muss!
     if v_krankenkasse_ID is null then
-		set role postgres;
 		raise exception 'Diese Krankenkasse ''%'' ist noch nicht hinterlegt! Bitte tragen Sie zuerst die Krankenkasse ein!', p_krankenkasse;   
     end if;
    
@@ -4452,12 +4256,9 @@ begin
     
     insert into ist_anderweitig_versichert(Mitarbeiter_ID, gemeldete_Krankenkasse_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_krankenkasse_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-	
-   	set role postgres;
 
 exception
     when unique_violation then
-    	set role postgres;
         raise notice 'Mitarbeiter ist bereits aktuell in Krankenkasse ''%'' vermerkt!', p_krankenkasse;
    	
 end;
@@ -4487,7 +4288,6 @@ begin
     
     -- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Krankenversicherung hinterlegt werden muss!
     if v_minijob_id is null then
-		set role postgres;
 		if p_ist_kurzfristig_beschaeftigt then
 			raise exception 'Sie muessen erst noch die Moeglichkeit, kurzfristige Minijobs zu beruecksichtigen, anlegen!';   
 		else
@@ -4499,12 +4299,9 @@ begin
     
     insert into ist_Minijobber(Mitarbeiter_ID, Minijob_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_minijob_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
-	
-   	set role postgres;
 
 exception
     when unique_violation then
-    	set role postgres;
         raise notice 'Es ist bereits vermerkt, dass der Mitarbeiter Minijobber ist!';
    	
 end;
@@ -4543,7 +4340,6 @@ begin
 
 	-- ... und falls nicht, dann Meldung ausgeben, dass dieser Verguetungsbestandteil erst hinterlegt werden muss!
 	if v_verguetungsbestandteil_id is null then
-		set role postgres;
 		raise exception 'Bitte erst Verguetungsbestandteil ''%'' anlegen!', p_Verguetungsbestandteil;
 	end if;
 
@@ -4552,7 +4348,6 @@ begin
 
 	-- ... falls Mitarbeiter nicht vorhanden ist, dann Meldung ausgeben, dass dieser erst hinterlegt werden muss!
 	if v_mitarbeiter_id is null then
-		set role postgres;
 		raise exception 'Bitte erst Mitarbeiter ''%'' anlegen!', p_personalnummer;
 	end if;
 
@@ -4561,14 +4356,11 @@ begin
 
 	-- ... falls Mitarbeiter nicht als aussertariflicher Mitarbeiter vorhanden ist, dann Meldung ausgeben, dass dieser erst hinterlegt werden muss!
 	if v_aussertarifliche_id is null then
-		set role postgres;
 		raise exception 'Mitarbeiter ''%'' ist nicht als aussertariflicher Beschaeftigter hinterlegt!', p_personalnummer;
 	end if;
 	
     insert into hat_Verguetungsbestandteil_AT(Aussertarif_ID, Verguetungsbestandteil_ID, Mandant_ID, Betrag, Datum_Von, Datum_Bis) 
    		values (v_aussertarifliche_id, v_verguetungsbestandteil_id, p_mandant_id, p_betrag, p_eintragungsdatum, '9999-12-31');
-   	
-   	set role postgres;
 
 exception
     when unique_violation then
@@ -4615,7 +4407,6 @@ begin
 	-- Pruefung, ob der Mitarbeiter ueberhaupt existiert und falls ja, dann Mitarbeiter_ID in Variable speichern
 	execute 'SELECT mitarbeiter_id FROM mitarbeiter WHERE lower(personalnummer) = $1' into v_mitarbeiter_id using lower(p_personalnummer);
 	if v_mitarbeiter_id is null then
-		set role postgres;
 		raise exception 'Mitarbeiter ''%'' existiert nicht!', p_personalnummer;
 	end if;
 
@@ -4631,8 +4422,6 @@ begin
 	
 	-- neue Adresse mit Mitarbeiter verknuepfen
 	call insert_tbl_wohnt_in(p_mandant_id, p_personalnummer, p_strasse, p_hausnummer, p_neuer_eintrag_gueltig_ab);
-	
-   	set role postgres;
 
 exception
     when unique_violation then
@@ -4673,13 +4462,11 @@ begin
 		into v_mitarbeiter_id, v_eintrittsdatum using lower(p_personalnummer);
 
 	if v_mitarbeiter_id is null then
-		set role postgres;
 		raise exception 'Mitarbeiter ''%'' existiert nicht!', p_personalnummer;
 	end if;
 
 	-- Pruefen, ob Austrittsdatum vor Eintrittsdatum liegt. Falls dies eintrifft: Fehlermeldung, da nicht moeglich
 	if p_letzter_arbeitstag < v_eintrittsdatum then 
-		set role postgres;
 		raise exception 'Austrittsdatum ''%'' liegt vor Eintrittsdatum ''%''. Das ist unlogisch!', p_letzter_arbeitstag, v_eintrittsdatum;
 	end if;
 
@@ -4688,7 +4475,6 @@ begin
 
 	-- ... und falls nicht, Meldung ausgeben, dass Ausstrittsgrund noch in Datenbank eingetragen werden muss
 	if v_austrittsgrund_id is null then
-		set role postgres;
 		raise exception 'Austrittsgrund ''%'' ist nicht in Datenbank vorhanden. Bitte erst anlegen!', p_austrittsgrund;
 	end if;
 	
@@ -4720,8 +4506,6 @@ begin
 	execute 'UPDATE arbeitet_x_wochenstunden SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE eingesetzt_in SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE hat_Jobtitel SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-
-   	set role postgres;
    	
 end;
 $$
@@ -4761,7 +4545,6 @@ begin
 	execute 'SELECT krankenversicherung_ID FROM krankenversicherungen WHERE ermaessigter_beitragssatz = $1' 
 		into v_krankenversicherung_id using p_ermaessigter_beitragssatz;
 	if v_krankenversicherung_id is null then
-		set role postgres;
 		raise exception 'Ermaessigter Beitragssatz = ''%'' ist nicht angelegt!', p_ermaessigter_beitragssatz;
 	end if;
     
@@ -4821,7 +4604,6 @@ begin
 	-- pruefen, ob 'Datum_Bis' ein juengeres Datum hat als "Datum_Von"
 	execute 'SELECT datum_von FROM hat_gkv_beitraege WHERE datum_bis = ''9999-12-31''' into v_datum_von;
 	if v_datum_von > p_alter_eintrag_gueltig_bis then
-		set role postgres;
 		raise exception 'Startdatum ''%'' des alten Eintrags liegt vor letztgueltiger Tag ''%''. Das ist unlogisch!', v_datum_von, p_alter_eintrag_gueltig_bis;
 	end if;
    	
@@ -4832,8 +4614,6 @@ begin
     -- ... und Eintrag fuer die neuen Daten erstellen
     insert into hat_GKV_Beitraege(Krankenversicherung_ID, Krankenversicherungsbeitrag_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_krankenversicherung_id, v_krankenversicherungsbeitrag_id, p_mandant_id, p_neuer_eintrag_gueltig_ab, '9999-12-31');
-
-    set role postgres;
    
 end;
 $$
@@ -4866,21 +4646,17 @@ begin
     -- Pruefung, ob untergeordnete Abteilung vorhanden ist
 	execute 'SELECT abteilung_id FROM abteilungen WHERE lower(abteilung) = $1' into v_untere_abteilung_id using lower(p_untere_abteilung);
 	if v_untere_abteilung_id is null then
-		set role postgres;
 		raise exception 'Die untergeordnete Abteilung ''%'' ist nicht angelegt!', p_untere_abteilung;
 	end if;
 
 	-- Pruefung, ob uebergeordnete Abteilung vorhanden ist
 	execute 'SELECT abteilung_id FROM abteilungen WHERE lower(abteilung) = $1' into v_obere_abteilung_id using lower(p_obere_abteilung);
 	if v_obere_abteilung_id is null then
-		set role postgres;
 		raise exception 'Die uebergeordnete Abteilung ''%'' ist nicht angelegt!', p_obere_abteilung;
 	end if;
    	
    	-- Im Datensatz der untergeordneten Abteilung soll die ID der uebergeordneten Abteilung in die Fremdschluessel-Spalte 'untersteht_Abteilung'  eingetragen werden
     execute 'UPDATE abteilungen SET untersteht_abteilung = $1 WHERE abteilung_id = $2' using v_obere_abteilung_id, v_untere_abteilung_id;
-
-    set role postgres;
    
 end;
 $$
@@ -4912,7 +4688,6 @@ begin
 	-- Pruefung, ob der Mitarbeiter überhaupt existiert und falls ja, dann Mitarbeiter_ID in Variable speichern
 	execute 'SELECT mitarbeiter_id FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_id using p_personalnummer;
 	if v_mitarbeiter_id is null then
-		set role postgres;
 		raise exception 'Mitarbeiter ''%'' existiert nicht!', p_personalnummer;
 	end if;
 	
@@ -4969,8 +4744,6 @@ begin
 
 	-- personenbezogene Mitarbeiterdaten aus zentraler Tabelle 'Mitarbeiter' entfernen
 	execute 'DELETE FROM mitarbeiter WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
-	
-   	set role postgres;
    	
 end;
 $$
@@ -5100,8 +4873,6 @@ begin
 	-- Daten aus Tabellen 'Nutzer' und zuletzt 'Mandanten' loeschen
 	execute 'DELETE FROM nutzer WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM mandanten WHERE mandant_id = $1' using p_mandant_id;
-	
-   	set role postgres;
    	
 end;
 $$

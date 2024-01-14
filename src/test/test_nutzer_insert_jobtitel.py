@@ -43,7 +43,7 @@ class TestNutzerInsertJobtitel(unittest.TestCase):
 
         self.assertEqual(str(context.exception), "FEHLER:  Jobtitel 'HR Data Analyst' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_jobtitel(integer,character "
-                                                 "varying) Zeile 17 bei RAISE\n")
+                                                 "varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM jobtitel",
@@ -68,7 +68,7 @@ class TestNutzerInsertJobtitel(unittest.TestCase):
 
         self.assertEqual(str(context.exception), "FEHLER:  Jobtitel 'hr data analyst' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_jobtitel(integer,character "
-                                                 "varying) Zeile 17 bei RAISE\n")
+                                                 "varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM jobtitel",

@@ -45,7 +45,7 @@ class TestNutzerInsertVerguetungsbestandteil(unittest.TestCase):
 
         self.assertEqual(str(context.exception), "FEHLER:  Verguetungsbestandteil 'Grundgehalt' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_verguetungsbestandteil(integer,"
-                                                 "character varying,character varying) Zeile 16 bei RAISE\n")
+                                                 "character varying,character varying) Zeile 14 bei RAISE\n")
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM verguetungsbestandteile",
@@ -71,7 +71,7 @@ class TestNutzerInsertVerguetungsbestandteil(unittest.TestCase):
 
         self.assertEqual(str(context.exception), "FEHLER:  Verguetungsbestandteil 'grundgehalt' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_verguetungsbestandteil(integer,"
-                                                 "character varying,character varying) Zeile 16 bei RAISE\n")
+                                                 "character varying,character varying) Zeile 14 bei RAISE\n")
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM verguetungsbestandteile",
@@ -98,7 +98,7 @@ class TestNutzerInsertVerguetungsbestandteil(unittest.TestCase):
                                                  "'Januar', 'Februar', 'Maerz', 'April', 'Mai', 'Juni', 'Juli', "
                                                  "'August', 'September', 'Oktober', 'November', 'Dezember'!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_verguetungsbestandteil(integer,"
-                                                 "character varying,character varying) Zeile 18 bei RAISE\n")
+                                                 "character varying,character varying) Zeile 16 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob kein Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM verguetungsbestandteile",

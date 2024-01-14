@@ -59,7 +59,7 @@ class TestNutzerInsertAnzahlKinder(unittest.TestCase):
                                                  "werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, "
                                                  "nutzen Sie bitte die 'update_anzahl_kinder'-Funktion!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_anzahl_kinder_an_pv_beitrag("
-                                                 "integer,integer,numeric,numeric,numeric,date) Zeile 18 bei RAISE\n")
+                                                 "integer,integer,numeric,numeric,numeric,date) Zeile 16 bei RAISE\n")
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "
@@ -99,7 +99,7 @@ class TestNutzerInsertAnzahlKinder(unittest.TestCase):
                                                  "werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, "
                                                  "nutzen Sie bitte die 'update_anzahl_kinder'-Funktion!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_anzahl_kinder_an_pv_beitrag("
-                                                 "integer,integer,numeric,numeric,numeric,date) Zeile 18 bei RAISE\n")
+                                                 "integer,integer,numeric,numeric,numeric,date) Zeile 16 bei RAISE\n")
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "

@@ -54,7 +54,7 @@ class TestNutzerUpdateKrankenversicherungsbeitraege(unittest.TestCase):
 
         self.assertEqual(str(context.exception), "FEHLER:  Ermaessigter Beitragssatz = 't' ist nicht angelegt!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion update_krankenversicherungsbeitraege"
-                                                 "(integer,boolean,numeric,numeric,numeric,numeric,date,date) Zeile 16 "
+                                                 "(integer,boolean,numeric,numeric,numeric,numeric,date,date) Zeile 15 "
                                                  "bei RAISE\n")
 
     def test_datumbis_kleiner_datumvon(self):
@@ -71,7 +71,7 @@ class TestNutzerUpdateKrankenversicherungsbeitraege(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Startdatum '2023-12-15' des alten Eintrags liegt vor "
                                                  "letztgueltiger Tag '2019-12-31'. Das ist unlogisch!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion update_krankenversicherungsbeitraege("
-                                                 "integer,boolean,numeric,numeric,numeric,numeric,date,date) Zeile 76 "
+                                                 "integer,boolean,numeric,numeric,numeric,numeric,date,date) Zeile 74 "
                                                  "bei RAISE\n")
 
     def tearDown(self):

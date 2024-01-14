@@ -1111,8 +1111,6 @@ class Nutzer:
 
         cur.execute(f"set search_path to {schema}; call {stored_procedure}", export_daten)
 
-        #cur.callproc(stored_procedure, export_daten)
-
         # Commit der Aenderungen
         conn.commit()
 

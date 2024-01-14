@@ -43,7 +43,7 @@ class TestNutzerInsertGeschlecht(unittest.TestCase):
 
         self.assertEqual(str(context.exception), "FEHLER:  Geschlecht 'maennlich' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_geschlecht(integer,character "
-                                                 "varying) Zeile 17 bei RAISE\n")
+                                                 "varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM geschlechter",
@@ -69,7 +69,7 @@ class TestNutzerInsertGeschlecht(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Fuer Geschlechter sind nur folgende Werte erlaubt: "
                                                  "'maennlich', 'weiblich', 'divers'!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_geschlecht(integer,character "
-                                                 "varying) Zeile 20 bei RAISE\n")
+                                                 "varying) Zeile 16 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz tatsaechlich nicht angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM geschlechter",

@@ -58,7 +58,7 @@ class TestNutzerInsertUnfallversicherungsbeitraege(unittest.TestCase):
                                                  "bereits vermerkt!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_unfallversicherungsbeitrag"
                                                  "(integer,character varying,character varying,character varying,"
-                                                 "character varying,numeric,integer) Zeile 38 bei RAISE\n")
+                                                 "character varying,numeric,integer) Zeile 33 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001"). \

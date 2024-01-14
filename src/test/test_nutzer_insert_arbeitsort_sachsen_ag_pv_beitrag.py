@@ -61,7 +61,7 @@ class TestNutzerInsertArbeitsortSachsen(unittest.TestCase):
                                                  "Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren "
                                                  "wollen, nutzen Sie bitte die 'update_arbeitsort_sachsen'-Funktion!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_arbeitsort_sachsen_ag_pv_beitrag"
-                                                 "(integer,boolean,numeric,date) Zeile 17 bei RAISE\n")
+                                                 "(integer,boolean,numeric,date) Zeile 15 bei RAISE\n")
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM Arbeitsort_Sachsen",
@@ -101,7 +101,7 @@ class TestNutzerInsertArbeitsortSachsen(unittest.TestCase):
                                                  "Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren "
                                                  "wollen, nutzen Sie bitte die 'update_arbeitsort_sachsen'-Funktion!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_arbeitsort_sachsen_ag_pv_beitrag"
-                                                 "(integer,boolean,numeric,date) Zeile 17 bei RAISE\n")
+                                                 "(integer,boolean,numeric,date) Zeile 15 bei RAISE\n")
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM Arbeitsort_Sachsen",

@@ -48,7 +48,7 @@ class TestNutzerInsertBerufsgenossenschaft(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Berufsgenossenschaft 'Berufsgenossenschaft Nahrungsmittel' "
                                                  "oder Abkuerzung 'BGN' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_berufsgenossenschaft(integer,"
-                                                 "character varying,character varying) Zeile 16 bei RAISE\n")
+                                                 "character varying,character varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001"). \
@@ -77,7 +77,7 @@ class TestNutzerInsertBerufsgenossenschaft(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Berufsgenossenschaft 'Berufsgenossenschaft Nahrungsmittel' "
                                                  "oder Abkuerzung 'BG N' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_berufsgenossenschaft(integer,"
-                                                 "character varying,character varying) Zeile 16 bei RAISE\n")
+                                                 "character varying,character varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001"). \
@@ -105,7 +105,7 @@ class TestNutzerInsertBerufsgenossenschaft(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Berufsgenossenschaft 'Berufsgenossenschaft Nahrung' oder "
                                                  "Abkuerzung 'BGN' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_berufsgenossenschaft(integer,"
-                                                 "character varying,character varying) Zeile 16 bei RAISE\n")
+                                                 "character varying,character varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001"). \
@@ -134,7 +134,7 @@ class TestNutzerInsertBerufsgenossenschaft(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Berufsgenossenschaft 'berufsgenossenschaft nahrungsmittel' "
                                                  "oder Abkuerzung 'BGN' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_berufsgenossenschaft(integer,"
-                                                 "character varying,character varying) Zeile 16 bei RAISE\n")
+                                                 "character varying,character varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001"). \
@@ -164,7 +164,7 @@ class TestNutzerInsertBerufsgenossenschaft(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Berufsgenossenschaft 'Berufsgenossenschaft Nahrungsmittel' "
                                                  "oder Abkuerzung 'bgn' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_berufsgenossenschaft(integer,"
-                                                 "character varying,character varying) Zeile 16 bei RAISE\n")
+                                                 "character varying,character varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001"). \

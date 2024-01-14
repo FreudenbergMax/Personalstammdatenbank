@@ -46,7 +46,7 @@ class TestNutzerInsertTarif(unittest.TestCase):
                                                  "eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie "
                                                  "bitte die 'update_Tarif'-Funktion!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_tarif(integer,character varying,"
-                                                 "character varying) Zeile 27 bei RAISE\n")
+                                                 "character varying) Zeile 24 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM tarife", self.testschema)
@@ -71,7 +71,7 @@ class TestNutzerInsertTarif(unittest.TestCase):
 
         self.assertEqual(str(context.exception), "FEHLER:  Tarif 'Verdi' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_tarif(integer,character varying,"
-                                                 "character varying) Zeile 39 bei RAISE\n")
+                                                 "character varying) Zeile 34 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der nur einmal Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM tarife", self.testschema)
@@ -91,7 +91,7 @@ class TestNutzerInsertTarif(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Gewerkschaft 'IG Metall' existiert nicht! Bitte tragen Sie "
                                                  "erst eine Gewerkschaft ein!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_tarif(integer,character varying,"
-                                                 "character varying) Zeile 17 bei RAISE\n")
+                                                 "character varying) Zeile 16 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob kein Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM tarife", self.testschema)

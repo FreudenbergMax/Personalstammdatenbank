@@ -347,7 +347,7 @@ class TestNutzerDeleteMitarbeiterdaten(unittest.TestCase):
 
         self.assertEqual(str(context.exception), "FEHLER:  Mitarbeiter 'M100003' existiert nicht!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion delete_mitarbeiterdaten(integer,character"
-                                                 " varying) Zeile 14 bei RAISE\n")
+                                                 " varying) Zeile 13 bei RAISE\n")
 
     def tearDown(self):
         """

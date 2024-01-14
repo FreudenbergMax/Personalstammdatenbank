@@ -188,7 +188,7 @@ class TestNutzerUpdateMitarbeiterentlassung(unittest.TestCase):
 
         self.assertEqual(str(context.exception), "FEHLER:  Mitarbeiter 'M100003' existiert nicht!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion update_mitarbeiterentlassung(integer,"
-                                                 "character varying,date,character varying) Zeile 17 bei RAISE\n")
+                                                 "character varying,date,character varying) Zeile 16 bei RAISE\n")
 
     def test_austrittsdatum_vor_eintrittsdatum(self):
         """
@@ -204,7 +204,7 @@ class TestNutzerUpdateMitarbeiterentlassung(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Austrittsdatum '2010-12-31' liegt vor Eintrittsdatum "
                                                  "'2024-01-01'. Das ist unlogisch!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion update_mitarbeiterentlassung(integer,"
-                                                 "character varying,date,character varying) Zeile 23 bei RAISE\n")
+                                                 "character varying,date,character varying) Zeile 21 bei RAISE\n")
 
     def test_austrittsgrund_existiert_nicht(self):
         """
@@ -220,7 +220,7 @@ class TestNutzerUpdateMitarbeiterentlassung(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Austrittsgrund 'Insolvenz' ist nicht in Datenbank vorhanden."
                                                  " Bitte erst anlegen!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion update_mitarbeiterentlassung(integer,"
-                                                 "character varying,date,character varying) Zeile 32 bei RAISE\n")
+                                                 "character varying,date,character varying) Zeile 29 bei RAISE\n")
 
     def test_austrittsgrund_klein_geschrieben(self):
         """

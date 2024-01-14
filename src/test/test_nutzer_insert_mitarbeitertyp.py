@@ -43,7 +43,7 @@ class TestNutzerInsertMitarbeitertyp(unittest.TestCase):
 
         self.assertEqual(str(context.exception), "FEHLER:  Mitarbeitertyp 'Angestellter' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_mitarbeitertyp(integer,character "
-                                                 "varying) Zeile 16 bei RAISE\n")
+                                                 "varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM mitarbeitertypen",
@@ -69,7 +69,7 @@ class TestNutzerInsertMitarbeitertyp(unittest.TestCase):
 
         self.assertEqual(str(context.exception), "FEHLER:  Mitarbeitertyp 'angestellter' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_mitarbeitertyp(integer,character "
-                                                 "varying) Zeile 16 bei RAISE\n")
+                                                 "varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM mitarbeitertypen",

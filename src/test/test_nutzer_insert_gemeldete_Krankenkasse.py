@@ -59,7 +59,7 @@ class TestNutzerInsertGemeldeteKrankenkasse(unittest.TestCase):
                                                  "'update_gemeldete_Krankenkasse'-Funktion!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_gemeldete_krankenkasse(integer,"
                                                  "character varying,character varying,numeric,numeric,numeric,character"
-                                                 " varying,date) Zeile 17 bei RAISE\n")
+                                                 " varying,date) Zeile 15 bei RAISE\n")
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob auch weiterhin nur ein Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM gemeldete_krankenkassen",
@@ -97,7 +97,7 @@ class TestNutzerInsertGemeldeteKrankenkasse(unittest.TestCase):
                                                  "Kuerzel 'TK' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_gemeldete_krankenkasse(integer,"
                                                  "character varying,character varying,numeric,numeric,numeric,character"
-                                                 " varying,date) Zeile 54 bei RAISE\n")
+                                                 " varying,date) Zeile 49 bei RAISE\n")
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob auch weiterhin nur ein Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM gemeldete_krankenkassen",
@@ -135,7 +135,7 @@ class TestNutzerInsertGemeldeteKrankenkasse(unittest.TestCase):
                                                  " Kuerzel 'TK' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_gemeldete_krankenkasse(integer,"
                                                  "character varying,character varying,numeric,numeric,numeric,character"
-                                                 " varying,date) Zeile 54 bei RAISE\n")
+                                                 " varying,date) Zeile 49 bei RAISE\n")
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob auch weiterhin nur ein Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM gemeldete_krankenkassen",
@@ -175,7 +175,7 @@ class TestNutzerInsertGemeldeteKrankenkasse(unittest.TestCase):
                                                  "'update_gemeldete_Krankenkasse'-Funktion!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_gemeldete_krankenkasse(integer,"
                                                  "character varying,character varying,numeric,numeric,numeric,character"
-                                                 " varying,date) Zeile 17 bei RAISE\n")
+                                                 " varying,date) Zeile 15 bei RAISE\n")
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob auch weiterhin nur ein Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM gemeldete_krankenkassen",

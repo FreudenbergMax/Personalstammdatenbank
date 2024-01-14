@@ -60,7 +60,7 @@ class TestNutzerInsertArbeitslosenversicherungsbeitraege(unittest.TestCase):
                                                  "werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, "
                                                  "nutzen Sie bitte die 'update_rentenversicherung'-Funktion!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_rentenversicherungsbeitraege"
-                                                 "(integer,numeric,numeric,numeric,numeric,date) Zeile 19 bei RAISE\n")
+                                                 "(integer,numeric,numeric,numeric,numeric,date) Zeile 17 bei RAISE\n")
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM rentenversicherungen",
@@ -101,7 +101,7 @@ class TestNutzerInsertArbeitslosenversicherungsbeitraege(unittest.TestCase):
                                                  "werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, "
                                                  "nutzen Sie bitte die 'update_rentenversicherung'-Funktion!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_rentenversicherungsbeitraege"
-                                                 "(integer,numeric,numeric,numeric,numeric,date) Zeile 19 bei RAISE\n")
+                                                 "(integer,numeric,numeric,numeric,numeric,date) Zeile 17 bei RAISE\n")
 
         # Versuch, andere Beitragssaetze einzutragen
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM rentenversicherungen",

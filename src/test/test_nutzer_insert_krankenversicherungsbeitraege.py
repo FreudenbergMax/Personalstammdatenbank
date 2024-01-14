@@ -61,7 +61,7 @@ class TestNutzerInsertKrankenversicherungsbeitraege(unittest.TestCase):
                                                  "nutzen Sie bitte die 'update_krankenversicherungsbeitraege'-"
                                                  "Funktion!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_krankenversicherungsbeitraege("
-                                                 "integer,boolean,numeric,numeric,numeric,numeric,date) Zeile 18 bei "
+                                                 "integer,boolean,numeric,numeric,numeric,numeric,date) Zeile 16 bei "
                                                  "RAISE\n")
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob auch weiterhin nur ein Datensatz angelegt wurde
@@ -103,7 +103,7 @@ class TestNutzerInsertKrankenversicherungsbeitraege(unittest.TestCase):
                                                  "nutzen Sie bitte die 'update_krankenversicherungsbeitraege'-"
                                                  "Funktion!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_krankenversicherungsbeitraege("
-                                                 "integer,boolean,numeric,numeric,numeric,numeric,date) Zeile 18 bei "
+                                                 "integer,boolean,numeric,numeric,numeric,numeric,date) Zeile 16 bei "
                                                  "RAISE\n")
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob auch weiterhin nur ein Datensatz angelegt wurde

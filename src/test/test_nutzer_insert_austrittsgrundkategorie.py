@@ -45,7 +45,7 @@ class TestNutzerInsertAustrittsgrundkategorie(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Austrittsgrundkategorie 'betriebsbedingt' bereits "
                                                  "vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_austrittsgrundkategorie"
-                                                 "(integer,character varying) Zeile 16 bei RAISE\n")
+                                                 "(integer,character varying) Zeile 14 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001"). \
@@ -73,7 +73,7 @@ class TestNutzerInsertAustrittsgrundkategorie(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Fuer Austrittsgrundkategorien sind nur folgende Werte "
                                                  "erlaubt: 'verhaltensbedingt', 'personenbedingt', 'betriebsbedingt'!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_austrittsgrundkategorie"
-                                                 "(integer,character varying) Zeile 19 bei RAISE\n")
+                                                 "(integer,character varying) Zeile 16 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz tatsaechlich nicht angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM kategorien_Austrittsgruende",

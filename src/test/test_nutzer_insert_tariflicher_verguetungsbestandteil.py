@@ -66,7 +66,7 @@ class TestNutzerInsertTariflicherVerguetungsbestandteil(unittest.TestCase):
         self.assertEqual(str(context.exception), "FEHLER:  Verguetungsbestandteil 'Grundgehalt' fuer Tarif 'A5-1' "
                                                  "bereits verknuepft!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_tarifliches_verguetungsbestandteil"
-                                                 "(integer,character varying,character varying,numeric,date) Zeile 35 "
+                                                 "(integer,character varying,character varying,numeric,date) Zeile 31 "
                                                  "bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz nur einmal angelegt wurde
@@ -110,7 +110,7 @@ class TestNutzerInsertTariflicherVerguetungsbestandteil(unittest.TestCase):
 
         self.assertEqual(str(context.exception), "FEHLER:  Bitte erst Tarif 'E8' anlegen!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_tarifliches_verguetungsbestandteil"
-                                                 "(integer,character varying,character varying,numeric,date) Zeile 25 "
+                                                 "(integer,character varying,character varying,numeric,date) Zeile 23 "
                                                  "bei RAISE\n")
 
         # Pruefen, ob auch tatsaechlich aufgrund fehlenden Tarifs kein Datensatz angelegt wurde
@@ -132,7 +132,7 @@ class TestNutzerInsertTariflicherVerguetungsbestandteil(unittest.TestCase):
 
         self.assertEqual(str(context.exception), "FEHLER:  Bitte erst Verguetungsbestandteil 'Sonderzahlung' anlegen!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_tarifliches_verguetungsbestandteil"
-                                                 "(integer,character varying,character varying,numeric,date) Zeile 16 "
+                                                 "(integer,character varying,character varying,numeric,date) Zeile 15 "
                                                  "bei RAISE\n")
 
         # Pruefen, ob auch tatsaechlich aufgrund fehlenden Tarifs kein Datensatz angelegt wurde

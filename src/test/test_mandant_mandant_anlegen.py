@@ -37,7 +37,8 @@ class TestNeuerMandant(unittest.TestCase):
             testfirma2 = Mandant('beispielbetrieb', self.testschema)
 
         self.assertEqual(str(context.exception), 'FEHLER:  Dieser Mandant ist bereits angelegt!\n'
-                                                 'CONTEXT:  PL/pgSQL-Funktion mandant_anlegen(character varying) Zeile 13 bei RAISE\n')
+                                                 'CONTEXT:  PL/pgSQL-Funktion mandant_anlegen(character varying) Zeile '
+                                                 '11 bei RAISE\n')
 
     def test_name_zahl(self):
         """

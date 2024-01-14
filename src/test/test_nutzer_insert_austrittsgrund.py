@@ -80,7 +80,7 @@ class TestNutzerInsertAustrittsgrund(unittest.TestCase):
 
         self.assertEqual(str(context.exception), "FEHLER:  Austrittsgrund 'Umsatzrueckgang' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_austrittsgrund(integer,character"
-                                                 " varying,character varying) Zeile 21 bei RAISE\n")
+                                                 " varying,character varying) Zeile 19 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM austrittsgruende",
@@ -112,7 +112,7 @@ class TestNutzerInsertAustrittsgrund(unittest.TestCase):
 
         self.assertEqual(str(context.exception), "FEHLER:  Austrittsgrund 'umsatzrueckgang' bereits vorhanden!\n"
                                                  "CONTEXT:  PL/pgSQL-Funktion insert_austrittsgrund(integer,character"
-                                                 " varying,character varying) Zeile 21 bei RAISE\n")
+                                                 " varying,character varying) Zeile 19 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM austrittsgruende",
