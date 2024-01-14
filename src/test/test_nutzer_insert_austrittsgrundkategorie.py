@@ -18,9 +18,8 @@ class TestNutzerInsertAustrittsgrundkategorie(unittest.TestCase):
         """
         Test prueft, ob eine Austrittsgrundkategorie eingetragen wird, sofern der Wert gueltig ist.
         """
-        self.testfirma.get_nutzer("M100001").\
-            insert_austrittsgrundkategorie('testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx',
-                                           self.testschema)
+        self.testfirma.get_nutzer("M100001").insert_austrittsgrundkategorie(
+            'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx', self.testschema)
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").\
@@ -35,19 +34,17 @@ class TestNutzerInsertAustrittsgrundkategorie(unittest.TestCase):
         Ausloeser ist der unique-constraint, welcher in der Stored Procedure 'insert_kategorien_austrittsgruende'
         implementiert ist.
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_austrittsgrundkategorie('testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx',
-                                           self.testschema)
+        self.testfirma.get_nutzer("M100001").insert_austrittsgrundkategorie(
+            'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx', self.testschema)
 
         # Versuch, denselben Wert noch einmal einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_austrittsgrundkategorie('testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx',
-                                               self.testschema)
+            self.testfirma.get_nutzer("M100001").insert_austrittsgrundkategorie(
+                'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx', self.testschema)
 
         self.assertEqual(str(context.exception), "FEHLER:  Austrittsgrundkategorie 'betriebsbedingt' bereits "
                                                  "vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_kategorien_austrittsgruende"
+                                                 "CONTEXT:  PL/pgSQL-Funktion insert_austrittsgrundkategorie"
                                                  "(integer,character varying) Zeile 16 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
@@ -69,13 +66,13 @@ class TestNutzerInsertAustrittsgrundkategorie(unittest.TestCase):
 
         # Versuch, falsch geschriebenes Geschlecht 'männlich' einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_austrittsgrundkategorie('testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie - '
-                                               'falsch geschrieben.xlsx', self.testschema)
+            self.testfirma.get_nutzer("M100001").insert_austrittsgrundkategorie(
+                'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie - falsch geschrieben.xlsx',
+                self.testschema)
 
         self.assertEqual(str(context.exception), "FEHLER:  Fuer Austrittsgrundkategorien sind nur folgende Werte "
                                                  "erlaubt: 'verhaltensbedingt', 'personenbedingt', 'betriebsbedingt'!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_kategorien_austrittsgruende"
+                                                 "CONTEXT:  PL/pgSQL-Funktion insert_austrittsgrundkategorie"
                                                  "(integer,character varying) Zeile 19 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz tatsaechlich nicht angelegt wurde

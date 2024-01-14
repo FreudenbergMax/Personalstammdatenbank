@@ -79,7 +79,7 @@ class TestNutzerInsertAustrittsgrund(unittest.TestCase):
                 insert_austrittsgrund('testdaten_insert_austrittsgrund/Austrittsgrund.xlsx', self.testschema)
 
         self.assertEqual(str(context.exception), "FEHLER:  Austrittsgrund 'Umsatzrueckgang' bereits vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_austrittsgruende(integer,character"
+                                                 "CONTEXT:  PL/pgSQL-Funktion insert_austrittsgrund(integer,character"
                                                  " varying,character varying) Zeile 21 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
@@ -111,7 +111,7 @@ class TestNutzerInsertAustrittsgrund(unittest.TestCase):
                                       self.testschema)
 
         self.assertEqual(str(context.exception), "FEHLER:  Austrittsgrund 'umsatzrueckgang' bereits vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_austrittsgruende(integer,character"
+                                                 "CONTEXT:  PL/pgSQL-Funktion insert_austrittsgrund(integer,character"
                                                  " varying,character varying) Zeile 21 bei RAISE\n")
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde

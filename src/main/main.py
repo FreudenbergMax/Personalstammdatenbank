@@ -1,53 +1,57 @@
 from src.main.Mandant import Mandant
 
+insert_sozialversicherungsdaten = "1 insert Sozialversicherungsdaten"
+insert_tarifliche_entgeltdaten = "2 insert tarifliche Entgeltdaten"
+insert_personenbezogene_daten = "3 insert personenbezogene Daten"
+
 testfirma = Mandant("testu")
 testfirma.nutzer_anlegen("M100001", "Erika", "Musterfrau")
 
-# personenbezogene Daten eingeben
-testfirma.get_nutzer("M100001").insert_geschlecht('insert personenbezogene Daten/1 Geschlecht.xlsx')
-
-testfirma.get_nutzer("M100001").insert_mitarbeitertyp('insert personenbezogene Daten/2 Mitarbeitertyp.xlsx')
-testfirma.get_nutzer("M100001").insert_steuerklasse('insert personenbezogene Daten/3 Steuerklasse.xlsx')
-testfirma.get_nutzer("M100001").insert_abteilung('insert personenbezogene Daten/4.1 Abteilung.xlsx')
-testfirma.get_nutzer("M100001").insert_abteilung('insert personenbezogene Daten/4.2 Abteilung.xlsx')
-testfirma.get_nutzer("M100001").insert_jobtitel('insert personenbezogene Daten/5 Jobtitel.xlsx')
-testfirma.get_nutzer("M100001").insert_erfahrungsstufe('insert personenbezogene Daten/6 Erfahrungsstufe.xlsx')
-testfirma.get_nutzer("M100001").insert_gesellschaft('insert personenbezogene Daten/7 Gesellschaft.xlsx')
-testfirma.get_nutzer("M100001").\
-    insert_austrittsgrundkategorie('insert personenbezogene Daten/8 Austrittsgrundkategorie.xlsx')
-testfirma.get_nutzer("M100001").insert_austrittsgrund('insert personenbezogene Daten/9 Austrittsgrund.xlsx')
-
 # Krankenversicherungsdaten eingeben
-testfirma.get_nutzer("M100001").\
-    insert_krankenversicherungsbeitraege('insert Sozialversicherungsdaten/1 Krankenversicherungsbeitraege.xlsx')
-testfirma.get_nutzer("M100001").\
-    insert_gesetzliche_krankenkasse('insert Sozialversicherungsdaten/2 gesetzliche Krankenkasse.xlsx')
-testfirma.get_nutzer("M100001").\
-    insert_private_krankenkasse('insert Sozialversicherungsdaten/3 private Krankenkasse.xlsx')
-testfirma.get_nutzer("M100001").\
-    insert_gemeldete_krankenkasse('insert Sozialversicherungsdaten/4 gemeldete Krankenkasse.xlsx')
-testfirma.get_nutzer("M100001").\
-    insert_anzahl_kinder_an_pv_beitrag('insert Sozialversicherungsdaten/5 Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx')
-testfirma.get_nutzer("M100001").\
-    insert_arbeitsort_sachsen_ag_pv_beitrag('insert Sozialversicherungsdaten/6 Arbeitsort Sachsen Arbeitgeber PV-Beitrag.xlsx')
-testfirma.get_nutzer("M100001").\
-    insert_arbeitslosenversicherungsbeitraege('insert Sozialversicherungsdaten/7 Arbeitslosenversicherungsbeitraege.xlsx')
-testfirma.get_nutzer("M100001").\
-    insert_rentenversicherungsbeitraege('insert Sozialversicherungsdaten/8 Rentenversicherungsbeitraege.xlsx')
-testfirma.get_nutzer("M100001").\
-    insert_minijobbeitraege('insert Sozialversicherungsdaten/9 Minijobbeitraege.xlsx')
-testfirma.get_nutzer("M100001").\
-    insert_berufsgenossenschaft('insert Sozialversicherungsdaten/10 Berufsgenossenschaft.xlsx')
-testfirma.get_nutzer("M100001").\
-    insert_unfallversicherungsbeitrag('insert Sozialversicherungsdaten/11 Unfallversicherungsbeitrag.xlsx')
+testfirma.get_nutzer("M100001").insert_krankenversicherungsbeitraege(
+    f'{insert_sozialversicherungsdaten}/1 Krankenversicherungsbeitraege.xlsx')
+testfirma.get_nutzer("M100001").insert_gesetzliche_krankenkasse(
+    f'{insert_sozialversicherungsdaten}/2 gesetzliche Krankenkasse.xlsx')
+testfirma.get_nutzer("M100001").insert_private_krankenkasse(
+    f'{insert_sozialversicherungsdaten}/3 private Krankenkasse.xlsx')
+testfirma.get_nutzer("M100001").insert_gemeldete_krankenkasse(
+    f'{insert_sozialversicherungsdaten}/4 gemeldete Krankenkasse.xlsx')
+testfirma.get_nutzer("M100001").insert_anzahl_kinder_an_pv_beitrag(
+    f'{insert_sozialversicherungsdaten}/5 Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx')
+testfirma.get_nutzer("M100001").insert_arbeitsort_sachsen_ag_pv_beitrag(
+    f'{insert_sozialversicherungsdaten}/6 Arbeitsort Sachsen Arbeitgeber PV-Beitrag.xlsx')
+testfirma.get_nutzer("M100001").insert_arbeitslosenversicherungsbeitraege(
+    f'{insert_sozialversicherungsdaten}/7 Arbeitslosenversicherungsbeitraege.xlsx')
+testfirma.get_nutzer("M100001").insert_rentenversicherungsbeitraege(
+    f'{insert_sozialversicherungsdaten}/8 Rentenversicherungsbeitraege.xlsx')
+testfirma.get_nutzer("M100001").insert_minijobbeitraege(
+    f'{insert_sozialversicherungsdaten}/9 Minijobbeitraege.xlsx')
+testfirma.get_nutzer("M100001").insert_berufsgenossenschaft(
+    f'{insert_sozialversicherungsdaten}/10 Berufsgenossenschaft.xlsx')
+testfirma.get_nutzer("M100001").insert_unfallversicherungsbeitrag(
+    f'{insert_sozialversicherungsdaten}/11 Unfallversicherungsbeitrag.xlsx')
 
 # Entgeltdaten eingeben
-testfirma.get_nutzer("M100001").insert_gewerkschaft('insert Entgeltdaten/1 Gewerkschaft.xlsx')
-testfirma.get_nutzer("M100001").insert_tarif('insert Entgeltdaten/2 Tarif.xlsx')
-testfirma.get_nutzer("M100001").insert_verguetungsbestandteil('insert Entgeltdaten/3 Verguetungsbestandteil.xlsx')
+testfirma.get_nutzer("M100001").insert_gewerkschaft(f'{insert_tarifliche_entgeltdaten}/1 Gewerkschaft.xlsx')
+testfirma.get_nutzer("M100001").insert_tarif(f'{insert_tarifliche_entgeltdaten}/2 Tarif.xlsx')
+testfirma.get_nutzer("M100001").insert_verguetungsbestandteil(
+    f'{insert_tarifliche_entgeltdaten}/3 Verguetungsbestandteil.xlsx')
+
+# personenbezogene Daten eingeben
+testfirma.get_nutzer("M100001").insert_geschlecht(f'{insert_personenbezogene_daten}/1 Geschlecht.xlsx')
+testfirma.get_nutzer("M100001").insert_mitarbeitertyp(f'{insert_personenbezogene_daten}/2 Mitarbeitertyp.xlsx')
+testfirma.get_nutzer("M100001").insert_steuerklasse(f'{insert_personenbezogene_daten}/3 Steuerklasse.xlsx')
+testfirma.get_nutzer("M100001").insert_abteilung(f'{insert_personenbezogene_daten}/4.1 Abteilung.xlsx')
+testfirma.get_nutzer("M100001").insert_abteilung(f'{insert_personenbezogene_daten}/4.2 Abteilung.xlsx')
+testfirma.get_nutzer("M100001").insert_jobtitel(f'{insert_personenbezogene_daten}/5 Jobtitel.xlsx')
+testfirma.get_nutzer("M100001").insert_erfahrungsstufe(f'{insert_personenbezogene_daten}/6 Erfahrungsstufe.xlsx')
+testfirma.get_nutzer("M100001").insert_gesellschaft(f'{insert_personenbezogene_daten}/7 Gesellschaft.xlsx')
+testfirma.get_nutzer("M100001").insert_austrittsgrundkategorie(
+    f'{insert_personenbezogene_daten}/8 Austrittsgrundkategorie.xlsx')
+testfirma.get_nutzer("M100001").insert_austrittsgrund(f'{insert_personenbezogene_daten}/9 Austrittsgrund.xlsx')
 
 # zentrale Funktion: neuen Mitarbeiter anlegen!
-testfirma.get_nutzer("M100001").insert_neuer_mitarbeiter('insert personenbezogene Daten/10 Mitarbeiter.xlsx')
+testfirma.get_nutzer("M100001").insert_neuer_mitarbeiter(f'{insert_personenbezogene_daten}/10 Mitarbeiter.xlsx')
 
 # Entgeltbestandteil fuer aussertariflichen Mitarbeiter anlegen
 #testfirma.get_nutzer("M100001").\

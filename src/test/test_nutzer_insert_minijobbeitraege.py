@@ -53,9 +53,9 @@ class TestNutzerInsertMinijobbeitraege(unittest.TestCase):
                                                  "Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten "
                                                  "aktualisieren wollen, nutzen Sie bitte die "
                                                  "'update_Minijob'-Funktion!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_minijob(integer,boolean,numeric,"
-                                                 "numeric,numeric,numeric,numeric,numeric,numeric,date) Zeile 17 bei "
-                                                 "RAISE\n")
+                                                 "CONTEXT:  PL/pgSQL-Funktion insert_minijobbeitraege(integer,boolean,"
+                                                 "numeric,numeric,numeric,numeric,numeric,numeric,numeric,date) Zeile "
+                                                 "17 bei RAISE\n")
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM Minijobs", self.testschema)
@@ -90,9 +90,9 @@ class TestNutzerInsertMinijobbeitraege(unittest.TestCase):
                                                  "Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten "
                                                  "aktualisieren wollen, nutzen Sie bitte die "
                                                  "'update_Minijob'-Funktion!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_minijob(integer,boolean,numeric,"
-                                                 "numeric,numeric,numeric,numeric,numeric,numeric,date) Zeile 17 bei "
-                                                 "RAISE\n")
+                                                 "CONTEXT:  PL/pgSQL-Funktion insert_minijobbeitraege(integer,boolean,"
+                                                 "numeric,numeric,numeric,numeric,numeric,numeric,numeric,date) Zeile "
+                                                 "17 bei RAISE\n")
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM Minijobs", self.testschema)

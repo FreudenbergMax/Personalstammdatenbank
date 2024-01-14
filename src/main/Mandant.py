@@ -118,7 +118,7 @@ class Mandant:
 
                 # Nutzer aus Datenbank entfernen
                 nutzer_delete_query = f"set search_path to {self.schema};" \
-                                      f"SELECT nutzer_entfernen({self.mandant_id}, '{personalnummer}')"
+                                      f"CALL nutzer_entfernen({self.mandant_id}, '{personalnummer}')"
 
                 cur = conn.cursor()
                 cur.execute(nutzer_delete_query)

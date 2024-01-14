@@ -126,128 +126,128 @@ drop table if exists Mandanten;
 
 drop function if exists mandant_anlegen(varchar(128));
 drop function if exists nutzer_anlegen(integer, varchar(32), varchar(64), varchar(64));
-drop function if exists nutzer_entfernen(integer, varchar(32));
-drop function if exists pruefe_einmaligkeit_personalnummer(integer, varchar(64), varchar(32));
+drop procedure if exists nutzer_entfernen(integer, varchar(32));
+drop procedure if exists pruefe_einmaligkeit_personalnummer(integer, varchar(64), varchar(32));
 
 -- Loeschung der Stored Procedure für Use Case "Eintrag neue Krankenversicherungsbeitraege"
-drop function if exists insert_krankenversicherungsbeitraege(integer, boolean, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
+drop procedure if exists insert_krankenversicherungsbeitraege(integer, boolean, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
 -- Loeschung der Stored Procedure für Use Case "Eintrag neue gesetzliche Krankenkasse"
-drop function if exists insert_gesetzliche_Krankenkasse(integer, varchar(128), varchar(16), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), varchar(16), date);
+drop procedure if exists insert_gesetzliche_Krankenkasse(integer, varchar(128), varchar(16), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), varchar(16), date);
 
 -- Loeschung der Stored Procedure fuer Use Case "Eintrag neue private Krankenkasse"
-drop function if exists insert_private_Krankenkasse(integer, varchar(128), varchar(16), decimal(5, 3), decimal(5, 3), decimal(5, 3), varchar(16), date);
+drop procedure if exists insert_private_Krankenkasse(integer, varchar(128), varchar(16), decimal(5, 3), decimal(5, 3), decimal(5, 3), varchar(16), date);
 
 -- Loeschung der Stored Procedure fuer Use Case "Eintrag neue gemeldete Krankenkasse fuer anderweitig Versicherte"
-drop function if exists insert_gemeldete_Krankenkasse(integer, varchar(128), varchar(16), decimal(5, 3), decimal(5, 3), decimal(5, 3), varchar(16), date);
+drop procedure if exists insert_gemeldete_Krankenkasse(integer, varchar(128), varchar(16), decimal(5, 3), decimal(5, 3), decimal(5, 3), varchar(16), date);
 
 -- Loeschung der Stored Procedure für Use Case "Eintrag neue Kinderanzahl"
-drop function if exists insert_anzahl_kinder_an_pv_beitrag(integer, integer, decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
+drop procedure if exists insert_anzahl_kinder_an_pv_beitrag(integer, integer, decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
 -- Loeschung der Stored Procedure für Use Case "Eintrag Sachsen"
-drop function if exists insert_Sachsen(integer, boolean, decimal(5, 3), date);
+drop procedure if exists insert_Sachsen(integer, boolean, decimal(5, 3), date);
 
 -- Loeschung der Stored Procedure für Use Case "Eintrag neue Arbeitslosenversicherungsbeitraege"
-drop function if exists insert_arbeitslosenversicherungsbeitraege(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
+drop procedure if exists insert_arbeitslosenversicherungsbeitraege(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
 -- Loeschung der Stored Procedure für Use Case "Eintrag neue Rentenversicherungsbeitraege"
-drop function if exists insert_rentenversicherungsbeitraege(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
+drop procedure if exists insert_rentenversicherungsbeitraege(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
 -- Loeschung der Stored Procedure für Use Case "Eintrag neue Minijobdaten"
-drop function if exists insert_Minijob(integer, boolean, decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), date);
-
--- Loeschung der Stored Procedures für Use Case "Eintrag neuer Tarif mit Verguetung"
-drop function if exists insert_gewerkschaft(integer, varchar(64), varchar(64));
-drop function if exists insert_tarif(integer, varchar(16), varchar(64), varchar(64));
-drop function if exists insert_verguetungsbestandteil(integer, varchar(64), varchar(16));
-drop function if exists insert_tarifliches_verguetungsbestandteil(integer, varchar(64), varchar(16), varchar(16), decimal(10, 2), date);
-
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neues Geschlecht"
-drop function if exists insert_geschlecht(integer, varchar(32));
-
--- Loeschung Stored Procedure fuer Use Case "Eintrag neuer Mitarbeitertyp"
-drop function if exists insert_mitarbeitertyp(integer,varchar(32));
-
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neue Steuerklasse"
-drop function if exists insert_steuerklasse(integer, char(1));
-
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neue Abteilung"
-drop function if exists insert_abteilung(integer, varchar(64), varchar(16));
-
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neuer Jobtitel" 
-drop function if exists insert_jobtitel(integer, varchar(32));
-
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neue Erfahrungsstufe" 
-drop function if exists insert_erfahrungsstufe(integer, varchar(32));
-
--- Loeschung Stored Procedure fuer Use Case "Eintrag neue Gesellschaft" 
-drop function if exists insert_gesellschaft(integer, varchar(128), varchar (16));
-
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neue Austrittsgrundkategorie" 
-drop function if exists insert_kategorien_austrittsgruende(integer, varchar(16));
-
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neuer Austrittsgrund" 
-drop function if exists insert_austrittsgruende(integer, varchar(32), varchar(16));
+drop procedure if exists insert_minijobbeitraege(integer, boolean, decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), date);
 
 -- Loeschung Stored Procedure fuer Use Case "Eintrag neue Berufsgenossenschaft" 
-drop function if exists insert_berufsgenossenschaft(integer, varchar(128), varchar(16));
+drop procedure if exists insert_berufsgenossenschaft(integer, varchar(128), varchar(16));
 
 --Loeschung Stored Procedure fuer Use Case "Eintrag neue Unfallversicherungsbeitraege" 
-drop function if exists insert_unfallversicherungsbeitrag(integer, varchar(128), varchar (16), varchar(128), varchar(16), decimal(12, 2), integer);
+drop procedure if exists insert_unfallversicherungsbeitrag(integer, varchar(128), varchar (16), varchar(128), varchar(16), decimal(12, 2), integer);
+
+-- Loeschung der Stored Procedures für Use Case "Eintrag neuer Tarif mit Verguetung"
+drop procedure if exists insert_gewerkschaft(integer, varchar(64), varchar(64));
+drop procedure if exists insert_tarif(integer, varchar(16), varchar(64), varchar(64));
+drop procedure if exists insert_verguetungsbestandteil(integer, varchar(64), varchar(16));
+drop procedure if exists insert_tarifliches_verguetungsbestandteil(integer, varchar(64), varchar(16), varchar(16), decimal(10, 2), date);
+
+-- Loeschung der Stored Procedure fuer Use Case "Eintrag neues Geschlecht"
+drop procedure if exists insert_geschlecht(integer, varchar(32));
+
+-- Loeschung Stored Procedure fuer Use Case "Eintrag neuer Mitarbeitertyp"
+drop procedure if exists insert_mitarbeitertyp(integer,varchar(32));
+
+-- Loeschung der Stored Procedure fuer Use Case "Eintrag neue Steuerklasse"
+drop procedure if exists insert_steuerklasse(integer, char(1));
+
+-- Loeschung der Stored Procedure fuer Use Case "Eintrag neue Abteilung"
+drop procedure if exists insert_abteilung(integer, varchar(64), varchar(16));
+
+-- Loeschung der Stored Procedure fuer Use Case "Eintrag neuer Jobtitel" 
+drop procedure if exists insert_jobtitel(integer, varchar(32));
+
+-- Loeschung der Stored Procedure fuer Use Case "Eintrag neue Erfahrungsstufe" 
+drop procedure if exists insert_erfahrungsstufe(integer, varchar(32));
+
+-- Loeschung Stored Procedure fuer Use Case "Eintrag neue Gesellschaft" 
+drop procedure if exists insert_gesellschaft(integer, varchar(128), varchar(16));
+
+-- Loeschung der Stored Procedure fuer Use Case "Eintrag neue Austrittsgrundkategorie" 
+drop procedure if exists insert_kategorien_austrittsgruende(integer, varchar(16));
+
+-- Loeschung der Stored Procedure fuer Use Case "Eintrag neuer Austrittsgrund" 
+drop procedure if exists insert_austrittsgruende(integer, varchar(32), varchar(16));
 
 -- Loeschung der Stored Procedures für Use Case "Eintrag neuer Mitarbeiter"
-drop function if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), varchar(32), 
+drop procedure if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), varchar(32), 
 varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128), varchar(32), varchar(32), 
 char(1), decimal(4, 2), varchar(64), varchar(16), boolean, varchar(32), varchar(32), varchar(128), boolean, varchar(16), boolean, varchar(128), varchar(16), 
 boolean, boolean, integer, boolean, boolean, decimal(6, 2), decimal(6, 2), boolean, boolean, boolean, boolean);
 drop function if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date,  varchar(32), varchar(32), 
 varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date);
-drop function if exists insert_tbl_laender(integer, varchar(128));
-drop function if exists insert_tbl_regionen(integer, varchar(128), varchar(128));
-drop function if exists insert_tbl_staedte(integer, varchar(128), varchar(128));
-drop function if exists insert_tbl_postleitzahlen(integer, varchar(16), varchar(8), varchar(128));
-drop function if exists insert_tbl_strassenbezeichnungen(integer, varchar(64), varchar(8), varchar(16));
-drop function if exists insert_tbl_wohnt_in(integer, varchar(32), varchar(64), varchar(8), date);
-drop function if exists insert_tbl_hat_geschlecht(integer, varchar(32), varchar(32), date);
-drop function if exists insert_tbl_ist_mitarbeitertyp(integer, varchar(32), varchar(32), date);
-drop function if exists insert_tbl_in_steuerklasse(integer, varchar(32), char(1), date);
-drop function if exists insert_tbl_wochenarbeitsstunden(integer, decimal(4, 2));
-drop function if exists insert_tbl_arbeitet_x_wochenarbeitsstunden(integer, varchar(32), decimal(4, 2), date);
-drop function if exists insert_tbl_eingesetzt_in(integer, varchar(32), varchar(64), varchar(16), boolean, date);
-drop function if exists insert_tbl_hat_jobtitel(integer, varchar(32), varchar(32), varchar(32), date);
-drop function if exists insert_tbl_in_gesellschaft(integer, varchar(32), varchar(128), date);
-drop function if exists insert_tbl_hat_tarif(integer, varchar(32), varchar(16), date);
-drop function if exists insert_tbl_aussertarifliche(varchar(32), integer, date);
-drop function if exists insert_tbl_hat_private_krankenversicherung(integer, varchar(32), varchar(128), decimal(6, 2), date);
-drop function if exists insert_tbl_ist_Minijobber(integer, varchar(32), boolean, date);
-drop function if exists insert_tbl_hat_gesetzliche_Krankenversicherung(integer, varchar(32), boolean, date);
-drop function if exists insert_tbl_ist_in_gkv(integer, varchar(32), varchar(128), varchar(16), date);
-drop function if exists insert_tbl_hat_x_kinder_unter_25(integer, varchar(32), integer, date);
-drop function if exists insert_tbl_arbeitet_in_sachsen(integer, varchar(32), boolean, date);
-drop function if exists insert_tbl_hat_gesetzliche_arbeitslosenversicherung(integer, varchar(32), date);
-drop function if exists insert_tbl_hat_gesetzliche_rentenversicherung(integer, varchar(32), date);
-drop function if exists insert_tbl_ist_anderweitig_versichert(integer, varchar(32), varchar(128), varchar(16), date);
+drop procedure if exists insert_tbl_laender(integer, varchar(128));
+drop procedure if exists insert_tbl_regionen(integer, varchar(128), varchar(128));
+drop procedure if exists insert_tbl_staedte(integer, varchar(128), varchar(128));
+drop procedure if exists insert_tbl_postleitzahlen(integer, varchar(16), varchar(8), varchar(128));
+drop procedure if exists insert_tbl_strassenbezeichnungen(integer, varchar(64), varchar(8), varchar(16));
+drop procedure if exists insert_tbl_wohnt_in(integer, varchar(32), varchar(64), varchar(8), date);
+drop procedure if exists insert_tbl_hat_geschlecht(integer, varchar(32), varchar(32), date);
+drop procedure if exists insert_tbl_ist_mitarbeitertyp(integer, varchar(32), varchar(32), date);
+drop procedure if exists insert_tbl_in_steuerklasse(integer, varchar(32), char(1), date);
+drop procedure if exists insert_tbl_wochenarbeitsstunden(integer, decimal(4, 2));
+drop procedure if exists insert_tbl_arbeitet_x_wochenarbeitsstunden(integer, varchar(32), decimal(4, 2), date);
+drop procedure if exists insert_tbl_eingesetzt_in(integer, varchar(32), varchar(64), varchar(16), boolean, date);
+drop procedure if exists insert_tbl_hat_jobtitel(integer, varchar(32), varchar(32), varchar(32), date);
+drop procedure if exists insert_tbl_in_gesellschaft(integer, varchar(32), varchar(128), date);
+drop procedure if exists insert_tbl_hat_tarif(integer, varchar(32), varchar(16), date);
+drop procedure if exists insert_tbl_aussertarifliche(varchar(32), integer, date);
+drop procedure if exists insert_tbl_hat_private_krankenversicherung(integer, varchar(32), varchar(128), decimal(6, 2), date);
+drop procedure if exists insert_tbl_ist_Minijobber(integer, varchar(32), boolean, date);
+drop procedure if exists insert_tbl_hat_gesetzliche_Krankenversicherung(integer, varchar(32), boolean, date);
+drop procedure if exists insert_tbl_ist_in_gkv(integer, varchar(32), varchar(128), varchar(16), date);
+drop procedure if exists insert_tbl_hat_x_kinder_unter_25(integer, varchar(32), integer, date);
+drop procedure if exists insert_tbl_arbeitet_in_sachsen(integer, varchar(32), boolean, date);
+drop procedure if exists insert_tbl_hat_gesetzliche_arbeitslosenversicherung(integer, varchar(32), date);
+drop procedure if exists insert_tbl_hat_gesetzliche_rentenversicherung(integer, varchar(32), date);
+drop procedure if exists insert_tbl_ist_anderweitig_versichert(integer, varchar(32), varchar(128), varchar(16), date);
 
 -- Loeschung der Stored Procedure fuer Use Case "Eintrag Verguetungsbestandteil fuer aussertariflicher Mitarbeiter"
-drop function if exists insert_aussertariflicher_verguetungsbestandteil(integer, varchar(32), varchar(64), decimal(8, 2), date);
+drop procedure if exists insert_aussertariflicher_verguetungsbestandteil(integer, varchar(32), varchar(64), decimal(8, 2), date);
 
 -- Loeschung der Stored Procedure für Use Case "Update Adresse Mitarbeiter"
-drop function if exists update_adresse(integer, varchar(32), date, date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128));
+drop procedure if exists update_adresse(integer, varchar(32), date, date, varchar(64), varchar(8), varchar(16), varchar(128), varchar(128), varchar(128));
 
 -- Loeschung der Stored Procedure für Use Case "Update Kuendigung Mitarbeiter"
-drop function if exists update_mitarbeiterentlassung(integer, varchar(32), date, varchar(32));
+drop procedure if exists update_mitarbeiterentlassung(integer, varchar(32), date, varchar(32));
 
 -- Loeschung der Stored Procedure für Use Case "Update Krankenversicherungsbeitraege"
-drop function if exists update_krankenversicherungsbeitraege( integer, boolean, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date, date);
+drop procedure if exists update_krankenversicherungsbeitraege( integer, boolean, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date, date);
 
 -- Loeschung der Stored Procedure für Use Case "Update Abteilungshierarchie"
-drop function if exists update_erstelle_abteilungshierarchie(integer, varchar(64), varchar(64));
+drop procedure if exists update_erstelle_abteilungshierarchie(integer, varchar(64), varchar(64));
 
 -- Loeschung der Stored Procedure für Use Case "Update Kuendigung Mitarbeiter"
-drop function if exists delete_mitarbeiterdaten(integer, varchar(32));
+drop procedure if exists delete_mitarbeiterdaten(integer, varchar(32));
 
 -- Loeschung der Stored Procedure für Use Case  "Entferne Daten eines Mandanten aus Datenbank"
-drop function if exists delete_mandantendaten(integer);
+drop procedure if exists delete_mandantendaten(integer);
 
 ----------------------------------------------------------------------------------------------------------------
 -- Erstellung der Tabellen mit Row-Level-Security (RLS)
@@ -729,7 +729,6 @@ create table Gesellschaften (
 	Abkuerzung varchar(16),
 	untersteht_Gesellschaft integer,
 	unique (Mandant_ID, Gesellschaft),
-	unique (Mandant_ID, Abkuerzung),
 	constraint fk_gesellschaften_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID),
@@ -1695,7 +1694,7 @@ begin
 	set session role tenant_user;
 	execute 'SET app.current_tenant=' || p_mandant_id;
 
-	perform pruefe_einmaligkeit_personalnummer(p_mandant_id, 'nutzer', p_personalnummer);
+	call pruefe_einmaligkeit_personalnummer(p_mandant_id, 'nutzer', p_personalnummer);
 
     insert into Nutzer(Mandant_ID, Personalnummer, Vorname, Nachname)
 		values(p_mandant_id, p_personalnummer, p_vorname, p_nachname);
@@ -1715,11 +1714,11 @@ language plpgsql;
  * Diese Funktion prüft, ob die Personalnummer für einen neuen Mitarbeiter bereits vergeben ist. Ist die Personalnummer vergeben, so 
  * wird eine Exception geworfen. Diese Funktion wird aufgerufen, wenn ein neuer Mitarbeiter in die Datenbank eingetragen werden soll.
  */
-create or replace function pruefe_einmaligkeit_personalnummer(
+create or replace procedure pruefe_einmaligkeit_personalnummer(
 	p_mandant_id integer,
 	p_tabelle varchar(64),
 	p_personalnummer varchar(32)
-) returns void as
+) as
 $$
 declare
 	v_vorhandene_personalnummer varchar(32);
@@ -1744,10 +1743,10 @@ language plpgsql;
 /*
  * Funktion entfernt einen Nutzer aus der Datenbank.
  */
-create or replace function nutzer_entfernen(
+create or replace procedure nutzer_entfernen(
 	p_mandant_id integer,
 	p_personalnummer varchar(32)
-) returns void as
+) as
 $$
 begin
 
@@ -1772,7 +1771,7 @@ language plpgsql;
 /*
  * Funktion trägt neue Daten bzgl. Krankenversicherungsbeitraege und Beitragsbemessungsgrenzen ein
  */
-create or replace function insert_krankenversicherungsbeitraege (
+create or replace procedure insert_krankenversicherungsbeitraege (
 	p_mandant_id integer,
 	p_ermaessigter_beitragssatz boolean,
 	p_ag_krankenversicherungsbeitrag_in_prozent decimal(5, 3),
@@ -1780,7 +1779,7 @@ create or replace function insert_krankenversicherungsbeitraege (
 	p_beitragsbemessungsgrenze_gkv decimal(10, 2),
 	p_jahresarbeitsentgeltgrenze_gkv decimal(10, 2),
 	p_eintragungsdatum date
-) returns void as
+) as
 $$
 declare
 	v_krankenversicherungsbeitrag_id integer;
@@ -1883,7 +1882,7 @@ language plpgsql;
 /*
  * Funktion trägt neue Daten einer Krankenkasse mit dessen individuellen Zusatzbeitrag und Umlagesaetze ein.
  */
-create or replace function insert_gesetzliche_Krankenkasse (
+create or replace procedure insert_gesetzliche_Krankenkasse (
 	p_mandant_id integer,
 	p_krankenkasse varchar(128),
 	p_krankenkassenkuerzel varchar(16),
@@ -1893,7 +1892,7 @@ create or replace function insert_gesetzliche_Krankenkasse (
 	p_insolvenzgeldumlagesatz_in_prozent decimal(5, 3),
 	p_gesetzlich varchar(16),
 	p_eintragungsdatum date
-) returns void as
+) as
 $$
 declare
 	v_krankenkasse_id integer;
@@ -1985,7 +1984,7 @@ language plpgsql;
 /*
  * Funktion trägt neue Daten einer privaten Krankenkasse mit dessen Umlagesaetze ein.
  */
-create or replace function insert_private_Krankenkasse (
+create or replace procedure insert_private_Krankenkasse (
 	p_mandant_id integer,
 	p_krankenkasse varchar(128),
 	p_krankenkassenkuerzel varchar(16),
@@ -1994,7 +1993,7 @@ create or replace function insert_private_Krankenkasse (
 	p_insolvenzgeldumlagesatz_in_prozent decimal(5, 3),
 	p_privat varchar(16),
 	p_eintragungsdatum date
-) returns void as
+) as
 $$
 declare
 	v_krankenkasse_id integer;
@@ -2064,7 +2063,7 @@ language plpgsql;
 /*
  * Funktion trägt neue Daten einer privaten Krankenkasse mit dessen Umlagesaetze ein.
  */
-create or replace function insert_gemeldete_Krankenkasse(
+create or replace procedure insert_gemeldete_Krankenkasse(
 	p_mandant_id integer,
 	p_krankenkasse varchar(128),
 	p_krankenkassenkuerzel varchar(16),
@@ -2073,7 +2072,7 @@ create or replace function insert_gemeldete_Krankenkasse(
 	p_insolvenzgeldumlagesatz_in_prozent decimal(5, 3),
 	p_anders varchar(16),
 	p_eintragungsdatum date
-) returns void as
+) as
 $$
 declare
 	v_krankenkasse_id integer;
@@ -2143,14 +2142,14 @@ language plpgsql;
 /*
  * Funktion trägt neue Daten bzgl. der Anzahl der Kinder ein.
  */
-create or replace function insert_anzahl_kinder_an_pv_beitrag (
+create or replace procedure insert_anzahl_kinder_an_pv_beitrag (
 	p_mandant_id integer,
 	p_anzahl_kinder integer,
 	p_an_anteil_pv_beitrag_in_prozent decimal(5, 3),
 	p_beitragsbemessungsgrenze_pv decimal(10, 2),
 	p_jahresarbeitsentgeltgrenze_pv decimal(10, 2),
 	p_eintragungsdatum date
-) returns void as
+) as
 $$
 declare
 	v_anzahl_kinder_unter_25_id integer;
@@ -2241,17 +2240,17 @@ language plpgsql;
 
 
 ----------------------------------------------------------------------------------------------------------------
--- Stored Procedure für Use Case "Eintrag Sachsen"
+-- Stored Procedure für Use Case "Eintrag Arbeitsort Sachsen"
 
 /*
- * Funktion trägt neue Daten in Bezug auf die Frage ein, ob jemand in Sachsen wohnhaft ist. (Wichtig für Bestimmung des AG-Anteil zur Pflegeversicherung).
+ * Funktion trägt neue Daten in Bezug auf die Frage ein, ob der Arbeitsort in Sachsen ist. (Wichtig für Bestimmung des AG-Anteil zur Pflegeversicherung).
  */
-create or replace function insert_sachsen(
+create or replace procedure insert_arbeitsort_sachsen_ag_pv_beitrag(
 	p_mandant_id integer,
 	p_in_sachsen boolean,
 	p_ag_anteil_pv_beitrag_in_prozent decimal(5, 3),
 	p_eintragungsdatum date
-) returns void as
+) as
 $$
 declare
 	v_arbeitsort_sachsen_id integer;
@@ -2318,14 +2317,14 @@ language plpgsql;
 /*
  * Funktion trägt neue Daten bzgl. Arbeitslosenversicherungsbeitraege und Beitragsbemessungsgrenzen ein
  */
-create or replace function insert_arbeitslosenversicherungsbeitraege (
+create or replace procedure insert_arbeitslosenversicherungsbeitraege (
 	p_mandant_id integer,
 	p_ag_arbeitslosenversicherungsbeitrag_in_prozent decimal(5, 3),
 	p_an_arbeitslosenversicherungsbeitrag_in_prozent decimal(5, 3),
 	p_beitragsbemessungsgrenze_av_ost decimal(10, 2),
 	p_beitragsbemessungsgrenze_av_west decimal(10, 2),
 	p_eintragungsdatum date
-) returns void as
+) as
 $$
 declare
 	v_arbeitslosenversicherungsbeitrag_id integer;
@@ -2429,14 +2428,14 @@ language plpgsql;
 /*
  * Funktion trägt neue Daten bzgl. Rentenversicherungsbeitraege und Beitragsbemessungsgrenzen ein
  */
-create or replace function insert_rentenversicherungsbeitraege(
+create or replace procedure insert_rentenversicherungsbeitraege(
 	p_mandant_id integer,
 	p_ag_rentenversicherungsbeitrag_in_prozent decimal(5, 3),
 	p_an_rentenversicherungsbeitrag_in_prozent decimal(5, 3),
 	p_beitragsbemessungsgrenze_rv_ost decimal(10, 2),
 	p_beitragsbemessungsgrenze_rv_west decimal(10, 2),
 	p_eintragungsdatum date
-) returns void as
+) as
 $$
 declare
 	v_rentenversicherungsbeitrag_id integer;
@@ -2537,12 +2536,12 @@ language plpgsql;
 
 
 ----------------------------------------------------------------------------------------------------------------
--- Stored Procedure für Use Case "Eintrag neue Minijobdaten"
+-- Stored Procedure fuer Use Case "Eintrag neue Minijobdaten"
 
 /*
- * Funktion trägt neue Daten bzgl. Rentenversicherungsbeitraege und Beitragsbemessungsgrenzen ein
+ * Funktion traegt neue Daten bzgl. Minijobbeitraege und Beitragsbemessungsgrenzen ein
  */
-create or replace function insert_Minijob(
+create or replace procedure insert_minijobbeitraege(
 	p_mandant_id integer,
 	p_kurzfristig_beschaeftigt boolean,
 	p_ag_krankenversicherungsbeitrag_in_prozent decimal(5, 3),
@@ -2553,7 +2552,7 @@ create or replace function insert_Minijob(
 	p_insolvenzgeldumlage_in_prozent decimal(5, 3),
 	p_pauschalsteuer_in_prozent decimal(5, 3),
 	p_eintragungsdatum date
-) returns void as
+) as
 $$
 declare
 	v_minijob_id integer;
@@ -2670,510 +2669,15 @@ language plpgsql;
 
 
 ----------------------------------------------------------------------------------------------------------------
--- Stored Procedures für Use Case "Eintrag neuer Tarif inkl. Gewerkschaft, Verguetung etc,"
-
-/*
- * Funktion trägt neue Daten in Tabelle 'Gewerkschaften' ein.
- */
-create or replace function insert_gewerkschaft(
-	p_mandant_id integer,
-	p_gewerkschaft varchar(64)
-) returns void as
-$$
-begin
-    
-    set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    insert into 
-   		Gewerkschaften(Mandant_ID, Gewerkschaft)
-   	values 
-   		(p_mandant_id, p_gewerkschaft);
-    
-    set role postgres;
-   
-exception
-    when unique_violation then
-        raise exception 'Gewerkschaft ''%'' bereits vorhanden!', p_gewerkschaft;
-           
-end;
-$$
-language plpgsql;
-
-/*
- * Funktion trägt neue Tarif-Daten ein.
- */
-create or replace function insert_tarif(
-	p_mandant_id integer,
-	p_tarifbezeichnung varchar(16),
-	p_gewerkschaft varchar(64)
-) returns void as
-$$
-declare
-	v_gewerkschaft_id integer;
-	v_tarif_id integer;
-begin
-    
-    set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-    
-   	-- Pruefen, ob Gewerkschaft bereits vorhanden ist...
-   	execute 'SELECT gewerkschaft_id FROM gewerkschaften WHERE lower(gewerkschaft) = $1' 
-   		into v_gewerkschaft_id using lower(p_gewerkschaft);
-    
-    -- ... und falls sie noch nicht existiert, dann Meldung ausgeben
-    if v_gewerkschaft_id is null then
-    	set role postgres;
-		raise exception 'Gewerkschaft ''%'' existiert nicht! Bitte tragen Sie erst eine Gewerkschaft ein!', p_gewerkschaft; 
-    end if;
-   
-   	-- Pruefen, ob Tarif bereits vorhanden ist...
-   	execute 'SELECT tarif_id FROM tarife WHERE tarifbezeichnung = $1' into v_tarif_id using p_tarifbezeichnung;
-    
-    -- ... und falls sie bereits existiert, Meldung ausgeben
-    if v_tarif_id is not null then
-    
-		set role postgres;
-		raise exception 'Tarif ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_Tarif''-Funktion!';   
-	
-    end if; 
-   
-   	-- ... ansonsten eintragen
-	insert into Tarife(Mandant_ID, Tarifbezeichnung, Gewerkschaft_ID)
-		values(p_mandant_id, p_tarifbezeichnung, v_gewerkschaft_id);
-
-    set role postgres;
-
-exception
-    when unique_violation then
-        raise exception 'Tarif ''%'' bereits vorhanden!', p_gewerkschaft;
-
-end;
-$$
-language plpgsql;
-
-/*
- * Funktion trägt neue Daten in Tabelle 'Verguetungsbestandteil' ein.
- */
-create or replace function insert_verguetungsbestandteil(
-	p_mandant_id integer,
-	p_Verguetungsbestandteil varchar(64),
-	p_auszahlungsmonat varchar(16)
-) returns void as
-$$
-begin
-    
-    set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    insert into 
-		Verguetungsbestandteile(Mandant_ID, Verguetungsbestandteil, Auszahlungsmonat) 
-	values 
-		(p_mandant_id, p_verguetungsbestandteil, p_auszahlungsmonat);
-    
-    set role postgres;
-   
-exception
-    when unique_violation then
-        raise exception 'Verguetungsbestandteil ''%'' bereits vorhanden!', p_Verguetungsbestandteil;
-	when check_violation then
-        raise exception 'Auszahlungsmonat ''%'' nicht vorhanden! Bitte waehlen Sie zwischen folgenden Moeglichkeiten: ''jeden Monat'', ''Januar'', ''Februar'', ''Maerz'', ''April'', ''Mai'', ''Juni'', ''Juli'', ''August'', ''September'', ''Oktober'', ''November'', ''Dezember''!', p_auszahlungsmonat;    
-
-           
-end;
-$$
-language plpgsql;
-
-/*
- * Funktion verknuepft Tarif mit (diversen) Verguetungsbestandteilen- Darunter fallen neben Monatsgehalt, Weihnachtsgeld etc.
- */
-create or replace function insert_tarifliches_verguetungsbestandteil(
-	p_mandant_id integer,
-	p_Verguetungsbestandteil varchar(64),
-	p_tarifbezeichnung varchar(16),
-	p_betrag decimal(10, 2),
-	p_gueltig_ab date
-) returns void as
-$$
-declare
-	v_tarif_id integer;
-	v_verguetungsbestandteil_id integer;
-begin
-    
-    set session role tenant_user;
-	execute 'SET app.current_tenant=' || p_mandant_id;
-	
-	-- Pruefen, ob Verguetungsbestandteil bereits in Tabelle 'Verguetungsbestandteile' hinterlegt ist
-	execute 'SELECT verguetungsbestandteil_id FROM verguetungsbestandteile WHERE lower(Verguetungsbestandteil) = $1' into v_verguetungsbestandteil_id using lower(p_Verguetungsbestandteil);
-
-	-- ... und falls nicht, dann Meldung ausgeben, dass dieser Verguetungsbestandteil erst hinterlegt werden muss!
-	if v_verguetungsbestandteil_id is null then
-		set role postgres;
-		raise exception 'Bitte erst Verguetungsbestandteil ''%'' anlegen!', p_Verguetungsbestandteil;
-	end if;
-
-	-- Tarif_ID ziehen, da diese benoetigt wird, um einen Datensatz in der Assoziation 'hat_Verguetungsbestandteil_Tarif' anzulegen
-	execute 'SELECT tarif_id FROM tarife WHERE lower(tarifbezeichnung) = $1' into v_tarif_id using lower(p_tarifbezeichnung);
-
-	-- ... falls Tarif nicht vorhanden ist, dann Meldung ausgeben, dass dieser erst hinterlegt werden muss!
-	if v_tarif_id is null then
-		set role postgres;
-		raise exception 'Bitte erst Tarif ''%'' anlegen!', p_tarifbezeichnung;
-	end if;
-	
-    insert into hat_Verguetungsbestandteil_Tarif(Tarif_ID, Verguetungsbestandteil_ID, Mandant_ID, Betrag, Datum_Von, Datum_Bis) 
-   		values (v_tarif_id, v_verguetungsbestandteil_id, p_mandant_id, p_betrag, p_gueltig_ab, '9999-12-31');
-   	
-   	set role postgres;
-
-exception
-    when unique_violation then
-        raise exception 'Verguetungsbestandteil ''%'' fuer Tarif ''%'' bereits verknuepft!', p_Verguetungsbestandteil, p_tarifbezeichnung;
-
-end;
-$$
-language plpgsql;
-
-
-
-
-
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure für Use Case "Eintrag neues Geschlecht"
-/*
- * Funktion trägt neue Daten in Tabelle 'Geschlechter' ein.
- */
-create or replace function insert_geschlecht(
-    p_mandant_id integer,
-    p_geschlecht varchar(32)
-) returns void as
-$$
-begin
-    
-    set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    insert into 
-   		Geschlechter(Mandant_ID, Geschlecht) 
-   	values 
-   		(p_mandant_id, p_geschlecht);
-    
-    set role postgres;
-
-exception
-    when unique_violation then
-    	set role postgres;
-        raise exception 'Geschlecht ''%'' bereits vorhanden!', p_geschlecht;
-    when check_violation then
-    	set role postgres;
-    	raise exception 'Fuer Geschlechter sind nur folgende Werte erlaubt: ''maennlich'', ''weiblich'', ''divers''!';
-
-end;
-$$
-language plpgsql;
-
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure für Use Case "Eintrag neuer Mitarbeitertyp"
-/*
- * Funktion trägt neue Daten in Tabelle 'Mitarbeitertypen' ein.
- */
-create or replace function insert_mitarbeitertyp(
-    p_mandant_id integer,
-    p_mitarbeitertyp varchar(32)
-) returns void as
-$$
-begin
-    
-    set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    insert into 
-   		Mitarbeitertypen(Mandant_ID, Mitarbeitertyp) 
-   	values 
-   		(p_mandant_id, p_mitarbeitertyp);
-    
-    set role postgres;
-
-exception
-    when unique_violation then
-        raise exception 'Mitarbeitertyp ''%'' bereits vorhanden!', p_mitarbeitertyp;
-
-end;
-$$
-language plpgsql;
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure für Use Case "Eintrag neue Steuerklasse"
-/*
- * Funktion trägt neue Daten in Tabelle 'Steuerklasse' ein.
- */
-create or replace function insert_steuerklasse(
-    p_mandant_id integer,
-    p_steuerklasse char(1)
-) returns void as
-$$
-begin
-    
-    set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    insert into 
-   		Steuerklassen(Mandant_ID, Steuerklasse) 
-   	values 
-   		(p_mandant_id, p_steuerklasse);
-    
-    set role postgres;
-   	
-exception
-    when unique_violation then
-    	set role postgres;
-        raise exception 'Steuerklasse ''%'' bereits vorhanden!', p_steuerklasse;
-    when check_violation then
-    	set role postgres;
-    	raise exception 'Fuer Steuerklassen sind nur folgende Werte erlaubt: 1, 2, 3, 4, 5, 6!';
-    
-end;
-$$
-language plpgsql;
-
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure für Use Case "Eintrag neue Abteilung"
-/*
- * Funktion trägt neue Daten in Tabelle 'Abteilungen' ein.
- */
-create or replace function insert_abteilung(
-    p_mandant_id integer,
-    p_abteilung varchar(64),
-	p_abkuerzung varchar(16)
-) returns void as
-$$
-begin
-    
-    set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    insert into 
-   		Abteilungen(Mandant_ID, Abteilung, Abkuerzung, untersteht_Abteilung)
-   	values 
-   		(p_mandant_id, p_abteilung, p_abkuerzung, null);
-    
-    set role postgres;
-
-exception
-    when unique_violation then
-    	set role postgres;
-        raise exception 'Abteilung ''%'' oder Abteilungskuerzel ''%'' bereits vorhanden!', p_abteilung, p_abkuerzung;
-end;
-$$
-language plpgsql;
-
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
---Stored Procedure fuer Use Case "Eintrag neuer Jobtitel" 
-/*
- * Funktion trägt neue Daten in Tabelle 'Jobtitel' ein.
- */
-create or replace function insert_jobtitel (
-	p_mandant_ID integer,
-	p_jobtitel varchar(32)
-) returns void as
-$$
-begin
-    
-    set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    insert into 
-   		Jobtitel(Mandant_ID, Jobtitel)
-   	values 
-   		(p_mandant_id, p_jobtitel);
-    
-    set role postgres;
-
-exception
-    when unique_violation then
-    	set role postgres;
-        raise exception 'Jobtitel ''%'' bereits vorhanden!', p_jobtitel;
-
-end;
-$$
-language plpgsql;
-
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
---Stored Procedure fuer Use Case "Eintrag neue Erfahrungsstufe" 
-/*
- * Funktion trägt neue Daten in Tabelle 'Erfahrungsstufen' ein.
- */
-create or replace function insert_erfahrungsstufe (
-	p_Mandant_ID integer,
-	p_erfahrungsstufe varchar(32) 
-) returns void as
-$$
-begin
-    
-    set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    insert into 
-   		Erfahrungsstufen(Mandant_ID, Erfahrungsstufe)
-   	values 
-   		(p_mandant_id, p_erfahrungsstufe);
-    
-    set role postgres;
-   
-exception
-    when unique_violation then
-        raise exception 'Erfahrungsstufe ''%'' bereits vorhanden!', p_erfahrungsstufe;
-
-end;
-$$
-language plpgsql;
-
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
---Stored Procedure fuer Use Case "Eintrag neue Gesellschaft" 
-/*
- * Funktion trägt neue Daten in Tabelle 'Gesellschaften' ein.
- */
-create or replace function insert_gesellschaft(
-	p_mandant_id integer,
-	p_gesellschaft varchar(128),
-	p_abkuerzung varchar (16)
-) returns void as
-$$
-begin
-    
-    set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    insert into 
-   		Gesellschaften(Mandant_ID, Gesellschaft, Abkuerzung, untersteht_Gesellschaft)
-   	values 
-   		(p_mandant_id, p_gesellschaft, p_abkuerzung, null);
-    
-    set role postgres;
-   
-exception
-    when unique_violation then
-        raise exception 'Gesellschaft ''%'' oder ''%'' bereits vorhanden!', p_gesellschaft, p_abkuerzung;
-           
-end;
-$$
-language plpgsql;
-
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Eintrag neue Austrottsgrundkategorie" 
-/*
- * Funktion trägt die Daten in die Tabelle "Kategorien_Austrittsgruende" ein
- */
-create or replace function insert_kategorien_austrittsgruende(
-	p_mandant_id integer,
-	p_austrittsgrundkategorie varchar(16)
-) returns void as
-$$
-begin
-
-	set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    insert into 
-   		Kategorien_Austrittsgruende(Mandant_ID, Austrittsgrundkategorie) 
-   	values 
-   		(p_mandant_id, p_austrittsgrundkategorie);
-
-    set role postgres;
-
-exception
-    when unique_violation then
-        raise exception 'Austrittsgrundkategorie ''%'' bereits vorhanden!', p_austrittsgrundkategorie;
-    when check_violation then
-    	set role postgres;
-    	raise exception 'Fuer Austrittsgrundkategorien sind nur folgende Werte erlaubt: ''verhaltensbedingt'', ''personenbedingt'', ''betriebsbedingt''!';
-
-end;
-$$
-language plpgsql;
-
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Eintrag neuer Austrittsgrund" 
-/*
- * Funktion trägt die Daten in die Tabelle "Austrittsgruende" ein
- */
-create or replace function insert_austrittsgruende(
-	p_mandant_id integer,
-	p_austrittsgrund varchar(32),
-	p_austrittsgrundkategorie varchar(16)
-) returns void as
-$$
-declare
-	v_kategorie_austrittsgruende_id integer;
-begin
-
-	set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    execute 'SELECT kategorie_austrittsgruende_id FROM kategorien_austrittsgruende WHERE austrittsgrundkategorie = $1' 
-   		into v_kategorie_austrittsgruende_id using lower(p_austrittsgrundkategorie);
-    
-   	insert into 
-   		Austrittsgruende(Mandant_ID, Austrittsgrund, Kategorie_Austrittsgruende_ID) 
-   	values 
-   		(p_mandant_id, p_austrittsgrund, v_kategorie_austrittsgruende_id);
-
-    set role postgres;
- 
-exception
-    when unique_violation then
-        raise exception 'Austrittsgrund ''%'' bereits vorhanden!', p_austrittsgrund;
-
-end;
-$$
-language plpgsql;
-
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
 --Stored Procedure fuer Use Case "Eintrag neue Berufsgenossenschaft" 
 /*
  * Funktion trägt neue Daten in Tabelle 'Berufsgenossenschaften' ein.
  */
-create or replace function insert_berufsgenossenschaft(
+create or replace procedure insert_berufsgenossenschaft(
 	p_mandant_id integer,
 	p_berufsgenossenschaft varchar(128),
 	p_abkuerzung varchar(16)
-) returns void as
+) as
 $$
 begin
     
@@ -3204,7 +2708,7 @@ language plpgsql;
 /*
  * Funktion trägt neue Daten in Tabelle 'Unfallversicherungsbeitraege' ein.
  */
-create or replace function insert_unfallversicherungsbeitrag(
+create or replace procedure insert_unfallversicherungsbeitrag(
 	p_mandant_id integer,
 	p_gesellschaft varchar(128),
 	p_abkuerzung_gesellschaft varchar(16),
@@ -3212,7 +2716,7 @@ create or replace function insert_unfallversicherungsbeitrag(
 	p_abkuerzung_berufsgenossenschaft varchar(16),
 	p_beitrag decimal(12, 2),
 	p_beitragsjahr integer
-) returns void as
+) as
 $$
 declare
 	v_gesellschaft_id integer;
@@ -3260,12 +2764,503 @@ language plpgsql;
 
 
 ----------------------------------------------------------------------------------------------------------------
+-- Stored Procedures für Use Case "Eintrag neuer Tarif inkl. Gewerkschaft, Verguetung etc,"
+
+/*
+ * Funktion trägt neue Daten in Tabelle 'Gewerkschaften' ein.
+ */
+create or replace procedure insert_gewerkschaft(
+	p_mandant_id integer,
+	p_gewerkschaft varchar(64)
+) as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Gewerkschaften(Mandant_ID, Gewerkschaft)
+   	values 
+   		(p_mandant_id, p_gewerkschaft);
+    
+    set role postgres;
+   
+exception
+    when unique_violation then
+        raise exception 'Gewerkschaft ''%'' bereits vorhanden!', p_gewerkschaft;
+           
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt neue Tarif-Daten ein.
+ */
+create or replace procedure insert_tarif(
+	p_mandant_id integer,
+	p_tarifbezeichnung varchar(16),
+	p_gewerkschaft varchar(64)
+) as
+$$
+declare
+	v_gewerkschaft_id integer;
+	v_tarif_id integer;
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+    
+   	-- Pruefen, ob Gewerkschaft bereits vorhanden ist...
+   	execute 'SELECT gewerkschaft_id FROM gewerkschaften WHERE lower(gewerkschaft) = $1' 
+   		into v_gewerkschaft_id using lower(p_gewerkschaft);
+    
+    -- ... und falls sie noch nicht existiert, dann Meldung ausgeben
+    if v_gewerkschaft_id is null then
+    	set role postgres;
+		raise exception 'Gewerkschaft ''%'' existiert nicht! Bitte tragen Sie erst eine Gewerkschaft ein!', p_gewerkschaft; 
+    end if;
+   
+   	-- Pruefen, ob Tarif bereits vorhanden ist...
+   	execute 'SELECT tarif_id FROM tarife WHERE tarifbezeichnung = $1' into v_tarif_id using p_tarifbezeichnung;
+    
+    -- ... und falls sie bereits existiert, Meldung ausgeben
+    if v_tarif_id is not null then
+    
+		set role postgres;
+		raise exception 'Tarif ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_Tarif''-Funktion!';   
+	
+    end if; 
+   
+   	-- ... ansonsten eintragen
+	insert into Tarife(Mandant_ID, Tarifbezeichnung, Gewerkschaft_ID)
+		values(p_mandant_id, p_tarifbezeichnung, v_gewerkschaft_id);
+
+    set role postgres;
+
+exception
+    when unique_violation then
+        raise exception 'Tarif ''%'' bereits vorhanden!', p_gewerkschaft;
+
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion trägt neue Daten in Tabelle 'Verguetungsbestandteil' ein.
+ */
+create or replace procedure insert_verguetungsbestandteil(
+	p_mandant_id integer,
+	p_Verguetungsbestandteil varchar(64),
+	p_auszahlungsmonat varchar(16)
+) as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+		Verguetungsbestandteile(Mandant_ID, Verguetungsbestandteil, Auszahlungsmonat) 
+	values 
+		(p_mandant_id, p_verguetungsbestandteil, p_auszahlungsmonat);
+    
+    set role postgres;
+   
+exception
+    when unique_violation then
+        raise exception 'Verguetungsbestandteil ''%'' bereits vorhanden!', p_Verguetungsbestandteil;
+	when check_violation then
+        raise exception 'Auszahlungsmonat ''%'' nicht vorhanden! Bitte waehlen Sie zwischen folgenden Moeglichkeiten: ''jeden Monat'', ''Januar'', ''Februar'', ''Maerz'', ''April'', ''Mai'', ''Juni'', ''Juli'', ''August'', ''September'', ''Oktober'', ''November'', ''Dezember''!', p_auszahlungsmonat;    
+
+           
+end;
+$$
+language plpgsql;
+
+/*
+ * Funktion verknuepft Tarif mit (diversen) Verguetungsbestandteilen- Darunter fallen neben Monatsgehalt, Weihnachtsgeld etc.
+ */
+create or replace procedure insert_tarifliches_verguetungsbestandteil(
+	p_mandant_id integer,
+	p_Verguetungsbestandteil varchar(64),
+	p_tarifbezeichnung varchar(16),
+	p_betrag decimal(10, 2),
+	p_gueltig_ab date
+) as
+$$
+declare
+	v_tarif_id integer;
+	v_verguetungsbestandteil_id integer;
+begin
+    
+    set session role tenant_user;
+	execute 'SET app.current_tenant=' || p_mandant_id;
+	
+	-- Pruefen, ob Verguetungsbestandteil bereits in Tabelle 'Verguetungsbestandteile' hinterlegt ist
+	execute 'SELECT verguetungsbestandteil_id FROM verguetungsbestandteile WHERE lower(Verguetungsbestandteil) = $1' into v_verguetungsbestandteil_id using lower(p_Verguetungsbestandteil);
+
+	-- ... und falls nicht, dann Meldung ausgeben, dass dieser Verguetungsbestandteil erst hinterlegt werden muss!
+	if v_verguetungsbestandteil_id is null then
+		set role postgres;
+		raise exception 'Bitte erst Verguetungsbestandteil ''%'' anlegen!', p_Verguetungsbestandteil;
+	end if;
+
+	-- Tarif_ID ziehen, da diese benoetigt wird, um einen Datensatz in der Assoziation 'hat_Verguetungsbestandteil_Tarif' anzulegen
+	execute 'SELECT tarif_id FROM tarife WHERE lower(tarifbezeichnung) = $1' into v_tarif_id using lower(p_tarifbezeichnung);
+
+	-- ... falls Tarif nicht vorhanden ist, dann Meldung ausgeben, dass dieser erst hinterlegt werden muss!
+	if v_tarif_id is null then
+		set role postgres;
+		raise exception 'Bitte erst Tarif ''%'' anlegen!', p_tarifbezeichnung;
+	end if;
+	
+    insert into hat_Verguetungsbestandteil_Tarif(Tarif_ID, Verguetungsbestandteil_ID, Mandant_ID, Betrag, Datum_Von, Datum_Bis) 
+   		values (v_tarif_id, v_verguetungsbestandteil_id, p_mandant_id, p_betrag, p_gueltig_ab, '9999-12-31');
+   	
+   	set role postgres;
+
+exception
+    when unique_violation then
+        raise exception 'Verguetungsbestandteil ''%'' fuer Tarif ''%'' bereits verknuepft!', p_Verguetungsbestandteil, p_tarifbezeichnung;
+
+end;
+$$
+language plpgsql;
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------
+-- Stored Procedure für Use Case "Eintrag neues Geschlecht"
+/*
+ * Funktion trägt neue Daten in Tabelle 'Geschlechter' ein.
+ */
+create or replace procedure insert_geschlecht(
+    p_mandant_id integer,
+    p_geschlecht varchar(32)
+) as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Geschlechter(Mandant_ID, Geschlecht) 
+   	values 
+   		(p_mandant_id, p_geschlecht);
+    
+    set role postgres;
+
+exception
+    when unique_violation then
+    	set role postgres;
+        raise exception 'Geschlecht ''%'' bereits vorhanden!', p_geschlecht;
+    when check_violation then
+    	set role postgres;
+    	raise exception 'Fuer Geschlechter sind nur folgende Werte erlaubt: ''maennlich'', ''weiblich'', ''divers''!';
+
+end;
+$$
+language plpgsql;
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------
+-- Stored Procedure für Use Case "Eintrag neuer Mitarbeitertyp"
+/*
+ * Funktion trägt neue Daten in Tabelle 'Mitarbeitertypen' ein.
+ */
+create or replace procedure insert_mitarbeitertyp(
+    p_mandant_id integer,
+    p_mitarbeitertyp varchar(32)
+) as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Mitarbeitertypen(Mandant_ID, Mitarbeitertyp) 
+   	values 
+   		(p_mandant_id, p_mitarbeitertyp);
+    
+    set role postgres;
+
+exception
+    when unique_violation then
+        raise exception 'Mitarbeitertyp ''%'' bereits vorhanden!', p_mitarbeitertyp;
+
+end;
+$$
+language plpgsql;
+
+----------------------------------------------------------------------------------------------------------------
+-- Stored Procedure für Use Case "Eintrag neue Steuerklasse"
+/*
+ * Funktion trägt neue Daten in Tabelle 'Steuerklasse' ein.
+ */
+create or replace procedure insert_steuerklasse(
+    p_mandant_id integer,
+    p_steuerklasse char(1)
+) as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Steuerklassen(Mandant_ID, Steuerklasse) 
+   	values 
+   		(p_mandant_id, p_steuerklasse);
+    
+    set role postgres;
+   	
+exception
+    when unique_violation then
+    	set role postgres;
+        raise exception 'Steuerklasse ''%'' bereits vorhanden!', p_steuerklasse;
+    when check_violation then
+    	set role postgres;
+    	raise exception 'Fuer Steuerklassen sind nur folgende Werte erlaubt: 1, 2, 3, 4, 5, 6!';
+    
+end;
+$$
+language plpgsql;
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------
+-- Stored Procedure für Use Case "Eintrag neue Abteilung"
+/*
+ * Funktion trägt neue Daten in Tabelle 'Abteilungen' ein.
+ */
+create or replace procedure insert_abteilung(
+    p_mandant_id integer,
+    p_abteilung varchar(64),
+	p_abkuerzung varchar(16)
+) as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Abteilungen(Mandant_ID, Abteilung, Abkuerzung, untersteht_Abteilung)
+   	values 
+   		(p_mandant_id, p_abteilung, p_abkuerzung, null);
+    
+    set role postgres;
+
+exception
+    when unique_violation then
+    	set role postgres;
+        raise exception 'Abteilung ''%'' oder Abteilungskuerzel ''%'' bereits vorhanden!', p_abteilung, p_abkuerzung;
+end;
+$$
+language plpgsql;
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------
+--Stored Procedure fuer Use Case "Eintrag neuer Jobtitel" 
+/*
+ * Funktion trägt neue Daten in Tabelle 'Jobtitel' ein.
+ */
+create or replace procedure insert_jobtitel (
+	p_mandant_ID integer,
+	p_jobtitel varchar(32)
+) as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Jobtitel(Mandant_ID, Jobtitel)
+   	values 
+   		(p_mandant_id, p_jobtitel);
+    
+    set role postgres;
+
+exception
+    when unique_violation then
+    	set role postgres;
+        raise exception 'Jobtitel ''%'' bereits vorhanden!', p_jobtitel;
+
+end;
+$$
+language plpgsql;
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------
+--Stored Procedure fuer Use Case "Eintrag neue Erfahrungsstufe" 
+/*
+ * Funktion trägt neue Daten in Tabelle 'Erfahrungsstufen' ein.
+ */
+create or replace procedure insert_erfahrungsstufe (
+	p_Mandant_ID integer,
+	p_erfahrungsstufe varchar(32) 
+) as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Erfahrungsstufen(Mandant_ID, Erfahrungsstufe)
+   	values 
+   		(p_mandant_id, p_erfahrungsstufe);
+    
+    set role postgres;
+   
+exception
+    when unique_violation then
+        raise exception 'Erfahrungsstufe ''%'' bereits vorhanden!', p_erfahrungsstufe;
+
+end;
+$$
+language plpgsql;
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------
+--Stored Procedure fuer Use Case "Eintrag neue Gesellschaft" 
+/*
+ * Funktion trägt neue Daten in Tabelle 'Gesellschaften' ein.
+ */
+create or replace procedure insert_gesellschaft(
+	p_mandant_id integer,
+	p_gesellschaft varchar(128),
+	p_abkuerzung varchar (16)
+) as
+$$
+begin
+    
+    set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Gesellschaften(Mandant_ID, Gesellschaft, Abkuerzung, untersteht_Gesellschaft)
+   	values 
+   		(p_mandant_id, p_gesellschaft, p_abkuerzung, null);
+    
+    set role postgres;
+   
+exception
+    when unique_violation then
+        raise exception 'Gesellschaft ''%'' oder ''%'' bereits vorhanden!', p_gesellschaft, p_abkuerzung;
+           
+end;
+$$
+language plpgsql;
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------
+-- Stored Procedure fuer Use Case "Eintrag neue Austrottsgrundkategorie" 
+/*
+ * Funktion trägt die Daten in die Tabelle "Kategorien_Austrittsgruende" ein
+ */
+create or replace procedure insert_austrittsgrundkategorie(
+	p_mandant_id integer,
+	p_austrittsgrundkategorie varchar(16)
+) as
+$$
+begin
+
+	set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    insert into 
+   		Kategorien_Austrittsgruende(Mandant_ID, Austrittsgrundkategorie) 
+   	values 
+   		(p_mandant_id, p_austrittsgrundkategorie);
+
+    set role postgres;
+
+exception
+    when unique_violation then
+        raise exception 'Austrittsgrundkategorie ''%'' bereits vorhanden!', p_austrittsgrundkategorie;
+    when check_violation then
+    	set role postgres;
+    	raise exception 'Fuer Austrittsgrundkategorien sind nur folgende Werte erlaubt: ''verhaltensbedingt'', ''personenbedingt'', ''betriebsbedingt''!';
+
+end;
+$$
+language plpgsql;
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------
+-- Stored Procedure fuer Use Case "Eintrag neuer Austrittsgrund" 
+/*
+ * Funktion trägt die Daten in die Tabelle "Austrittsgruende" ein
+ */
+create or replace procedure insert_austrittsgrund(
+	p_mandant_id integer,
+	p_austrittsgrund varchar(32),
+	p_austrittsgrundkategorie varchar(16)
+) as
+$$
+declare
+	v_kategorie_austrittsgruende_id integer;
+begin
+
+	set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+
+    execute 'SELECT kategorie_austrittsgruende_id FROM kategorien_austrittsgruende WHERE austrittsgrundkategorie = $1' 
+   		into v_kategorie_austrittsgruende_id using lower(p_austrittsgrundkategorie);
+    
+   	insert into 
+   		Austrittsgruende(Mandant_ID, Austrittsgrund, Kategorie_Austrittsgruende_ID) 
+   	values 
+   		(p_mandant_id, p_austrittsgrund, v_kategorie_austrittsgruende_id);
+
+    set role postgres;
+ 
+exception
+    when unique_violation then
+        raise exception 'Austrittsgrund ''%'' bereits vorhanden!', p_austrittsgrund;
+
+end;
+$$
+language plpgsql;
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------
 -- Stored Procedures für Use Case "Eintrag neuer Mitarbeiter"
 
 /*
  * Mit dieser Funktion sollen die Daten eines neuen Mitarbeiters in die Tabelle eingetragen werden
  */
-create or replace function insert_mitarbeiterdaten(
+create or replace procedure insert_mitarbeiterdaten(
 	p_mandant_id integer,
 	-- Tabelle Mitarbeiterdaten
 	p_personalnummer varchar(32),
@@ -3327,82 +3322,80 @@ create or replace function insert_mitarbeiterdaten(
 	p_arbeitslosenversichert boolean,
 	-- Bereich 'Rentenversicherung'
 	p_rentenversichert boolean
-) returns void as
+) as
 $$
 begin
 	
 	set session role tenant_user;
 	execute 'SET app.current_tenant=' || p_mandant_id;
 	
-	--perform pruefe_einmaligkeit_personalnummer(p_mandant_id, 'mitarbeiter', p_personalnummer);
-	
 	-- Daten in Tabelle 'Mitarbeiter' eintragen
-	perform insert_tbl_mitarbeiter(p_mandant_id, 
-								   p_personalnummer, 
-								   p_vorname, 
-								   p_zweitname, 
-								   p_nachname, 
-								   p_geburtsdatum, 
-								   p_eintrittsdatum, 
-								   p_steuernummer, 
-								   p_sozialversicherungsnummer, 
-								   p_iban, 
-								   p_private_telefonnummer, 
-								   p_private_emailadresse, 
-								   p_dienstliche_telefonnummer, 
-								   p_dienstliche_emailadresse,
-								   p_befristet_bis
-								  );
+	call insert_tbl_mitarbeiter(p_mandant_id, 
+								p_personalnummer, 
+								p_vorname, 
+								p_zweitname, 
+								p_nachname, 
+								p_geburtsdatum, 
+								p_eintrittsdatum, 
+								p_steuernummer, 
+								p_sozialversicherungsnummer, 
+								p_iban, 
+								p_private_telefonnummer, 
+								p_private_emailadresse, 
+								p_dienstliche_telefonnummer, 
+								p_dienstliche_emailadresse,
+								p_befristet_bis
+								);
 	
 	-- Bereich Adresse ausfuellen. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn alle Adress-Daten vorliegen, 
 	-- werden die Adress-Funktionen sicher aufgerufen.
-	perform insert_tbl_laender(p_mandant_id, p_land);
-	perform insert_tbl_regionen(p_mandant_id, p_region, p_land);
-	perform insert_tbl_staedte(p_mandant_id, p_stadt, p_region);
-	perform insert_tbl_postleitzahlen(p_mandant_id, p_postleitzahl, p_ost_west_ausland, p_stadt);
-	perform insert_tbl_strassenbezeichnungen(p_mandant_id, p_strasse, p_hausnummer, p_postleitzahl);
-	perform insert_tbl_wohnt_in(p_mandant_id, p_personalnummer, p_strasse, p_hausnummer, p_eintrittsdatum);
+	call insert_tbl_laender(p_mandant_id, p_land);
+	call insert_tbl_regionen(p_mandant_id, p_region, p_land);
+	call insert_tbl_staedte(p_mandant_id, p_stadt, p_region);
+	call insert_tbl_postleitzahlen(p_mandant_id, p_postleitzahl, p_ost_west_ausland, p_stadt);
+	call insert_tbl_strassenbezeichnungen(p_mandant_id, p_strasse, p_hausnummer, p_postleitzahl);
+	call insert_tbl_wohnt_in(p_mandant_id, p_personalnummer, p_strasse, p_hausnummer, p_eintrittsdatum);
 
 	-- Geschlecht erfassen. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn Geschlecht vorliegt, 
 	-- wird die Funktion sicher aufgerufen.
-	perform insert_tbl_hat_geschlecht(p_mandant_id, p_personalnummer, p_geschlecht, p_eintrittsdatum);
+	call insert_tbl_hat_geschlecht(p_mandant_id, p_personalnummer, p_geschlecht, p_eintrittsdatum);
 
 	-- Mitarbeitertyp erfassen. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn Mitarbeitertyp vorliegt, 
 	-- wird die Funktion sicher aufgerufen.
-	perform insert_tbl_ist_mitarbeitertyp(p_mandant_id, p_personalnummer, p_mitarbeitertyp, p_eintrittsdatum);
+	call insert_tbl_ist_mitarbeitertyp(p_mandant_id, p_personalnummer, p_mitarbeitertyp, p_eintrittsdatum);
 
 	-- Steuerklasse nur eintragen, wenn Wert vorhanden. Da der Mitarbeiter neu angelegt werden koennen soll, auch wenn Steuerklasse noch
 	-- nicht vorliegt, wird dies geprueft.
 	if p_steuerklasse is not null then
-		perform insert_tbl_in_steuerklasse(p_mandant_id, p_personalnummer, p_steuerklasse, p_eintrittsdatum);
+		call insert_tbl_in_steuerklasse(p_mandant_id, p_personalnummer, p_steuerklasse, p_eintrittsdatum);
 	end if;
 
 	-- Wochenstundenanzahl erfassen. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn Wochenarbeitsstunden vorliegt, 
 	-- werden die entsprechenden Funktionen sicher aufgerufen.
-	perform insert_tbl_wochenarbeitsstunden(p_mandant_id, p_wochenarbeitsstunden);
-	perform insert_tbl_arbeitet_x_wochenarbeitsstunden(p_mandant_id, p_personalnummer, p_wochenarbeitsstunden, p_eintrittsdatum);
+	call insert_tbl_wochenarbeitsstunden(p_mandant_id, p_wochenarbeitsstunden);
+	call insert_tbl_arbeitet_x_wochenarbeitsstunden(p_mandant_id, p_personalnummer, p_wochenarbeitsstunden, p_eintrittsdatum);
 
 	-- Abteilung und Fuehrungskraftstatus erfassen. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn 
 	-- diese Daten vorliegen, wird die entsprechende Funktionen sicher aufgerufen.
-	perform insert_tbl_eingesetzt_in(p_mandant_id, p_personalnummer, p_abteilung, p_abk_abteilung, p_fuehrungskraft, p_eintrittsdatum);
+	call insert_tbl_eingesetzt_in(p_mandant_id, p_personalnummer, p_abteilung, p_abk_abteilung, p_fuehrungskraft, p_eintrittsdatum);
 
 	-- Jobtitel und Erfahrungsstatus erfassen. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn 
 	-- diese Daten vorliegen, wird die entsprechende Funktion sicher aufgerufen.
-	perform insert_tbl_hat_jobtitel(p_mandant_id, p_personalnummer, p_jobtitel, p_erfahrungsstufe, p_eintrittsdatum);
+	call insert_tbl_hat_jobtitel(p_mandant_id, p_personalnummer, p_jobtitel, p_erfahrungsstufe, p_eintrittsdatum);
 
 	-- Gesellschaft, zu der der neue Mitarbeiter gehoert, erfassen. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn 
 	-- diese Daten vorliegen, wird die entsprechende Funktion sicher aufgerufen.
-	perform insert_tbl_in_gesellschaft(p_mandant_id, p_personalnummer, p_gesellschaft, p_eintrittsdatum);
+	call insert_tbl_in_gesellschaft(p_mandant_id, p_personalnummer, p_gesellschaft, p_eintrittsdatum);
 	
 	-- Tarif erfassen, sofern fuer Mitarbeiter Tarif vorgesehen ist. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn 
 	-- diese Daten vorliegen, wird die entsprechende Funktion sicher aufgerufen.
 	if p_tarifbeschaeftigt is true and p_tarifbezeichnung is not null then 
-		perform insert_tbl_hat_tarif(p_mandant_id, p_personalnummer, p_tarifbezeichnung, p_eintrittsdatum);
+		call insert_tbl_hat_tarif(p_mandant_id, p_personalnummer, p_tarifbezeichnung, p_eintrittsdatum);
 	end if;
 	
 	-- ... alternativ ist Mitarbeiter aussertariflich
 	if p_tarifbeschaeftigt is false then
-		perform insert_tbl_Aussertarifliche(p_personalnummer, 
+		call insert_tbl_Aussertarifliche(p_personalnummer, 
 											p_mandant_id, 
 											p_eintrittsdatum);
 	end if;
@@ -3411,35 +3404,35 @@ begin
 	-- Der kurzfristig Beschaeftigte muss sich anderweitig um Krankenversicherung kuemmern. Eintrag nur, wenn alle Daten vorhanden sind.
 	if p_gesetzlich_krankenversichert and p_ist_kurzfristig_beschaeftigt is false and p_ermaessigter_kv_beitrag is not null and p_krankenkasse is not null and p_krankenkassenkuerzel is not null and p_anzahl_kinder is not null and p_in_sachsen is not null then
 	
-		perform insert_tbl_hat_gesetzliche_Krankenversicherung(p_mandant_id, p_personalnummer, p_ermaessigter_kv_beitrag, p_eintrittsdatum);
-		perform insert_tbl_ist_in_gkv(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
-		perform insert_tbl_hat_x_kinder_unter_25(p_mandant_id, p_personalnummer, p_anzahl_kinder, p_eintrittsdatum);
-		perform insert_tbl_arbeitet_in_sachsen(p_mandant_id, p_personalnummer, p_in_sachsen, p_eintrittsdatum);									  
+		call insert_tbl_hat_gesetzliche_Krankenversicherung(p_mandant_id, p_personalnummer, p_ermaessigter_kv_beitrag, p_eintrittsdatum);
+		call insert_tbl_ist_in_gkv(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
+		call insert_tbl_hat_x_kinder_unter_25(p_mandant_id, p_personalnummer, p_anzahl_kinder, p_eintrittsdatum);
+		call insert_tbl_arbeitet_in_sachsen(p_mandant_id, p_personalnummer, p_in_sachsen, p_eintrittsdatum);									  
 
 	end if;
 	
 	-- Ein kurzfristig Beschaeftigter ist niemals privat ueber den Arbeitgeber versichert (womit auch kein Anspruch auf Arbeitgeberzuschuss einhergeht).
 	-- Eintrag nur, wenn alle Daten vorhanden sind.
 	if p_privat_krankenversichert and p_ist_kurzfristig_beschaeftigt is false and p_ag_zuschuss_krankenversicherung is not null and p_ag_zuschuss_krankenversicherung is not null then
-		perform insert_tbl_hat_private_krankenversicherung(p_mandant_id, p_personalnummer, p_krankenkasse, p_ag_zuschuss_krankenversicherung, p_ag_zuschuss_krankenversicherung, p_eintrittsdatum);
+		call insert_tbl_hat_private_krankenversicherung(p_mandant_id, p_personalnummer, p_krankenkasse, p_ag_zuschuss_krankenversicherung, p_ag_zuschuss_krankenversicherung, p_eintrittsdatum);
 	end if;
 
 	if p_ist_minijobber and p_ist_kurzfristig_beschaeftigt is not null then
-		perform insert_tbl_ist_Minijobber(p_mandant_id, p_personalnummer, p_ist_kurzfristig_beschaeftigt, p_eintrittsdatum);
+		call insert_tbl_ist_Minijobber(p_mandant_id, p_personalnummer, p_ist_kurzfristig_beschaeftigt, p_eintrittsdatum);
 	end if;
 
 	-- if-Bedingung für kurzfristig beschaeftigte Nicht-Minijobber, denn die zahlen keine SV, aber Umlagen! Das der Kurzfristig Beschaeftigte aber
 	-- aber anderweitig krankenversichert ist, dass muss der Arbeitgeber sicherstellen, weswegen die Krankenkasse vermerkt wird. Eintrag nur, wenn alle Daten vorhanden sind.
 	if p_anderweitig_versichert and p_krankenkasse is not null and p_krankenkassenkuerzel is not null then
-		perform insert_tbl_ist_anderweitig_versichert(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
+		call insert_tbl_ist_anderweitig_versichert(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
 	end if;
 
 	if p_arbeitslosenversichert and p_ist_kurzfristig_beschaeftigt is false then
-		perform insert_tbl_hat_gesetzliche_arbeitslosenversicherung(p_mandant_id, p_personalnummer, p_eintrittsdatum);
+		call insert_tbl_hat_gesetzliche_arbeitslosenversicherung(p_mandant_id, p_personalnummer, p_eintrittsdatum);
 	end if;
 	
 	if p_rentenversichert and p_ist_kurzfristig_beschaeftigt is false then
-		perform insert_tbl_hat_gesetzliche_rentenversicherung(p_mandant_id, p_personalnummer, p_eintrittsdatum);
+		call insert_tbl_hat_gesetzliche_rentenversicherung(p_mandant_id, p_personalnummer, p_eintrittsdatum);
 	end if;
 	
 	set role postgres;
@@ -3451,7 +3444,7 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Tabelle "Mitarbeiter" ein
  */
-create or replace function insert_tbl_mitarbeiter(
+create or replace procedure insert_tbl_mitarbeiter(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_vorname varchar(64),
@@ -3467,7 +3460,7 @@ create or replace function insert_tbl_mitarbeiter(
     p_dienstliche_telefonnummer varchar(16),
     p_dienstliche_emailadresse varchar(64),
     p_befristet_bis date
-) returns void as
+) as
 $$
 begin
 	
@@ -3519,10 +3512,10 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Tabelle "Laender" ein
  */
-create or replace function insert_tbl_laender(
+create or replace procedure insert_tbl_laender(
 	p_mandant_id integer,
 	p_land varchar(128)
-) returns void as
+) as
 $$
 begin
 
@@ -3548,11 +3541,11 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Tabelle "Regionen" ein
  */
-create or replace function insert_tbl_regionen(
+create or replace procedure insert_tbl_regionen(
 	p_mandant_id integer,
 	p_region varchar(128),
 	p_land varchar(128)
-) returns void as
+) as
 $$
 declare
 	v_land_id integer;
@@ -3582,11 +3575,11 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Tabelle "Staedte" ein
  */
-create or replace function insert_tbl_staedte(
+create or replace procedure insert_tbl_staedte(
 	p_mandant_id integer,
 	p_stadt varchar(128),
 	p_region varchar(128)
-) returns void as
+) as
 $$
 declare
 	v_region_id integer;
@@ -3616,12 +3609,12 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Tabelle "Postleitzahlen" ein
  */
-create or replace function insert_tbl_postleitzahlen(
+create or replace procedure insert_tbl_postleitzahlen(
 	p_mandant_id integer,
 	p_postleitzahl varchar(16),
 	p_ost_west_ausland varchar(8),
 	p_stadt varchar(128)
-) returns void as
+) as
 $$
 declare
 	v_stadt_id integer;
@@ -3651,12 +3644,12 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Tabelle "Strassenbezeichnungen" ein
  */
-create or replace function insert_tbl_strassenbezeichnungen(
+create or replace procedure insert_tbl_strassenbezeichnungen(
 	p_mandant_id integer,
 	p_strasse varchar(64),
 	p_hausnummer varchar(8),
 	p_postleitzahl varchar(16)
-) returns void as
+) as
 $$
 declare
 	v_strassenbezeichnung varchar(128);
@@ -3688,13 +3681,13 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Assoziation "wohnt_in" ein
  */
-create or replace function insert_tbl_wohnt_in(
+create or replace procedure insert_tbl_wohnt_in(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_strasse varchar(64),
 	p_hausnummer varchar(8),
 	p_eintrittsdatum date
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_ID integer;
@@ -3727,12 +3720,12 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Assoziation "hat_Geschlecht" ein
  */
-create or replace function insert_tbl_hat_geschlecht(
+create or replace procedure insert_tbl_hat_geschlecht(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_geschlecht varchar(32),
 	p_eintrittsdatum date
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -3770,12 +3763,12 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Assoziation "ist_Mitarbeitertyp" ein
  */
-create or replace function insert_tbl_ist_mitarbeitertyp(
+create or replace procedure insert_tbl_ist_mitarbeitertyp(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_mitarbeitertyp varchar(32),
 	p_eintrittsdatum date
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -3814,12 +3807,12 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Assoziation "in_steuerklasse" ein
  */
-create or replace function insert_tbl_in_steuerklasse(
+create or replace procedure insert_tbl_in_steuerklasse(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_steuerklasse char(1),
 	p_eintrittsdatum date
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -3858,10 +3851,10 @@ language plpgsql;
 /*
  * Funktion trägt neue Daten in Tabelle 'Wochenarbeitsstunden' ein.
  */
-create or replace function insert_tbl_wochenarbeitsstunden(
+create or replace procedure insert_tbl_wochenarbeitsstunden(
     p_mandant_id integer,
     p_wochenarbeitsstunden decimal(4, 2)
-) returns void as
+) as
 $$
 begin
     
@@ -3886,12 +3879,12 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Assoziation "arbeitet_x_Wochenarbeitsstunden" ein
  */
-create or replace function insert_tbl_arbeitet_x_wochenarbeitsstunden(
+create or replace procedure insert_tbl_arbeitet_x_wochenarbeitsstunden(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_wochenarbeitsstunden decimal(4, 2),
 	p_eintrittsdatum date
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -3920,14 +3913,14 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Assoziation "eingesetzt_in" ein
  */
-create or replace function insert_tbl_eingesetzt_in(
+create or replace procedure insert_tbl_eingesetzt_in(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_abteilung varchar(64),
 	p_abkuerzung varchar(16),
 	p_fuehrungskraft boolean,
 	p_eintrittsdatum date
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -3966,13 +3959,13 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Assoziation "hat_Jobtitel" ein
  */
-create or replace function insert_tbl_hat_jobtitel(
+create or replace procedure insert_tbl_hat_jobtitel(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_jobtitel varchar(32),
 	p_erfahrungsstufe varchar(32),
 	p_eintrittsdatum date
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -4021,12 +4014,12 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Assoziation "in_Gesellschaft" ein
  */
-create or replace function insert_tbl_in_gesellschaft(
+create or replace procedure insert_tbl_in_gesellschaft(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_gesellschaft varchar(128),
 	p_eintrittsdatum date
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -4064,12 +4057,12 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Assoziation "hat_Tarif" ein
  */
-create or replace function insert_tbl_hat_tarif(
+create or replace procedure insert_tbl_hat_tarif(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_tarifbezeichnung varchar(16),
 	p_eintrittsdatum date
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -4098,11 +4091,11 @@ language plpgsql;
 /*
  * Funktion trägt neue Daten in Tabelle 'Aussertarifliche' ein.
  */
-create or replace function insert_tbl_aussertarifliche (
+create or replace procedure insert_tbl_aussertarifliche (
 	p_personalnummer varchar(32),
 	p_mandant_id integer,
 	p_eintrittsdatum date
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -4131,14 +4124,14 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Assoziation "hat_private_Krankenversicherung" ein
  */
-create or replace function insert_tbl_hat_private_krankenversicherung(
+create or replace procedure insert_tbl_hat_private_krankenversicherung(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_krankenkasse varchar(128),
 	p_ag_zuschuss_krankenversicherung decimal(6, 2),
 	p_ag_zuschuss_pflegeversicherung decimal(6, 2),
 	p_eintrittsdatum date
-) returns void as
+) as
 $$
 declare
 	v_privatkrankenkasse_id integer;
@@ -4179,12 +4172,12 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Assoziation "hat_gesetzliche_Krankenversicherung" ein
  */
-create or replace function insert_tbl_hat_gesetzliche_Krankenversicherung(
+create or replace procedure insert_tbl_hat_gesetzliche_Krankenversicherung(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_ermaessigter_kv_beitrag boolean,
 	p_eintrittsdatum date
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -4226,13 +4219,13 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Assoziation "ist_in_GKV" ein
  */
-create or replace function insert_tbl_ist_in_gkv(
+create or replace procedure insert_tbl_ist_in_gkv(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_krankenkasse varchar(128),
 	p_krankenkassenkuerzel varchar(16),
 	p_eintrittsdatum date
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -4272,12 +4265,12 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Assoziation "hat_x_Kinder_unter_25" ein
  */
-create or replace function insert_tbl_hat_x_kinder_unter_25(
+create or replace procedure insert_tbl_hat_x_kinder_unter_25(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_anzahl_kinder integer,
 	p_eintrittsdatum date
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -4309,12 +4302,12 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Assoziation "arbeitet_in_sachsen" ein
  */
-create or replace function insert_tbl_arbeitet_in_sachsen(
+create or replace procedure insert_tbl_arbeitet_in_sachsen(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_in_sachsen boolean,
 	p_eintrittsdatum date
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -4344,11 +4337,11 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Assoziation "hat_gesetzliche_arbeitslosenversicherung" ein
  */
-create or replace function insert_tbl_hat_gesetzliche_arbeitslosenversicherung(
+create or replace procedure insert_tbl_hat_gesetzliche_arbeitslosenversicherung(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_eintrittsdatum date
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -4387,11 +4380,11 @@ language plpgsql;
 /*
  * Funktion trägt neue Daten in Tabelle 'hat_gesetzliche_Rentenversicherung' ein.
  */
-create or replace function insert_tbl_hat_gesetzliche_rentenversicherung(
+create or replace procedure insert_tbl_hat_gesetzliche_rentenversicherung(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_eintrittsdatum date
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -4430,13 +4423,13 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Assoziation "ist_anderweitig_versichert" ein
  */
-create or replace function insert_tbl_ist_anderweitig_versichert(
+create or replace procedure insert_tbl_ist_anderweitig_versichert(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_krankenkasse varchar(128),
 	p_krankenkassenkuerzel varchar(16),
 	p_eintrittsdatum date
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -4475,12 +4468,12 @@ language plpgsql;
 /*
  * Funktion trägt die Daten in die Assoziation "ist_Minijobber" ein
  */
-create or replace function insert_tbl_ist_Minijobber(
+create or replace procedure insert_tbl_ist_Minijobber(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_ist_kurzfristig_beschaeftigt boolean,
 	p_eintrittsdatum date
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -4529,13 +4522,13 @@ language plpgsql;
  * Funktion verknuepft aussertariflichen Mitarbeiter mit (diversen) Verguetungsbestandteilen- Darunter fallen neben Monatsgehalt, Weihnachtsgeld etc. auch Beamtenbeihilfen, da der Staat verpflichtet ist, 
  * Beamten Beihilfen zu zahlen z.B. für (private) Krankenversicherung, Kinder etc..
  */
-create or replace function insert_aussertarifliches_verguetungsbestandteil(
+create or replace procedure insert_aussertarifliches_verguetungsbestandteil(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_Verguetungsbestandteil varchar(64),
 	p_betrag decimal(8, 2),
 	p_eintragungsdatum date
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -4598,7 +4591,7 @@ language plpgsql;
  * Datensatz der Tabelle 'wohnt_in' eingetragen (zuvor steht dort standardmaessig '9999-12-31'). Die Methode wird auch benutzt, um bei einem neuen
  * Mitarbeiter, wo noch keine Adressdaten hinterlegt sind, dessen Adresse anzulegen. 
  */
-create or replace function update_adresse(
+create or replace procedure update_adresse(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_alter_eintrag_gueltig_bis date,
@@ -4610,7 +4603,7 @@ create or replace function update_adresse(
 	p_stadt varchar(128),
 	p_region varchar(128),
 	p_land varchar(128)
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -4628,17 +4621,17 @@ begin
 	end if;
 
 	-- Eintrag der neuen Wohnadresse
-	perform insert_tbl_laender(p_mandant_id, p_land);
-	perform insert_tbl_regionen(p_mandant_id, p_region, p_land);
-	perform insert_tbl_staedte(p_mandant_id, p_stadt, p_region);
-	perform insert_tbl_postleitzahlen(p_mandant_id, p_postleitzahl, p_ost_west_ausland, p_stadt);
-	perform insert_tbl_strassenbezeichnungen(p_mandant_id, p_strasse, p_hausnummer, p_postleitzahl);
+	call insert_tbl_laender(p_mandant_id, p_land);
+	call insert_tbl_regionen(p_mandant_id, p_region, p_land);
+	call insert_tbl_staedte(p_mandant_id, p_stadt, p_region);
+	call insert_tbl_postleitzahlen(p_mandant_id, p_postleitzahl, p_ost_west_ausland, p_stadt);
+	call insert_tbl_strassenbezeichnungen(p_mandant_id, p_strasse, p_hausnummer, p_postleitzahl);
 
 	execute 'UPDATE wohnt_in SET Datum_Bis = $1 WHERE mitarbeiter_ID = $2 AND Datum_Bis = ''9999-12-31''' 
 			using p_alter_eintrag_gueltig_bis, v_mitarbeiter_ID;
 	
 	-- neue Adresse mit Mitarbeiter verknuepfen
-	perform insert_tbl_wohnt_in(p_mandant_id, p_personalnummer, p_strasse, p_hausnummer, p_neuer_eintrag_gueltig_ab);
+	call insert_tbl_wohnt_in(p_mandant_id, p_personalnummer, p_strasse, p_hausnummer, p_neuer_eintrag_gueltig_ab);
 	
    	set role postgres;
 
@@ -4660,12 +4653,12 @@ language plpgsql;
  * Methode ändert die Angaben aufgrund von Kündigung eines bestimmten Mitarbeiters. Es wird das Austrittsdatum in Tabelle 'Mitarbeiter' auf
  * den letzten Arbeitstag geupdatet und der Austrittsgrund bzw. dessen Kategorie in dessen Tabellen vermerkt. 
  */
-create or replace function update_mitarbeiterentlassung(
+create or replace procedure update_mitarbeiterentlassung(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_letzter_arbeitstag date,
 	p_austrittsgrund varchar(32)
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -4745,7 +4738,7 @@ language plpgsql;
 /*
  * Funktion traegt die neuen Versicherungsbeitraege in Prozent und Beitragsbemessungsgrenzen der Krankenversicherungen
  */
-create or replace function update_krankenversicherungsbeitraege (
+create or replace procedure update_krankenversicherungsbeitraege (
 	p_mandant_id integer,
 	p_ermaessigter_beitragssatz boolean,
 	p_ag_krankenversicherungsbeitrag_in_prozent decimal(5, 3),
@@ -4754,7 +4747,7 @@ create or replace function update_krankenversicherungsbeitraege (
 	p_jahresarbeitsentgeltgrenze_gkv decimal(10, 2),
 	p_alter_eintrag_gueltig_bis date,
 	p_neuer_eintrag_gueltig_ab date
-) returns void as
+) as
 $$
 declare
 	v_krankenversicherungsbeitrag_id integer;
@@ -4857,11 +4850,11 @@ language plpgsql;
 /*
  * Funktion unterstellt Abteilung einer uebergeordneten Abteilung 
  */
-create or replace function update_erstelle_abteilungshierarchie (
+create or replace procedure update_erstelle_abteilungshierarchie (
 	p_mandant_id integer,
 	p_untere_abteilung varchar(64),
 	p_obere_abteilung varchar(64)
-) returns void as
+) as
 $$
 declare
 	v_untere_abteilung_id integer;
@@ -4904,10 +4897,10 @@ language plpgsql;
  * Methode loescht alle Eintraege eines Mitarbeiters aus den Assoziationstabellen, der Tabelle 'Privat_Krankenversicherte' 
  * und der zentralen Tabelle 'Mitarbeiter'. 
  */
-create or replace function delete_mitarbeiterdaten(
+create or replace procedure delete_mitarbeiterdaten(
 	p_mandant_id integer,
 	p_personalnummer varchar(32)
-) returns void as
+) as
 $$
 declare
 	v_mitarbeiter_id integer;
@@ -4993,9 +4986,9 @@ language plpgsql;
 /*
  * Methode loescht alle Eintraege eines Mandanten aus allen Tabellen. 
  */
-create or replace function delete_mandantendaten(
+create or replace procedure delete_mandantendaten(
 	p_mandant_id integer
-) returns void as
+) as
 $$
 begin
 	
