@@ -9,6 +9,18 @@ def test_set_up():
     """
     testschema = 'temp_test_schema'
 
+    # SQL-Code erstellen, mit dem das Testschema erstellt werden kann
+    erstelle_schema = f"create schema if not exists {testschema};\n" \
+                      f"set search_path to {testschema};\n"
+
+    erstelle_tenant_user = "create role tenant_user;\n"
+
+    berechtige_tenant_user_temp_test_schema = f"grant usage on schema {testschema} to tenant_user;\n" \
+                                              f"alter default privileges in schema {testschema} grant select, " \
+                                              f"insert, update, delete on tables to tenant_user;\n" \
+                                              f"alter default privileges in schema {testschema} grant usage on " \
+                                              f"sequences to tenant_user;"
+
     conn = psycopg2.connect(
         host="localhost",
         database="Personalstammdatenbank",
@@ -19,12 +31,24 @@ def test_set_up():
 
     cur = conn.cursor()
 
-    # SQL-code in Python einlesen und anschließend ausführen
-    setup_sql = f"create schema if not exists {testschema};\n\nset search_path to {testschema};\n\n"
-    with open("../SQL-Code.sql") as file:
-        setup_sql = setup_sql + file.read()
+    # Auslesen, ob die Rolle 'tenant_user' bereits existiert...
+    cur.execute("select rolname from pg_roles where rolname = 'tenant_user'")
 
-    cur.execute(setup_sql)
+    with open("../2 erstelle Tabellen und Stored Procedures.sql") as file:
+        # ... falls Rolle 'tenant_user' nicht vorhanden, dann neben Testschema auch 'tenant_user' erstellen ...
+        if cur.fetchone() is None:
+            setup_testschema = erstelle_schema + \
+                               erstelle_tenant_user + \
+                               berechtige_tenant_user_temp_test_schema + \
+                               file.read()
+            cur.execute(setup_testschema)
+        # ... falls ja, dann Testschema erstellen, ohne dass die Rolle 'tenant_user' erstellt wird
+        else:
+            setup_testschema = erstelle_schema + \
+                               berechtige_tenant_user_temp_test_schema + \
+                               file.read()
+            cur.execute(setup_testschema)
+
     conn.commit()
 
     # Cursor und Konnektor zu Datenbank schließen
@@ -49,7 +73,8 @@ def test_tear_down():
     )
 
     cur = conn.cursor()
-    cur.execute(f"set role postgres;DROP SCHEMA temp_test_schema CASCADE")
+    cur.execute(f"set role postgres;"
+                f"DROP SCHEMA temp_test_schema CASCADE;")
     conn.commit()
     cur.close()
     conn.close()
