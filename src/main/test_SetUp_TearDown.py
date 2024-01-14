@@ -21,7 +21,7 @@ def test_set_up():
 
     # SQL-code in Python einlesen und anschließend ausführen
     setup_sql = f"create schema if not exists {testschema};\n\nset search_path to {testschema};\n\n"
-    with open("../test/SQL-Code.sql") as file:
+    with open("../SQL-Code.sql") as file:
         setup_sql = setup_sql + file.read()
 
     cur.execute(setup_sql)
