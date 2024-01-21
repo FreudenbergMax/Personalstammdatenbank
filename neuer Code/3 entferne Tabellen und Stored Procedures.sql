@@ -99,6 +99,7 @@ drop function if exists adminpasswort_pruefen(integer, varchar(32), varchar(128)
 drop function if exists nutzer_anlegen(integer, varchar(32), varchar(64), varchar(64), varchar(128));
 drop function if exists nutzerpasswort_pruefen( integer, varchar(32), varchar(128), varchar(128));
 drop procedure if exists nutzer_entsperren(integer, varchar(32), varchar(128));
+drop procedure if exists nutzerpasswort_aendern(integer, varchar(32), varchar(128));
 drop procedure if exists nutzer_entfernen(integer, varchar(32));
 drop procedure if exists pruefe_einmaligkeit_personalnummer(integer, varchar(64), varchar(32));
 

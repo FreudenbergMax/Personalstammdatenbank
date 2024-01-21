@@ -1674,6 +1674,26 @@ $$
 language plpgsql;
 
 /*
+ * Funktion aendert Passwort eines Nutzers.
+ */
+create or replace procedure nutzerpasswort_aendern(
+	p_mandant_id integer,
+	p_personalnummer varchar(32),
+	p_neues_passwort varchar(128)
+) as
+$$
+begin
+	
+	set session role tenant_user;
+    execute 'SET app.current_tenant=' || p_mandant_id;
+   
+    execute 'UPDATE nutzer SET passwort = $1 WHERE personalnummer = $2' using p_neues_passwort, p_personalnummer;
+	
+end;
+$$
+language plpgsql;
+
+/*
  * Funktion entfernt einen Nutzer aus der Datenbank.
  */
 create or replace procedure nutzer_entfernen(

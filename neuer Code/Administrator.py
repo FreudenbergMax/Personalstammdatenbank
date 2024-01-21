@@ -153,6 +153,8 @@ class Administrator:
                 cur.close()
                 conn.close()
 
+                self.get_mandant().get_nutzerliste()[i].get_neues_passwort_geaendert = False
+
     def nutzer_entfernen(self, personalnummer):
         """
         Funktion entfernt einen Nutzer.

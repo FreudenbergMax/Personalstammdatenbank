@@ -20,6 +20,9 @@ nutzer2 = login.login_nutzer('Testu', 'mandantenpw', "M100001", "nutzerpaw")
 nutzer2 = login.login_nutzer('Testu', 'mandantenpw', "M100001", "nutzerpaw")
 
 admin2.nutzer_entsperren("M100001", "neues_nutzerpw", "neues_nutzerpw")
+nutzer2 = login.login_nutzer('Testu', 'mandantenpw', "M100001", "neues_nutzerpw")
+#nutzer2.abfrage_ausfuehren("SELECT * FROM mandanten")
+nutzer2.passwort_aendern("wieder_geheim", "wieder_geheim")
 
 """
 insert_personenbezogene_daten = "1 insert personenbezogene Daten"

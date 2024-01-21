@@ -134,10 +134,18 @@ class Login:
                 cur.close()
                 conn.close()
 
+                # Nutzerobjekt aus Liste raussuchen und uebergeben
                 if boolean:
                     for k in range(len(self.liste_mandanten[i].get_nutzerliste())):
                         if self.liste_mandanten[i].get_nutzerliste()[k].get_personalnummer() == personalnummer:
                             gesuchter_nutzer = self.liste_mandanten[i].get_nutzerliste()[k]
+
+                            # falls nach einer Entsperrung der Administrator ein neues Passwort vergeben musste,
+                            # muss der Nutzer das Passwort nochmal aendern, damit er ein Passwort hat, welches nur der
+                            # Nutzer kennt
+
+
+
                     return gesuchter_nutzer
                 else:
                     print("Eingegebene Passwoerter sind falsch!")
