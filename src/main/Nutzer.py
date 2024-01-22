@@ -11,35 +11,23 @@ class Nutzer:
     def __init__(self, mandant_id, personalnummer, vorname, nachname, passwort, passwort_wiederholen, schema='public'):
 
         if personalnummer == "":
-            raise (ValueError(f"Die Personalnummer des Nutzers muss aus mindestens einem Zeichen bestehen."))
+            raise (ValueError("Die Personalnummer des Nutzers muss aus mindestens einem Zeichen bestehen."))
 
-        if len(personalnummer) > 32:
+        if len(str(personalnummer)) > 32:
             raise (ValueError(f"Die Personalnummer darf höchstens 32 Zeichen lang sein. "
-                              f"'{personalnummer}' besitzt {len(personalnummer)} Zeichen!"))
+                              f"'{personalnummer}' besitzt {len(str(personalnummer))} Zeichen!"))
 
-        if not isinstance(vorname, str):
-            raise (TypeError("Der Vorname des Nutzers muss ein String sein."))
-
-        if "postgres" in str.lower(vorname):
-            raise (ValueError(f"Dieser Vorname ist nicht erlaubt: {vorname}."))
-
-        if vorname == "":
+        if str(vorname) == "":
             raise (ValueError(f"Der Vorname des Nutzers muss aus mindestens einem Zeichen bestehen."))
 
-        if len(vorname) > 64:
+        if len(str(vorname)) > 64:
             raise (ValueError(f"Der Vorname darf höchstens 64 Zeichen lang sein. "
                               f"'{vorname}' besitzt {len(vorname)} Zeichen!"))
 
-        if not isinstance(nachname, str):
-            raise (TypeError("Der Nachname des Nutzers muss ein String sein."))
-
-        if "postgres" in str.lower(nachname):
-            raise (ValueError(f"Dieser Nachname ist nicht erlaubt: {nachname}."))
-
-        if nachname == "":
+        if str(nachname) == "":
             raise (ValueError(f"Der Nachname des Nutzers muss aus mindestens einem Zeichen bestehen."))
 
-        if len(nachname) > 64:
+        if len(str(nachname)) > 64:
             raise (ValueError(f"Der Nachname darf höchstens 64 Zeichen lang sein. "
                               f"'{nachname}' besitzt {len(nachname)} Zeichen!"))
 
@@ -49,15 +37,12 @@ class Nutzer:
         if passwort != passwort_wiederholen:
             raise (ValueError("Passwoerter stimmen nicht ueberein!"))
 
-        if schema != 'public' and schema != 'temp_test_schema':
-            raise (ValueError("Diese Bezeichnung für ein Schema ist nicht erlaubt!"))
-
         self.schema = schema
         self.mandant_id = mandant_id
         self.personalnummer = str(personalnummer)
-        self.vorname = vorname
-        self.nachname = nachname
-        self.nutzer_id = self._in_datenbank_anlegen(passwort)
+        self.vorname = str(vorname)
+        self.nachname = str(nachname)
+        self.nutzer_id = self._in_datenbank_anlegen(str(passwort))
         self.neues_passwort_geaendert = True
 
     def get_nutzer_id(self):
@@ -127,6 +112,8 @@ class Nutzer:
         # Cursor und Konnektor zu Datenbank schließen
         cur.close()
         conn.close()
+
+        self.neues_passwort_geaendert = True
 
     def abfrage_ausfuehren(self, abfrage):
         """

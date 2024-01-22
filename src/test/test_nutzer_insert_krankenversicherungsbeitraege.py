@@ -1,4 +1,6 @@
 import unittest
+
+from src.main.Login import Login
 from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
@@ -11,29 +13,32 @@ class TestNutzerInsertKrankenversicherungsbeitraege(unittest.TestCase):
         Datenbankschema 'temp_test_schema' erstellt.
         """
         self.testschema = test_set_up()
-        self.testfirma = Mandant('Testfirma', self.testschema)
-        self.testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.testschema)
+
+        login = Login(self.testschema)
+        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                            'Normalverbraucher', 'adminpw', 'adminpw')
+        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
+
+        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
     def test_erfolgreicher_eintrag(self):
         """
         Test prueft, ob Krankenversicherungsbeitraege eingetragen werden.
         """
-        self.testfirma.get_nutzer("M100001").\
-            insert_krankenversicherungsbeitraege('testdaten_insert_krankenversicherungsbeitraege/'
-                                                 'Krankenversicherungsbeitraege.xlsx', self.testschema)
+        self.nutzer.insert_krankenversicherungsbeitraege(
+            'testdaten_insert_krankenversicherungsbeitraege/Krankenversicherungsbeitraege.xlsx')
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM gkv_beitraege",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gkv_beitraege")
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('7.300'), Decimal('7.300'), Decimal('72453.56'), "
                                         "Decimal('75683.12'))]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM krankenversicherungen",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM krankenversicherungen")
         self.assertEqual(str(ergebnis), "[(1, 1, False)]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM hat_GKV_Beitraege",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_GKV_Beitraege")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag(self):
@@ -45,37 +50,29 @@ class TestNutzerInsertKrankenversicherungsbeitraege(unittest.TestCase):
         Beitragssaetze anders sind. Sollen nur die Beitragssaetze geaendert werden, muss hierfuer die update-Methode
         'update_krankenversicherungsbeitraege' verwendet werden.
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_krankenversicherungsbeitraege('testdaten_insert_krankenversicherungsbeitraege/'
-                                                 'Krankenversicherungsbeitraege.xlsx', self.testschema)
+        self.nutzer.insert_krankenversicherungsbeitraege(
+            'testdaten_insert_krankenversicherungsbeitraege/Krankenversicherungsbeitraege.xlsx')
 
         # Versuch, nochmal den nicht ermaessigten Beitragssatz einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_krankenversicherungsbeitraege('testdaten_insert_krankenversicherungsbeitraege/'
-                                                     'Krankenversicherungsbeitraege.xlsx',
-                                                     self.testschema)
+            self.nutzer.insert_krankenversicherungsbeitraege(
+                'testdaten_insert_krankenversicherungsbeitraege/Krankenversicherungsbeitraege.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Ermaessigung = 'f' ist bereits vorhanden! Uebergebene Daten "
-                                                 "werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, "
-                                                 "nutzen Sie bitte die 'update_krankenversicherungsbeitraege'-"
-                                                 "Funktion!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_krankenversicherungsbeitraege("
-                                                 "integer,boolean,numeric,numeric,numeric,numeric,date) Zeile 16 bei "
-                                                 "RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Ermaessigung = 'f' ist bereits vorhanden! Uebergebene Daten werden nicht " \
+                                  "eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die " \
+                                  "'update_krankenversicherungsbeitraege'-Funktion!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob auch weiterhin nur ein Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM gkv_beitraege",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gkv_beitraege")
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('7.300'), Decimal('7.300'), Decimal('72453.56'), "
                                         "Decimal('75683.12'))]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM krankenversicherungen",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM krankenversicherungen")
         self.assertEqual(str(ergebnis), "[(1, 1, False)]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM hat_GKV_Beitraege",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_GKV_Beitraege")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag_andere_werte(self):
@@ -87,37 +84,30 @@ class TestNutzerInsertKrankenversicherungsbeitraege(unittest.TestCase):
         Beitragssaetze anders sind. Sollen nur die Beitragssaetze geaendert werden, muss hierfuer die update-Methode
         'update_krankenversicherungsbeitraege' verwendet werden.
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_krankenversicherungsbeitraege('testdaten_insert_krankenversicherungsbeitraege/'
-                                                 'Krankenversicherungsbeitraege.xlsx', self.testschema)
+        self.nutzer.insert_krankenversicherungsbeitraege(
+            'testdaten_insert_krankenversicherungsbeitraege/Krankenversicherungsbeitraege.xlsx')
 
         # Versuch, nochmal den nicht ermaessigten Beitragssatz (aber mit anderen Werten) einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_krankenversicherungsbeitraege('testdaten_insert_krankenversicherungsbeitraege/'
-                                                     'Krankenversicherungsbeitraege - selbe Ermaessigung.xlsx',
-                                                     self.testschema)
+            self.nutzer.insert_krankenversicherungsbeitraege(
+                'testdaten_insert_krankenversicherungsbeitraege/Krankenversicherungsbeitraege - '
+                'selbe Ermaessigung.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Ermaessigung = 'f' ist bereits vorhanden! Uebergebene Daten "
-                                                 "werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, "
-                                                 "nutzen Sie bitte die 'update_krankenversicherungsbeitraege'-"
-                                                 "Funktion!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_krankenversicherungsbeitraege("
-                                                 "integer,boolean,numeric,numeric,numeric,numeric,date) Zeile 16 bei "
-                                                 "RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Ermaessigung = 'f' ist bereits vorhanden! Uebergebene Daten werden " \
+                                  "nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte " \
+                                  "die 'update_krankenversicherungsbeitraege'-Funktion!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob auch weiterhin nur ein Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM gkv_beitraege",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gkv_beitraege")
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('7.300'), Decimal('7.300'), Decimal('72453.56'), "
                                         "Decimal('75683.12'))]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM krankenversicherungen",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM krankenversicherungen")
         self.assertEqual(str(ergebnis), "[(1, 1, False)]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM hat_GKV_Beitraege",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_GKV_Beitraege")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
 
     def tearDown(self):

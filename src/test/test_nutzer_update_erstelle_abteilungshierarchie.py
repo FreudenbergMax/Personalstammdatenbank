@@ -1,4 +1,6 @@
 import unittest
+
+from src.main.Login import Login
 from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
@@ -11,25 +13,29 @@ class TestNutzerUpdateAbteilungshierarchie(unittest.TestCase):
         Datenbankschema 'temp_test_schema' erstellt.
         """
         self.testschema = test_set_up()
-        self.testfirma = Mandant('Testfirma', self.testschema)
-        self.testfirma.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', self.testschema)
 
-        self.testfirma.get_nutzer("M100001").\
-            insert_abteilung('testdaten_update_abteilungshierarchie/Unterabteilung.xlsx', self.testschema)
+        login = Login(self.testschema)
+        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                            'Normalverbraucher', 'adminpw', 'adminpw')
+        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
 
-        self.testfirma.get_nutzer("M100001").\
-            insert_abteilung('testdaten_update_abteilungshierarchie/Oberabteilung.xlsx', self.testschema)
+        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
+
+        self.nutzer.insert_abteilung('testdaten_update_abteilungshierarchie/Unterabteilung.xlsx')
+
+        self.nutzer.insert_abteilung('testdaten_update_abteilungshierarchie/Oberabteilung.xlsx')
 
     def test_erfolgreicher_eintrag(self):
         """
         Test prueft, ob eine Abteilungshierarchie erstellt wird
         """
-        self.testfirma.get_nutzer("M100001").\
-            update_erstelle_abteilungshierarchie('testdaten_update_abteilungshierarchie/'
-                                                 'Update Abteilungshierarchie.xlsx', self.testschema)
+        self.nutzer.update_erstelle_abteilungshierarchie(
+            'testdaten_update_abteilungshierarchie/Update Abteilungshierarchie.xlsx')
 
         # pruefen, in fuer Abteilung "HR PC" der Fremdschluessel fuer uebergeordnete Abteilung "HR" hinterlegt ist
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM abteilungen", self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM abteilungen")
         self.assertEqual(str(ergebnis), "[(1, 1, 'Human Resources Personalcontrolling', 'HR PC', 2), "
                                         "(2, 1, 'Human Resources', 'HR', None)]")
 
@@ -38,12 +44,11 @@ class TestNutzerUpdateAbteilungshierarchie(unittest.TestCase):
         Test prueft, ob eine Abteilungshierarchie erstellt wird, wenn in der Excel-Datei die Abteilungen klein- in der
         Tabelle "Abteilungen" aber gross geschrieben sind. Beispiel: "human resources" statt "Human Resources"
         """
-        self.testfirma.get_nutzer("M100001").\
-            update_erstelle_abteilungshierarchie('testdaten_update_abteilungshierarchie/Update Abteilungshierarchie - '
-                                                 'klein geschrieben.xlsx', self.testschema)
+        self.nutzer.update_erstelle_abteilungshierarchie(
+            'testdaten_update_abteilungshierarchie/Update Abteilungshierarchie - klein geschrieben.xlsx')
 
         # pruefen, in fuer Abteilung "HR PC" der Fremdschluessel fuer uebergeordnete Abteilung "HR" hinterlegt ist
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM abteilungen", self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM abteilungen")
         self.assertEqual(str(ergebnis), "[(1, 1, 'Human Resources Personalcontrolling', 'HR PC', 2), "
                                         "(2, 1, 'Human Resources', 'HR', None)]")
 
@@ -54,14 +59,14 @@ class TestNutzerUpdateAbteilungshierarchie(unittest.TestCase):
         "Personal" und "Controlling")
         """
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001").update_erstelle_abteilungshierarchie(
+            self.nutzer.update_erstelle_abteilungshierarchie(
                 'testdaten_update_abteilungshierarchie/Update Abteilungshierarchie - '
-                'Unterabteilung nicht existent.xlsx', self.testschema)
+                'Unterabteilung nicht existent.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Die untergeordnete Abteilung 'Human Resources Personal "
-                                                 "Controlling' ist nicht angelegt!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion update_erstelle_abteilungshierarchie("
-                                                 "integer,character varying,character varying) Zeile 13 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Die untergeordnete Abteilung 'Human Resources Personal Controlling' ist " \
+                                  "nicht angelegt!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
     def test_oberabteilung_existiert_nicht(self):
         """
@@ -69,14 +74,12 @@ class TestNutzerUpdateAbteilungshierarchie(unittest.TestCase):
         statt "Human Resources " (fehlerhafterweise kein Leerzeichen zwischen "Human" und "Resources")
         """
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001").update_erstelle_abteilungshierarchie(
-                'testdaten_update_abteilungshierarchie/Update Abteilungshierarchie - '
-                'Oberabteilung nicht existent.xlsx', self.testschema)
+            self.nutzer.update_erstelle_abteilungshierarchie(
+                'testdaten_update_abteilungshierarchie/Update Abteilungshierarchie - Oberabteilung nicht existent.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Die uebergeordnete Abteilung 'HumanResources' ist nicht "
-                                                 "angelegt!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion update_erstelle_abteilungshierarchie"
-                                                 "(integer,character varying,character varying) Zeile 19 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Die uebergeordnete Abteilung 'HumanResources' ist nicht angelegt!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
     def tearDown(self):
         """

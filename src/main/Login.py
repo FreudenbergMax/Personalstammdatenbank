@@ -8,6 +8,10 @@ from src.main.Administrator import Administrator
 class Login:
 
     def __init__(self, schema='public'):
+
+        if schema != 'public' and schema != 'temp_test_schema':
+            raise(ValueError("Diese Bezeichnung für ein Schema ist nicht erlaubt!"))
+
         self.schema = schema
         self.liste_mandanten = []
         self.liste_admins = []
@@ -28,12 +32,12 @@ class Login:
         :param adminpasswort_wiederholen: Test, um zu pruefen, ob der Anmelder das Passwort fuer den Administrator beim
                                           ersten Mal wie beabsichtigt geschrieben hat
         """
-        try:
-            neuer_mandant = Mandant(mandantenname, mandantenpasswort, mandantenpasswort_wiederholen, self.schema)
-            neuer_admin = Administrator(neuer_mandant, admin_personalnummer, admin_vorname, admin_nachname,
+        #try:
+        neuer_mandant = Mandant(mandantenname, mandantenpasswort, mandantenpasswort_wiederholen, self.schema)
+        neuer_admin = Administrator(neuer_mandant, admin_personalnummer, admin_vorname, admin_nachname,
                                         adminpasswort, adminpasswort_wiederholen, self.schema)
-        except ValueError:
-            raise (ValueError(f"Registrierung wurde nicht durchgefuehrt!"))
+        #except ValueError:
+        #    raise (ValueError(f"Registrierung wurde nicht durchgefuehrt!"))
 
         self.liste_mandanten.append(neuer_mandant)
         self.liste_admins.append(neuer_admin)

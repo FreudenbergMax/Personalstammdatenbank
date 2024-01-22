@@ -1,6 +1,7 @@
 import unittest
 from datetime import datetime
 
+from src.main.Login import Login
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 from src.main.Mandant import Mandant
 
@@ -13,8 +14,15 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         Datenbankschema 'temp_test_schema' erstellt.
         """
         self.testschema = test_set_up()
-        self.testfirma = Mandant('Testfirma', self.testschema)
-        self.testfirma.nutzer_anlegen('M10001', 'Max', 'Mustermann', self.testschema)
+
+        login = Login(self.testschema)
+        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                            'Normalverbraucher', 'adminpw', 'adminpw')
+        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
+
+        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
     def test_optionale_zeichenkette_ist_leer(self):
         """
@@ -22,8 +30,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         übergegebene Variable ein optionaler leerer String ist.
         """
         zweitname = ''
-        zweitname = self.testfirma.get_nutzer('M10001'). \
-            _existenz_str_daten_feststellen(zweitname, 'Zweitname', 0, False)
+        zweitname = self.nutzer._existenz_str_daten_feststellen(zweitname, 'Zweitname', 0, False)
 
         self.assertEqual(zweitname, None)
 
@@ -36,8 +43,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
 
         # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
         with self.assertRaises(ValueError) as context:
-            personalnummer = self.testfirma.get_nutzer('M10001'). \
-                _existenz_str_daten_feststellen(personalnummer, 'Personalnummer', 0, True)
+            personalnummer = self.nutzer._existenz_str_daten_feststellen(personalnummer, 'Personalnummer', 0, True)
 
         self.assertEqual(str(context.exception), "'Personalnummer' ist nicht vorhanden.")
 
@@ -48,8 +54,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         übertragen werden soll.
         """
         postleitzahl = 12345
-        postleitzahl = self.testfirma.get_nutzer('M10001'). \
-            _existenz_str_daten_feststellen(postleitzahl, 'Postleitzahl', 5, False)
+        postleitzahl = self.nutzer._existenz_str_daten_feststellen(postleitzahl, 'Postleitzahl', 5, False)
 
         self.assertEqual(type(postleitzahl), str)
 
@@ -60,8 +65,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         übertragen werden soll.
         """
         double = 12.45
-        double = self.testfirma.get_nutzer('M10001')._existenz_str_daten_feststellen(
-            double, 'Postleitzahl', 5, False)
+        double = self.nutzer._existenz_str_daten_feststellen(double, 'Postleitzahl', 5, False)
 
         self.assertEqual(type(double), str)
 
@@ -72,8 +76,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         die Datenbank übertragen werden soll.
         """
         date_daten = datetime.strptime('12.12.1992', '%d.%m.%Y').date()
-        date_daten = self.testfirma.get_nutzer('M10001')._existenz_str_daten_feststellen(
-            date_daten, 'Postleitzahl', 10, False)
+        date_daten = self.nutzer._existenz_str_daten_feststellen(date_daten, 'Postleitzahl', 10, False)
 
         self.assertEqual(type(date_daten), str)
 
@@ -85,8 +88,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         personalnummer = '0' + ('12345678' * 4)
 
         with self.assertRaises(ValueError) as context:
-            personalnummer = self.testfirma.get_nutzer('M10001'). \
-                _existenz_str_daten_feststellen(personalnummer, 'Personalnummer', 32, True)
+            personalnummer = self.nutzer._existenz_str_daten_feststellen(personalnummer, 'Personalnummer', 32, True)
 
         self.assertEqual(str(context.exception), "'Personalnummer' darf höchstens 32 Zeichen lang sein. "
                                                  "Ihre Eingabe '012345678123456781234567812345678' besitzt 33 Zeichen!")

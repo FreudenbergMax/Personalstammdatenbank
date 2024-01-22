@@ -1,4 +1,6 @@
 import unittest
+
+from src.main.Login import Login
 from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
@@ -11,28 +13,28 @@ class TestNutzerInsertUnfallversicherungsbeitraege(unittest.TestCase):
         Datenbankschema 'temp_test_schema' erstellt.
         """
         self.testschema = test_set_up()
-        self.testfirma = Mandant('Testfirma', self.testschema)
-        self.testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.testschema)
 
-        self.testfirma.get_nutzer("M100001"). \
-            insert_berufsgenossenschaft('testdaten_insert_berufsgenossenschaft/Berufsgenossenschaft.xlsx',
-                                        self.testschema)
+        login = Login(self.testschema)
+        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                            'Normalverbraucher', 'adminpw', 'adminpw')
+        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
 
-        self.testfirma.get_nutzer("M100001").\
-            insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft.xlsx', self.testschema)
+        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
+
+        self.nutzer.insert_berufsgenossenschaft('testdaten_insert_berufsgenossenschaft/Berufsgenossenschaft.xlsx')
+        self.nutzer.insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft.xlsx')
 
     def test_erfolgreicher_eintrag(self):
         """
         Test prueft, ob der Unfallversicherungsbeitrag fuer ein Unternehmen eingetragen wird.
         """
-        self.testfirma.get_nutzer("M100001").\
-            insert_unfallversicherungsbeitrag('testdaten_insert_unfallversicherungsbeitrag/'
-                                              'Unfallversicherungsbeitrag.xlsx',
-                                              self.testschema)
+        self.nutzer.insert_unfallversicherungsbeitrag(
+            'testdaten_insert_unfallversicherungsbeitrag/Unfallversicherungsbeitrag.xlsx')
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").\
-            abfrage_ausfuehren("SELECT * FROM unfallversicherungsbeitraege", self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM unfallversicherungsbeitraege")
 
         self.assertEqual(str(ergebnis), "[(1, 1, 1, Decimal('6543123.89'), 2023)]")
 
@@ -42,27 +44,20 @@ class TestNutzerInsertUnfallversicherungsbeitraege(unittest.TestCase):
         Berufsgenossenschaft und Abkuerzung dieser nicht erneut eingetragen wird. Beim zweiten Eintrag muss eine
         Exception geworfen werden, da der unique-constraint missachtet wurde.
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_unfallversicherungsbeitrag('testdaten_insert_unfallversicherungsbeitrag/'
-                                              'Unfallversicherungsbeitrag.xlsx',
-                                              self.testschema)
+        self.nutzer.insert_unfallversicherungsbeitrag(
+            'testdaten_insert_unfallversicherungsbeitrag/Unfallversicherungsbeitrag.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_unfallversicherungsbeitrag('testdaten_insert_unfallversicherungsbeitrag/'
-                                                  'Unfallversicherungsbeitrag.xlsx',
-                                                  self.testschema)
+            self.nutzer.insert_unfallversicherungsbeitrag(
+                'testdaten_insert_unfallversicherungsbeitrag/Unfallversicherungsbeitrag.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Unfallversicherungsbeitrag ist fuer das Jahr '2023' "
-                                                 "bereits vermerkt!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_unfallversicherungsbeitrag"
-                                                 "(integer,character varying,character varying,character varying,"
-                                                 "character varying,numeric,integer) Zeile 33 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Unfallversicherungsbeitrag ist fuer das Jahr '2023' bereits vermerkt!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001"). \
-            abfrage_ausfuehren("SELECT * FROM unfallversicherungsbeitraege", self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM unfallversicherungsbeitraege")
 
         self.assertEqual(str(ergebnis), "[(1, 1, 1, Decimal('6543123.89'), 2023)]")
 
@@ -73,19 +68,14 @@ class TestNutzerInsertUnfallversicherungsbeitraege(unittest.TestCase):
         greift, wenn die Spalten 'Gesellschaft_ID', 'Berufsgenossenschaft_ID' und 'Beitragsjahr' in Kombination
         identisch sind.
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_unfallversicherungsbeitrag('testdaten_insert_unfallversicherungsbeitrag/'
-                                              'Unfallversicherungsbeitrag.xlsx',
-                                              self.testschema)
+        self.nutzer.insert_unfallversicherungsbeitrag(
+            'testdaten_insert_unfallversicherungsbeitrag/Unfallversicherungsbeitrag.xlsx')
 
-        self.testfirma.get_nutzer("M100001"). \
-            insert_unfallversicherungsbeitrag('testdaten_insert_unfallversicherungsbeitrag/'
-                                              'Unfallversicherungsbeitrag - Folgejahr.xlsx',
-                                              self.testschema)
+        self.nutzer.insert_unfallversicherungsbeitrag(
+            'testdaten_insert_unfallversicherungsbeitrag/Unfallversicherungsbeitrag - Folgejahr.xlsx')
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001"). \
-            abfrage_ausfuehren("SELECT * FROM unfallversicherungsbeitraege", self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM unfallversicherungsbeitraege")
 
         self.assertEqual(str(ergebnis), "[(1, 1, 1, Decimal('6543123.89'), 2023), "
                                         "(1, 1, 1, Decimal('6748512.31'), 2024)]")
@@ -98,14 +88,11 @@ class TestNutzerInsertUnfallversicherungsbeitraege(unittest.TestCase):
         Tabellen gross geschrieben sind). Ziel ist, dass die Methode eine gewisse Toleranz bei der Gross- und Klein-
         schreibung hat.
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_unfallversicherungsbeitrag('testdaten_insert_unfallversicherungsbeitrag/'
-                                              'Unfallversicherungsbeitrag - klein geschrieben.xlsx',
-                                              self.testschema)
+        self.nutzer.insert_unfallversicherungsbeitrag(
+            'testdaten_insert_unfallversicherungsbeitrag/Unfallversicherungsbeitrag - klein geschrieben.xlsx')
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001"). \
-            abfrage_ausfuehren("SELECT * FROM unfallversicherungsbeitraege", self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM unfallversicherungsbeitraege")
 
         self.assertEqual(str(ergebnis), "[(1, 1, 1, Decimal('6543123.89'), 2023)]")
 

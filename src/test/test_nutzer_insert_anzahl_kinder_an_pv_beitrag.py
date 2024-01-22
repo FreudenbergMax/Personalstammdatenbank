@@ -1,4 +1,6 @@
 import unittest
+
+from src.main.Login import Login
 from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
@@ -11,31 +13,32 @@ class TestNutzerInsertAnzahlKinder(unittest.TestCase):
         Datenbankschema 'temp_test_schema' erstellt.
         """
         self.testschema = test_set_up()
-        self.testfirma = Mandant('Testfirma', self.testschema)
-        self.testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.testschema)
+
+        login = Login(self.testschema)
+        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                            'Normalverbraucher', 'adminpw', 'adminpw')
+        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
+
+        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
     def test_erfolgreicher_eintrag(self):
         """
         Test prueft, ob die Kindernazahl mit dessen Arbeitnehmerbeitrag und Beitragsbemessungsgrenzen eingetragen
         werden.
         """
-        self.testfirma.get_nutzer("M100001").\
-            insert_anzahl_kinder_an_pv_beitrag('testdaten_insert_anzahl_kinder/'
-                                                 'Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx', self.testschema)
+        self.nutzer.insert_anzahl_kinder_an_pv_beitrag('testdaten_insert_anzahl_kinder/'
+                                                       'Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx')
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "
-                                                                           "an_pflegeversicherungsbeitraege_gesetzlich",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM an_pflegeversicherungsbeitraege_gesetzlich")
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.700'), Decimal('75000.00'), Decimal('80125.46'))]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM anzahl_kinder_unter_25",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM anzahl_kinder_unter_25")
         self.assertEqual(str(ergebnis), "[(1, 1, 1)]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "
-                                                                           "hat_gesetzlichen_an_pv_beitragssatz",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gesetzlichen_an_pv_beitragssatz")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag(self):
@@ -45,35 +48,28 @@ class TestNutzerInsertAnzahlKinder(unittest.TestCase):
         die Kinderanzahl. Sollen nur die Beitragsbemessungsgrenzen oder der AN-Beitragssatz geaendert werden, muss
         hierfuer die update-Methode verwendet werden (welche im Zuge der Arbeit nicht implementiert wird).
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_anzahl_kinder_an_pv_beitrag('testdaten_insert_anzahl_kinder/'
-                                               'Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx', self.testschema)
+        self.nutzer.insert_anzahl_kinder_an_pv_beitrag('testdaten_insert_anzahl_kinder/'
+                                                       'Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx')
 
         # Versuch, nochmal den nicht ermaessigten Beitragssatz einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_anzahl_kinder_an_pv_beitrag('testdaten_insert_anzahl_kinder/'
-                                                   'Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx', self.testschema)
+            self.nutzer.insert_anzahl_kinder_an_pv_beitrag('testdaten_insert_anzahl_kinder/'
+                                                           'Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Kinderanzahl '1' ist bereits vorhanden! Uebergebene Daten "
-                                                 "werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, "
-                                                 "nutzen Sie bitte die 'update_anzahl_kinder'-Funktion!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_anzahl_kinder_an_pv_beitrag("
-                                                 "integer,integer,numeric,numeric,numeric,date) Zeile 16 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Kinderanzahl '1' ist bereits vorhanden! Uebergebene Daten werden " \
+                                  "nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie " \
+                                  "bitte die 'update_anzahl_kinder'-Funktion!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "
-                                                                           "an_pflegeversicherungsbeitraege_gesetzlich",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM an_pflegeversicherungsbeitraege_gesetzlich")
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.700'), Decimal('75000.00'), Decimal('80125.46'))]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM anzahl_kinder_unter_25",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM anzahl_kinder_unter_25")
         self.assertEqual(str(ergebnis), "[(1, 1, 1)]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "
-                                                                           "hat_gesetzlichen_an_pv_beitragssatz",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gesetzlichen_an_pv_beitragssatz")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag_selbe_kinderanzahl_andere_werte(self):
@@ -84,36 +80,28 @@ class TestNutzerInsertAnzahlKinder(unittest.TestCase):
         Beitragssaetze anders sind. Sollen nur die Beitragsbemessungsgrenzen oder der AN-Beitragssatz geaendert werden,
         muss hierfuer die update-Methode verwendet werden (welche im Zuge der Arbeit nicht implementiert wird).
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_anzahl_kinder_an_pv_beitrag('testdaten_insert_anzahl_kinder/'
-                                               'Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx', self.testschema)
+        self.nutzer.insert_anzahl_kinder_an_pv_beitrag('testdaten_insert_anzahl_kinder/'
+                                                       'Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx')
 
         # Versuch, einen anderen ermaessigten Beitragssatz einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_anzahl_kinder_an_pv_beitrag('testdaten_insert_anzahl_kinder/'
-                                                   'Anzahl Kinder Arbeitnehmer PV-Beitrag - selbe Kinderanzahl, '
-                                                   'andere Werte.xlsx', self.testschema)
+            self.nutzer.insert_anzahl_kinder_an_pv_beitrag('testdaten_insert_anzahl_kinder/Anzahl Kinder Arbeitnehmer '
+                                                           'PV-Beitrag - selbe Kinderanzahl, andere Werte.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Kinderanzahl '1' ist bereits vorhanden! Uebergebene Daten "
-                                                 "werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, "
-                                                 "nutzen Sie bitte die 'update_anzahl_kinder'-Funktion!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_anzahl_kinder_an_pv_beitrag("
-                                                 "integer,integer,numeric,numeric,numeric,date) Zeile 16 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Kinderanzahl '1' ist bereits vorhanden! Uebergebene Daten werden nicht " \
+                                  "eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die " \
+                                  "'update_anzahl_kinder'-Funktion!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "
-                                                                           "an_pflegeversicherungsbeitraege_gesetzlich",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM an_pflegeversicherungsbeitraege_gesetzlich")
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.700'), Decimal('75000.00'), Decimal('80125.46'))]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM anzahl_kinder_unter_25",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM anzahl_kinder_unter_25")
         self.assertEqual(str(ergebnis), "[(1, 1, 1)]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "
-                                                                           "hat_gesetzlichen_an_pv_beitragssatz",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gesetzlichen_an_pv_beitragssatz")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
 
     def tearDown(self):

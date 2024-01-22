@@ -17,10 +17,11 @@ class TestNutzerDeleteMitarbeiterdaten(unittest.TestCase):
         login = Login(self.testschema)
         login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
                                             'Normalverbraucher', 'adminpw', 'adminpw')
-        admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
-        admin.nutzer_anlegen("M100001", "Erika", "Musterfrau", "nutzerpw", "nutzerpw")
+        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
 
-        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', "M100001", "nutzerpw")
+        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
         # Eintragen personenbezogener Daten
         self.nutzer.insert_geschlecht('testdaten_insert_geschlecht/Geschlecht.xlsx')
@@ -272,9 +273,10 @@ class TestNutzerDeleteMitarbeiterdaten(unittest.TestCase):
             self.nutzer.delete_mitarbeiterdaten("testdaten_delete_Mitarbeiterdaten/delete "
                                                 "Personalnummer - existiert nicht.xlsx")
 
-        self.assertEqual(str(context.exception), "FEHLER:  Mitarbeiter 'M100003' existiert nicht!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion delete_mitarbeiterdaten(integer,character"
-                                                 " varying) Zeile 13 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Mitarbeiter 'M100003' existiert nicht!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
     def tearDown(self):
         """

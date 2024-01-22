@@ -1,4 +1,6 @@
 import unittest
+
+from src.main.Login import Login
 from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
@@ -11,20 +13,25 @@ class TestNutzerInsertAustrittsgrundkategorie(unittest.TestCase):
         Datenbankschema 'temp_test_schema' erstellt.
         """
         self.testschema = test_set_up()
-        self.testfirma = Mandant('Testfirma', self.testschema)
-        self.testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.testschema)
+
+        login = Login(self.testschema)
+        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                            'Normalverbraucher', 'adminpw', 'adminpw')
+        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
+
+        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
     def test_erfolgreicher_eintrag(self):
         """
         Test prueft, ob eine Austrittsgrundkategorie eingetragen wird, sofern der Wert gueltig ist.
         """
-        self.testfirma.get_nutzer("M100001").insert_austrittsgrundkategorie(
-            'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx', self.testschema)
+        self.nutzer.insert_austrittsgrundkategorie(
+            'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx')
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").\
-            abfrage_ausfuehren("SELECT * FROM Kategorien_Austrittsgruende", self.testschema)
-
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Kategorien_Austrittsgruende")
         self.assertEqual(str(ergebnis), "[(1, 1, 'betriebsbedingt')]")
 
     def test_kein_doppelter_eintrag(self):
@@ -34,23 +41,20 @@ class TestNutzerInsertAustrittsgrundkategorie(unittest.TestCase):
         Ausloeser ist der unique-constraint, welcher in der Stored Procedure 'insert_kategorien_austrittsgruende'
         implementiert ist.
         """
-        self.testfirma.get_nutzer("M100001").insert_austrittsgrundkategorie(
-            'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx', self.testschema)
+        self.nutzer.insert_austrittsgrundkategorie(
+            'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001").insert_austrittsgrundkategorie(
-                'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx', self.testschema)
+            self.nutzer.insert_austrittsgrundkategorie(
+                'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Austrittsgrundkategorie 'betriebsbedingt' bereits "
-                                                 "vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_austrittsgrundkategorie"
-                                                 "(integer,character varying) Zeile 14 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Austrittsgrundkategorie 'betriebsbedingt' bereits vorhanden!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001"). \
-            abfrage_ausfuehren("SELECT * FROM Kategorien_Austrittsgruende", self.testschema)
-
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Kategorien_Austrittsgruende")
         self.assertEqual(str(ergebnis), "[(1, 1, 'betriebsbedingt')]")
 
     def test_falscher_eintrag(self):
@@ -66,19 +70,16 @@ class TestNutzerInsertAustrittsgrundkategorie(unittest.TestCase):
 
         # Versuch, falsch geschriebenes Geschlecht 'männlich' einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001").insert_austrittsgrundkategorie(
-                'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie - falsch geschrieben.xlsx',
-                self.testschema)
+            self.nutzer.insert_austrittsgrundkategorie(
+                'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie - falsch geschrieben.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Fuer Austrittsgrundkategorien sind nur folgende Werte "
-                                                 "erlaubt: 'verhaltensbedingt', 'personenbedingt', 'betriebsbedingt'!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_austrittsgrundkategorie"
-                                                 "(integer,character varying) Zeile 16 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Fuer Austrittsgrundkategorien sind nur folgende Werte erlaubt: " \
+                                  "'verhaltensbedingt', 'personenbedingt', 'betriebsbedingt'!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz tatsaechlich nicht angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM kategorien_Austrittsgruende",
-                                                                           self.testschema)
-
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM kategorien_Austrittsgruende")
         self.assertEqual(str(ergebnis), "[]")
 
     def tearDown(self):

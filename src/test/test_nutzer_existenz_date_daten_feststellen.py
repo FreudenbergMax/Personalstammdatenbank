@@ -1,5 +1,7 @@
 import unittest
 from datetime import datetime
+
+from src.main.Login import Login
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 from src.main.Mandant import Mandant
 
@@ -12,8 +14,15 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
         Datenbankschema 'temp_test_schema' erstellt.
         """
         self.testschema = test_set_up()
-        self.testfirma = Mandant('Testfirma', self.testschema)
-        self.testfirma.nutzer_anlegen('M10001', 'Max', 'Mustermann', self.testschema)
+
+        login = Login(self.testschema)
+        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                            'Normalverbraucher', 'adminpw', 'adminpw')
+        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
+
+        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
     def test_optionales_datum_ist_leer(self):
         """
@@ -21,8 +30,7 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
         übergegebene Variable ein optionaler leerer String ist.
         """
         austrittsdatum = ''
-        austrittsdatum = self.testfirma.get_nutzer('M10001').\
-            _existenz_date_daten_feststellen(austrittsdatum, 'Austrittsdatum', False)
+        austrittsdatum = self.nutzer._existenz_date_daten_feststellen(austrittsdatum, 'Austrittsdatum', False)
 
         self.assertEqual(austrittsdatum, None)
 
@@ -35,8 +43,7 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
         # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
         with self.assertRaises(ValueError) as context:
-            eintrittsdatum = self.testfirma.get_nutzer('M10001'). \
-                _existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
+            eintrittsdatum = self.nutzer._existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
 
         self.assertEqual(str(context.exception), "'Eintrittsdatum' ist nicht vorhanden.")
 
@@ -49,8 +56,7 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
         # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
         with self.assertRaises(ValueError) as context:
-            eintrittsdatum = self.testfirma.get_nutzer('M10001'). \
-                _existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
+            eintrittsdatum = self.nutzer._existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
 
         self.assertEqual(str(context.exception), "'01-01-2024' hat nicht das Muster 'TT.MM.JJJJ'!")
 
@@ -64,8 +70,7 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
         # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
         with self.assertRaises(ValueError) as context:
-            eintrittsdatum = self.testfirma.get_nutzer('M10001'). \
-                _existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
+            eintrittsdatum = self.nutzer._existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
 
         self.assertEqual(str(context.exception), "'32.12.2023' ist nicht möglich!")
 
@@ -79,8 +84,7 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
         # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
         with self.assertRaises(ValueError) as context:
-            eintrittsdatum = self.testfirma.get_nutzer('M10001'). \
-                _existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
+            eintrittsdatum = self.nutzer._existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
 
         self.assertEqual(str(context.exception), "'31.13.2023' ist nicht möglich!")
 
@@ -93,8 +97,7 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
         # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
         with self.assertRaises(ValueError) as context:
-            eintrittsdatum = self.testfirma.get_nutzer('M10001'). \
-                _existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
+            eintrittsdatum = self.nutzer._existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
 
         self.assertEqual(str(context.exception), "'00.01.2024' ist nicht möglich!")
 
@@ -107,8 +110,7 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
         # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
         with self.assertRaises(ValueError) as context:
-            eintrittsdatum = self.testfirma.get_nutzer('M10001'). \
-                _existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
+            eintrittsdatum = self.nutzer._existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
 
         self.assertEqual(str(context.exception), "'01.00.2024' ist nicht möglich!")
 
@@ -122,8 +124,7 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
         # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
         with self.assertRaises(ValueError) as context:
-            eintrittsdatum = self.testfirma.get_nutzer('M10001'). \
-                _existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
+            eintrittsdatum = self.nutzer._existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
 
         self.assertEqual(str(context.exception), "'29.02.2023' ist nicht möglich!")
 
@@ -134,8 +135,7 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
         """
         eintrittsdatum = '29.02.2024'
 
-        eintrittsdatum = self.testfirma.get_nutzer('M10001').\
-            _existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
+        eintrittsdatum = self.nutzer._existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
 
         self.assertEqual(eintrittsdatum, datetime.strptime('29.02.2024', '%d.%m.%Y').date())
 

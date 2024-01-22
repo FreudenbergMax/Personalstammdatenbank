@@ -4862,6 +4862,7 @@ begin
 
 	-- Daten aus Tabellen 'Nutzer' und zuletzt 'Mandanten' loeschen
 	execute 'DELETE FROM nutzer WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM administratoren WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM mandanten WHERE mandant_id = $1' using p_mandant_id;
    	
 end;

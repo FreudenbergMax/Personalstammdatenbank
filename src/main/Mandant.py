@@ -6,16 +6,10 @@ class Mandant:
 
     def __init__(self, mandantenname, passwort, passwortwiederholung, schema='public'):
 
-        if not isinstance(mandantenname, str):
-            raise(TypeError("Der Name des Mandanten muss ein String sein."))
-
-        if "postgres" in str.lower(mandantenname):
-            raise(ValueError(f"Dieser Name ist nicht erlaubt: {mandantenname}."))
-
-        if mandantenname == "":
+        if str(mandantenname) == "":
             raise(ValueError(f"Der Name des Mandanten muss aus mindestens einem Zeichen bestehen."))
 
-        if len(mandantenname) > 128:
+        if len(str(mandantenname)) > 128:
             raise(ValueError(f"Der Name des Mandanten darf höchstens 128 Zeichen lang sein."
                              f"'{mandantenname}' besitzt {len(mandantenname)} Zeichen!"))
 
@@ -25,10 +19,7 @@ class Mandant:
         if passwort != passwortwiederholung:
             raise(ValueError("Passwoerter stimmen nicht ueberein!"))
 
-        if schema != 'public' and schema != 'temp_test_schema':
-            raise(ValueError("Diese Bezeichnung für ein Schema ist nicht erlaubt!"))
-
-        self.mandantenname = mandantenname
+        self.mandantenname = str(mandantenname)
         self.schema = schema
         self.mandant_id = self._in_datenbank_anlegen(str(passwort))
         self.liste_nutzer = []

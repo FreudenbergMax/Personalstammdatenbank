@@ -1,4 +1,6 @@
 import unittest
+
+from src.main.Login import Login
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 from src.main.Mandant import Mandant
 
@@ -11,8 +13,15 @@ class TestExistenzBooleanDatenFeststellen(unittest.TestCase):
         Datenbankschema 'temp_test_schema' erstellt.
         """
         self.testschema = test_set_up()
-        self.testfirma = Mandant('Testfirma', self.testschema)
-        self.testfirma.nutzer_anlegen('M10001', 'Max', 'Mustermann', self.testschema)
+
+        login = Login(self.testschema)
+        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                            'Normalverbraucher', 'adminpw', 'adminpw')
+        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
+
+        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
     def test_optionaler_zahlenwert_ist_leer(self):
         """
@@ -20,8 +29,7 @@ class TestExistenzBooleanDatenFeststellen(unittest.TestCase):
         übergegebene Variable ein optionaler leerer String ist.
         """
         boolean = ''
-        boolean = self.testfirma.get_nutzer('M10001'). \
-            _existenz_boolean_daten_feststellen(boolean, 'boolean', False)
+        boolean = self.nutzer._existenz_boolean_daten_feststellen(boolean, 'boolean', False)
 
         self.assertEqual(boolean, None)
 
@@ -34,8 +42,7 @@ class TestExistenzBooleanDatenFeststellen(unittest.TestCase):
 
         # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
         with self.assertRaises(ValueError) as context:
-            boolean = self.testfirma.get_nutzer('M10001'). \
-                _existenz_boolean_daten_feststellen(boolean, 'boolean', True)
+            boolean = self.nutzer._existenz_boolean_daten_feststellen(boolean, 'boolean', True)
 
         self.assertEqual(str(context.exception), "'boolean' ist nicht vorhanden.")
 
@@ -46,8 +53,7 @@ class TestExistenzBooleanDatenFeststellen(unittest.TestCase):
         """
         boolean = 'nein'
 
-        boolean = self.testfirma.get_nutzer('M10001'). \
-            _existenz_boolean_daten_feststellen(boolean, 'boolean', False)
+        boolean = self.nutzer._existenz_boolean_daten_feststellen(boolean, 'boolean', False)
 
         self.assertEqual(boolean, False)
 
@@ -58,8 +64,7 @@ class TestExistenzBooleanDatenFeststellen(unittest.TestCase):
         """
         boolean = 'NEIN'
 
-        boolean = self.testfirma.get_nutzer('M10001'). \
-            _existenz_boolean_daten_feststellen(boolean, 'boolean', False)
+        boolean = self.nutzer._existenz_boolean_daten_feststellen(boolean, 'boolean', False)
 
         self.assertEqual(boolean, False)
 
@@ -70,8 +75,7 @@ class TestExistenzBooleanDatenFeststellen(unittest.TestCase):
         """
         boolean = 'ja'
 
-        boolean = self.testfirma.get_nutzer('M10001'). \
-            _existenz_boolean_daten_feststellen(boolean, 'boolean', False)
+        boolean = self.nutzer._existenz_boolean_daten_feststellen(boolean, 'boolean', False)
 
         self.assertEqual(boolean, True)
 
@@ -82,8 +86,7 @@ class TestExistenzBooleanDatenFeststellen(unittest.TestCase):
         """
         boolean = 'JA'
 
-        boolean = self.testfirma.get_nutzer('M10001'). \
-            _existenz_boolean_daten_feststellen(boolean, 'boolean', False)
+        boolean = self.nutzer._existenz_boolean_daten_feststellen(boolean, 'boolean', False)
 
         self.assertEqual(boolean, True)
 
@@ -96,8 +99,7 @@ class TestExistenzBooleanDatenFeststellen(unittest.TestCase):
 
         # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
         with self.assertRaises(TypeError) as context:
-            boolean = self.testfirma.get_nutzer('M10001'). \
-                _existenz_boolean_daten_feststellen(boolean, 'boolean', True)
+            boolean = self.nutzer._existenz_boolean_daten_feststellen(boolean, 'boolean', True)
 
         self.assertEqual(str(context.exception), "Der übergebene Wert 'hallo welt' konnte nicht verarbeitet werden. "
                                                  "Bitte geben Sie ausschließlich 'ja' oder 'nein' ein.")

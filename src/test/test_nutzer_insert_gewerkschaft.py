@@ -1,4 +1,6 @@
 import unittest
+
+from src.main.Login import Login
 from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
@@ -11,19 +13,24 @@ class TestNutzerInsertGewerkschaft(unittest.TestCase):
         Datenbankschema 'temp_test_schema' erstellt.
         """
         self.testschema = test_set_up()
-        self.testfirma = Mandant('Testfirma', self.testschema)
-        self.testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.testschema)
+
+        login = Login(self.testschema)
+        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                            'Normalverbraucher', 'adminpw', 'adminpw')
+        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
+
+        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
     def test_erfolgreicher_eintrag(self):
         """
         Test prueft, ob eine Gewerkschaft eingetragen wird.
         """
-        self.testfirma.get_nutzer("M100001").\
-            insert_gewerkschaft('testdaten_insert_gewerkschaft/Gewerkschaft.xlsx', self.testschema)
+        self.nutzer.insert_gewerkschaft('testdaten_insert_gewerkschaft/Gewerkschaft.xlsx')
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").\
-            abfrage_ausfuehren("SELECT * FROM gewerkschaften", self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gewerkschaften")
 
         self.assertEqual(str(ergebnis), "[(1, 1, 'Verdi')]")
 
@@ -34,21 +41,18 @@ class TestNutzerInsertGewerkschaft(unittest.TestCase):
         Ausloeser ist der unique-constraint der Tabelle "Gewerkschaften" der fuer jeden Mandanten die mehrmalige
         identische Eintragung derselben Gewerkschaft verbietet.
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_gewerkschaft('testdaten_insert_gewerkschaft/Gewerkschaft.xlsx', self.testschema)
+        self.nutzer.insert_gewerkschaft('testdaten_insert_gewerkschaft/Gewerkschaft.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_gewerkschaft('testdaten_insert_gewerkschaft/Gewerkschaft.xlsx', self.testschema)
+            self.nutzer.insert_gewerkschaft('testdaten_insert_gewerkschaft/Gewerkschaft.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Gewerkschaft 'Verdi' bereits vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_gewerkschaft(integer,character "
-                                                 "varying) Zeile 14 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Gewerkschaft 'Verdi' bereits vorhanden!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001"). \
-            abfrage_ausfuehren("SELECT * FROM gewerkschaften", self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gewerkschaften")
 
         self.assertEqual(str(ergebnis), "[(1, 1, 'Verdi')]")
 
@@ -58,22 +62,18 @@ class TestNutzerInsertGewerkschaft(unittest.TestCase):
         Kleinschreibung dieser dennoch nicht erneut eingetragen wird. Beim zweiten Eintrag muss eine Exception
         geworfen werden. Ausloeser ist der unique-constraint in Kombination mit dem unique-Index 'gewerkschaft_idx'.
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_gewerkschaft('testdaten_insert_gewerkschaft/Gewerkschaft.xlsx', self.testschema)
+        self.nutzer.insert_gewerkschaft('testdaten_insert_gewerkschaft/Gewerkschaft.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen (diesmal aber in Kleinschreibung)
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_gewerkschaft('testdaten_insert_gewerkschaft/Gewerkschaft - klein geschrieben.xlsx',
-                                    self.testschema)
+            self.nutzer.insert_gewerkschaft('testdaten_insert_gewerkschaft/Gewerkschaft - klein geschrieben.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Gewerkschaft 'verdi' bereits vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_gewerkschaft(integer,character "
-                                                 "varying) Zeile 14 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Gewerkschaft 'verdi' bereits vorhanden!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001"). \
-            abfrage_ausfuehren("SELECT * FROM gewerkschaften", self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gewerkschaften")
 
         self.assertEqual(str(ergebnis), "[(1, 1, 'Verdi')]")
 

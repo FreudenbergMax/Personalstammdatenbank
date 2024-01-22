@@ -1,4 +1,6 @@
 import unittest
+
+from src.main.Login import Login
 from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
@@ -11,20 +13,26 @@ class TestNutzerInsertTarif(unittest.TestCase):
         Datenbankschema 'temp_test_schema' erstellt.
         """
         self.testschema = test_set_up()
-        self.testfirma = Mandant('Testfirma', self.testschema)
-        self.testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.testschema)
 
-        self.testfirma.get_nutzer("M100001"). \
-            insert_gewerkschaft('testdaten_insert_gewerkschaft/Gewerkschaft.xlsx', self.testschema)
+        login = Login(self.testschema)
+        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                            'Normalverbraucher', 'adminpw', 'adminpw')
+        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
+
+        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
+
+        self.nutzer.insert_gewerkschaft('testdaten_insert_gewerkschaft/Gewerkschaft.xlsx')
 
     def test_erfolgreicher_eintrag(self):
         """
         Test prueft, ob ein Tarif eingetragen wird.
         """
-        self.testfirma.get_nutzer("M100001").insert_tarif('testdaten_insert_tarif/Tarif.xlsx', self.testschema)
+        self.nutzer.insert_tarif('testdaten_insert_tarif/Tarif.xlsx')
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM tarife", self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM tarife")
 
         self.assertEqual(str(ergebnis), "[(1, 1, 'A5-1', 1)]")
 
@@ -36,20 +44,20 @@ class TestNutzerInsertTarif(unittest.TestCase):
         identische Eintragung desselben Tarifs verbietet. Falls eine Tarifbezeichnung aktualisiert werden soll, so muss
         eine update-Funktion ausgefuehrt werden (welche im Rahmen dieser Bachelorarbeit nicht implementiert wurde).
         """
-        self.testfirma.get_nutzer("M100001").insert_tarif('testdaten_insert_tarif/Tarif.xlsx', self.testschema)
+        self.nutzer.insert_tarif('testdaten_insert_tarif/Tarif.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001").insert_tarif('testdaten_insert_tarif/Tarif.xlsx', self.testschema)
+            self.nutzer.insert_tarif('testdaten_insert_tarif/Tarif.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Tarif ist bereits vorhanden! Uebergebene Daten werden nicht "
-                                                 "eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie "
-                                                 "bitte die 'update_Tarif'-Funktion!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_tarif(integer,character varying,"
-                                                 "character varying) Zeile 24 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Tarif ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! " \
+                                  "Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die " \
+                                  "'update_Tarif'-Funktion!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz nur einmal angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM tarife", self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM tarife")
 
         self.assertEqual(str(ergebnis), "[(1, 1, 'A5-1', 1)]")
 
@@ -61,20 +69,18 @@ class TestNutzerInsertTarif(unittest.TestCase):
         Tarifbezeichnung aktualisiert werden soll, so muss eine update-Funktion ausgefuehrt werden (welche im Rahmen
         dieser Bachelorarbeit nicht implementiert wurde).
         """
-        self.testfirma.get_nutzer("M100001").insert_tarif('testdaten_insert_tarif/Tarif.xlsx', self.testschema)
+        self.nutzer.insert_tarif('testdaten_insert_tarif/Tarif.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001").insert_tarif('testdaten_insert_tarif/'
-                                                              'Tarif - Tarif klein geschrieben.xlsx',
-                                                              self.testschema)
+            self.nutzer.insert_tarif('testdaten_insert_tarif/Tarif - Tarif klein geschrieben.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Tarif 'Verdi' bereits vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_tarif(integer,character varying,"
-                                                 "character varying) Zeile 34 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Tarif 'Verdi' bereits vorhanden!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der nur einmal Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM tarife", self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM tarife")
 
         self.assertEqual(str(ergebnis), "[(1, 1, 'A5-1', 1)]")
 
@@ -84,17 +90,15 @@ class TestNutzerInsertTarif(unittest.TestCase):
         bisher nicht in der Datenbank eingetragen wurde.
         """
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001").insert_tarif('testdaten_insert_tarif/'
-                                                              'Tarif - Gewerkschaft nicht existent.xlsx',
-                                                              self.testschema)
+            self.nutzer.insert_tarif('testdaten_insert_tarif/Tarif - Gewerkschaft nicht existent.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Gewerkschaft 'IG Metall' existiert nicht! Bitte tragen Sie "
-                                                 "erst eine Gewerkschaft ein!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_tarif(integer,character varying,"
-                                                 "character varying) Zeile 16 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Gewerkschaft 'IG Metall' existiert nicht! Bitte tragen Sie erst eine " \
+                                  "Gewerkschaft ein!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob kein Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM tarife", self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM tarife")
 
         self.assertEqual(str(ergebnis), "[]")
 

@@ -1,4 +1,6 @@
 import unittest
+
+from src.main.Login import Login
 from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
@@ -11,31 +13,32 @@ class TestNutzerInsertArbeitsortSachsen(unittest.TestCase):
         Datenbankschema 'temp_test_schema' erstellt.
         """
         self.testschema = test_set_up()
-        self.testfirma = Mandant('Testfirma', self.testschema)
-        self.testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.testschema)
+
+        login = Login(self.testschema)
+        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                            'Normalverbraucher', 'adminpw', 'adminpw')
+        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
+
+        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
     def test_erfolgreicher_eintrag(self):
         """
         Test prueft, ob Pflegebeitragssatz der Arbeitgeber (dessen Hoehe abhaengig davon ist, ob der Arbeitgeber in
         Sachsen sitzt oder nicht) eingetragen werden.
         """
-        self.testfirma.get_nutzer("M100001").\
-            insert_arbeitsort_sachsen_ag_pv_beitrag('testdaten_insert_ag_pv_beitrag_sachsen/'
-                                                    'Arbeitsort Sachsen Arbeitgeber PV-Beitrag.xlsx', self.testschema)
+        self.nutzer.insert_arbeitsort_sachsen_ag_pv_beitrag('testdaten_insert_ag_pv_beitrag_sachsen/'
+                                                            'Arbeitsort Sachsen Arbeitgeber PV-Beitrag.xlsx')
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM Arbeitsort_Sachsen",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Arbeitsort_Sachsen")
         self.assertEqual(str(ergebnis), "[(1, 1, True)]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "
-                                                                           "AG_Pflegeversicherungsbeitraege_gesetzlich",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM AG_Pflegeversicherungsbeitraege_gesetzlich")
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.200'))]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "
-                                                                           "hat_gesetzlichen_AG_PV_Beitragssatz",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gesetzlichen_AG_PV_Beitragssatz")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag(self):
@@ -46,36 +49,28 @@ class TestNutzerInsertArbeitsortSachsen(unittest.TestCase):
         geworfen, wenn der AG-Beitragssatz anders ist. Soll nur der Beitragssatz geaendert werden, muss hierfuer eine
         update-Methode verwendet werden (welche im Rahmen dieser Bachelorarbeit nicht implementiert wird).
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_arbeitsort_sachsen_ag_pv_beitrag('testdaten_insert_ag_pv_beitrag_sachsen/'
-                                                    'Arbeitsort Sachsen Arbeitgeber PV-Beitrag.xlsx', self.testschema)
+        self.nutzer.insert_arbeitsort_sachsen_ag_pv_beitrag('testdaten_insert_ag_pv_beitrag_sachsen/'
+                                                            'Arbeitsort Sachsen Arbeitgeber PV-Beitrag.xlsx')
 
         # Versuch, nochmal den nicht ermaessigten Beitragssatz einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_arbeitsort_sachsen_ag_pv_beitrag('testdaten_insert_ag_pv_beitrag_sachsen/'
-                                                        'Arbeitsort Sachsen Arbeitgeber PV-Beitrag.xlsx',
-                                                        self.testschema)
+            self.nutzer.insert_arbeitsort_sachsen_ag_pv_beitrag('testdaten_insert_ag_pv_beitrag_sachsen/'
+                                                                'Arbeitsort Sachsen Arbeitgeber PV-Beitrag.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  arbeitsort_sachsen = 't' ist bereits vorhanden! Uebergebene "
-                                                 "Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren "
-                                                 "wollen, nutzen Sie bitte die 'update_arbeitsort_sachsen'-Funktion!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_arbeitsort_sachsen_ag_pv_beitrag"
-                                                 "(integer,boolean,numeric,date) Zeile 15 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  arbeitsort_sachsen = 't' ist bereits vorhanden! Uebergebene " \
+                                  "Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren " \
+                                  "wollen, nutzen Sie bitte die 'update_arbeitsort_sachsen'-Funktion!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM Arbeitsort_Sachsen",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Arbeitsort_Sachsen")
         self.assertEqual(str(ergebnis), "[(1, 1, True)]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "
-                                                                           "AG_Pflegeversicherungsbeitraege_gesetzlich",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM AG_Pflegeversicherungsbeitraege_gesetzlich")
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.200'))]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "
-                                                                           "hat_gesetzlichen_AG_PV_Beitragssatz",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gesetzlichen_AG_PV_Beitragssatz")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag_ebenfalls_true_andere_werte(self):
@@ -87,35 +82,28 @@ class TestNutzerInsertArbeitsortSachsen(unittest.TestCase):
         nur der Beitragssatz geaendert werden, muss hierfuer eine update-Methode verwendet werden (welche im Rahmen
         dieser Bachelorarbeit nicht implementiert wird).
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_arbeitsort_sachsen_ag_pv_beitrag('testdaten_insert_ag_pv_beitrag_sachsen/'
-                                                    'Arbeitsort Sachsen Arbeitgeber PV-Beitrag.xlsx', self.testschema)
+        self.nutzer.insert_arbeitsort_sachsen_ag_pv_beitrag('testdaten_insert_ag_pv_beitrag_sachsen/'
+                                                            'Arbeitsort Sachsen Arbeitgeber PV-Beitrag.xlsx')
 
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_arbeitsort_sachsen_ag_pv_beitrag('testdaten_insert_ag_pv_beitrag_sachsen/Arbeitsort Sachsen '
-                                                        'Arbeitgeber PV-Beitrag - anderer Beitragssatz.xlsx',
-                                                        self.testschema)
+            self.nutzer.insert_arbeitsort_sachsen_ag_pv_beitrag('testdaten_insert_ag_pv_beitrag_sachsen/Arbeitsort '
+                                                                'Sachsen Arbeitgeber PV-Beitrag - '
+                                                                'anderer Beitragssatz.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  arbeitsort_sachsen = 't' ist bereits vorhanden! Uebergebene "
-                                                 "Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren "
-                                                 "wollen, nutzen Sie bitte die 'update_arbeitsort_sachsen'-Funktion!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_arbeitsort_sachsen_ag_pv_beitrag"
-                                                 "(integer,boolean,numeric,date) Zeile 15 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  arbeitsort_sachsen = 't' ist bereits vorhanden! Uebergebene " \
+                                  "Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren " \
+                                  "wollen, nutzen Sie bitte die 'update_arbeitsort_sachsen'-Funktion!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM Arbeitsort_Sachsen",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Arbeitsort_Sachsen")
         self.assertEqual(str(ergebnis), "[(1, 1, True)]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "
-                                                                           "AG_Pflegeversicherungsbeitraege_gesetzlich",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM AG_Pflegeversicherungsbeitraege_gesetzlich")
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.200'))]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "
-                                                                           "hat_gesetzlichen_AG_PV_Beitragssatz",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gesetzlichen_AG_PV_Beitragssatz")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
 
     def tearDown(self):

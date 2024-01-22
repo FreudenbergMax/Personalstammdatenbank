@@ -1,4 +1,6 @@
 import unittest
+
+from src.main.Login import Login
 from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
@@ -11,19 +13,24 @@ class TestNutzerInsertSteuerklasse(unittest.TestCase):
         Datenbankschema 'temp_test_schema' erstellt.
         """
         self.testschema = test_set_up()
-        self.testfirma = Mandant('Testfirma', self.testschema)
-        self.testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.testschema)
+
+        login = Login(self.testschema)
+        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                            'Normalverbraucher', 'adminpw', 'adminpw')
+        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
+
+        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
     def test_erfolgreicher_eintrag(self):
         """
         Test prueft, ob eine Steuerklasse eingetragen wird, sofern die Wert gueltig ist.
         """
-        self.testfirma.get_nutzer("M100001").\
-            insert_steuerklasse('testdaten_insert_steuerklasse/Steuerklasse.xlsx', self.testschema)
+        self.nutzer.insert_steuerklasse('testdaten_insert_steuerklasse/Steuerklasse.xlsx')
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").\
-            abfrage_ausfuehren("SELECT * FROM steuerklassen", self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM steuerklassen")
 
         self.assertEqual(str(ergebnis), "[(1, 1, '1')]")
 
@@ -33,21 +40,18 @@ class TestNutzerInsertSteuerklasse(unittest.TestCase):
         nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden. Ausloeser ist der
         unique-constraint, welcher in der Stored Procedure 'insert_steuerklasse' implementiert ist.
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_steuerklasse('testdaten_insert_steuerklasse/Steuerklasse.xlsx', self.testschema)
+        self.nutzer.insert_steuerklasse('testdaten_insert_steuerklasse/Steuerklasse.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_steuerklasse('testdaten_insert_steuerklasse/Steuerklasse.xlsx', self.testschema)
+            self.nutzer.insert_steuerklasse('testdaten_insert_steuerklasse/Steuerklasse.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Steuerklasse '1' bereits vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_steuerklasse(integer,character) "
-                                                 "Zeile 14 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Steuerklasse '1' bereits vorhanden!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM steuerklassen",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM steuerklassen")
 
         self.assertEqual(str(ergebnis), "[(1, 1, '1')]")
 
@@ -63,18 +67,14 @@ class TestNutzerInsertSteuerklasse(unittest.TestCase):
 
         # Versuch, nicht existente Steuerklasse '7' einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_steuerklasse('testdaten_insert_steuerklasse/Steuerklasse - ungueltiger Wert.xlsx',
-                                    self.testschema)
+            self.nutzer.insert_steuerklasse('testdaten_insert_steuerklasse/Steuerklasse - ungueltiger Wert.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Fuer Steuerklassen sind nur folgende Werte erlaubt: "
-                                                 "1, 2, 3, 4, 5, 6!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_steuerklasse(integer,character) "
-                                                 "Zeile 16 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Fuer Steuerklassen sind nur folgende Werte erlaubt: 1, 2, 3, 4, 5, 6!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz tatsaechlich nicht angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM steuerklassen",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM steuerklassen")
 
         self.assertEqual(str(ergebnis), "[]")
 

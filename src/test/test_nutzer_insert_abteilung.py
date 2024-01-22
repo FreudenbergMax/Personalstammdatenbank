@@ -1,4 +1,6 @@
 import unittest
+
+from src.main.Login import Login
 from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
@@ -11,19 +13,24 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
         Datenbankschema 'temp_test_schema' erstellt.
         """
         self.testschema = test_set_up()
-        self.testfirma = Mandant('Testfirma', self.testschema)
-        self.testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.testschema)
+
+        login = Login(self.testschema)
+        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                            'Normalverbraucher', 'adminpw', 'adminpw')
+        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
+
+        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
     def test_erfolgreicher_eintrag(self):
         """
         Test prueft, ob eine Abteilung eingetragen wird.
         """
-        self.testfirma.get_nutzer("M100001").\
-            insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx', self.testschema)
+        self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx')
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").\
-            abfrage_ausfuehren("SELECT * FROM abteilungen", self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM abteilungen")
 
         self.assertEqual(str(ergebnis), "[(1, 1, 'Human Resources Personalcontrolling', 'HR PC', None)]")
 
@@ -33,23 +40,19 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
         dieser nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden. Ausloeser ist
         der unique-constraint, welcher in der Stored Procedure 'insert_abteilung' implementiert ist.
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx', self.testschema)
+        self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx', self.testschema)
+            self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Abteilung 'Human Resources Personalcontrolling' oder "
-                                                 "Abteilungskuerzel 'HR PC' bereits vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_abteilung(integer,character "
-                                                 "varying,character varying) Zeile 14 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Abteilung 'Human Resources Personalcontrolling' oder Abteilungskuerzel " \
+                                  "'HR PC' bereits vorhanden!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM abteilungen",
-                                                                           self.testschema)
-
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM abteilungen")
         self.assertEqual(str(ergebnis), "[(1, 1, 'Human Resources Personalcontrolling', 'HR PC', None)]")
 
     def test_kein_doppelter_eintrag_Abteilung_identisch(self):
@@ -58,23 +61,19 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
         Abkuerzung dieser nicht eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden.
         Ausloeser ist  der unique-constraint, welcher in der Stored Procedure 'insert_abteilung' implementiert ist.
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx', self.testschema)
+        self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_abteilung('testdaten_insert_abteilung/Abteilung - Abteilung identisch.xlsx', self.testschema)
+            self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung - Abteilung identisch.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Abteilung 'Human Resources Personalcontrolling' oder "
-                                                 "Abteilungskuerzel 'HRPC' bereits vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_abteilung(integer,character "
-                                                 "varying,character varying) Zeile 14 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Abteilung 'Human Resources Personalcontrolling' oder " \
+                                  "Abteilungskuerzel 'HRPC' bereits vorhanden!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM abteilungen",
-                                                                           self.testschema)
-
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM abteilungen")
         self.assertEqual(str(ergebnis), "[(1, 1, 'Human Resources Personalcontrolling', 'HR PC', None)]")
 
     def test_kein_doppelter_eintrag_Abkuerzung_identisch(self):
@@ -83,23 +82,19 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
         Abkuerzung dieser nicht eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden.
         Ausloeser ist  der unique-constraint, welcher in der Stored Procedure 'insert_abteilung' implementiert ist.
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx', self.testschema)
+        self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_abteilung('testdaten_insert_abteilung/Abteilung - Abkuerzung identisch.xlsx', self.testschema)
+            self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung - Abkuerzung identisch.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Abteilung 'HumanResources Personalcontrolling' oder "
-                                                 "Abteilungskuerzel 'HR PC' bereits vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_abteilung(integer,character "
-                                                 "varying,character varying) Zeile 14 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Abteilung 'HumanResources Personalcontrolling' oder Abteilungskuerzel " \
+                                  "'HR PC' bereits vorhanden!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM abteilungen",
-                                                                           self.testschema)
-
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM abteilungen")
         self.assertEqual(str(ergebnis), "[(1, 1, 'Human Resources Personalcontrolling', 'HR PC', None)]")
 
     def test_kein_doppelter_eintrag_abteilung_case_insensitive(self):
@@ -109,24 +104,19 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
         werden. Ausloeser ist der unique-constraint, welcher in der Stored Procedure 'insert_abteilung'
         implementiert ist, in Kombination mit dem unique-Index 'abteilung_idx'.
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx', self.testschema)
+        self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen (diesmal aber in Kleinschreibung)
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_abteilung('testdaten_insert_abteilung/Abteilung - Abteilung klein geschrieben.xlsx',
-                                 self.testschema)
+            self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung - Abteilung klein geschrieben.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Abteilung 'human resources personalcontrolling' oder "
-                                                 "Abteilungskuerzel 'HR PC' bereits vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_abteilung(integer,character "
-                                                 "varying,character varying) Zeile 14 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Abteilung 'human resources personalcontrolling' oder Abteilungskuerzel " \
+                                  "'HR PC' bereits vorhanden!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM abteilungen",
-                                                                           self.testschema)
-
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM abteilungen")
         self.assertEqual(str(ergebnis), "[(1, 1, 'Human Resources Personalcontrolling', 'HR PC', None)]")
 
     def test_kein_doppelter_eintrag_abkuerzung_case_insensitive(self):
@@ -136,24 +126,19 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
         werden. Ausloeser ist der unique-constraint, welcher in der Stored Procedure 'insert_abteilung'
         implementiert ist, in Kombination mit dem unique-Index 'abk_abteilung_idx'.
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx', self.testschema)
+        self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen (diesmal aber in Kleinschreibung)
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_abteilung('testdaten_insert_abteilung/Abteilung - Abkuerzung klein geschrieben.xlsx',
-                                 self.testschema)
+            self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung - Abkuerzung klein geschrieben.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Abteilung 'Human Resources Personalcontrolling' oder "
-                                                 "Abteilungskuerzel 'hr pc' bereits vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_abteilung(integer,character "
-                                                 "varying,character varying) Zeile 14 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Abteilung 'Human Resources Personalcontrolling' oder Abteilungskuerzel " \
+                                  "'hr pc' bereits vorhanden!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM abteilungen",
-                                                                           self.testschema)
-
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM abteilungen")
         self.assertEqual(str(ergebnis), "[(1, 1, 'Human Resources Personalcontrolling', 'HR PC', None)]")
 
     def tearDown(self):

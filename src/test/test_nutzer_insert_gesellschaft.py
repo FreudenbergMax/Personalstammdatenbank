@@ -1,4 +1,6 @@
 import unittest
+
+from src.main.Login import Login
 from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
@@ -11,19 +13,24 @@ class TestNutzerInsertGesellschaft(unittest.TestCase):
         Datenbankschema 'temp_test_schema' erstellt.
         """
         self.testschema = test_set_up()
-        self.testfirma = Mandant('Testfirma', self.testschema)
-        self.testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.testschema)
+
+        login = Login(self.testschema)
+        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                            'Normalverbraucher', 'adminpw', 'adminpw')
+        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
+
+        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
     def test_erfolgreicher_eintrag(self):
         """
         Test prueft, ob eine Gesellschaft eingetragen wird.
         """
-        self.testfirma.get_nutzer("M100001").\
-            insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft.xlsx', self.testschema)
+        self.nutzer.insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft.xlsx')
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").\
-            abfrage_ausfuehren("SELECT * FROM gesellschaften", self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gesellschaften")
 
         self.assertEqual(str(ergebnis), "[(1, 1, 'Beispielfirma GmbH', 'Bf GmbH', None)]")
 
@@ -33,22 +40,18 @@ class TestNutzerInsertGesellschaft(unittest.TestCase):
         Abkuerzung dieser nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden.
         Ausloeser ist der unique-constraint, welcher in der Stored Procedure 'insert_gesellschaft' implementiert ist.
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft.xlsx', self.testschema)
+        self.nutzer.insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft.xlsx', self.testschema)
+            self.nutzer.insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Gesellschaft 'Beispielfirma GmbH' oder 'Bf GmbH' bereits "
-                                                 "vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_gesellschaft(integer,character "
-                                                 "varying,character varying) Zeile 14 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Gesellschaft 'Beispielfirma GmbH' oder 'Bf GmbH' bereits vorhanden!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM gesellschaften",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gesellschaften")
 
         self.assertEqual(str(ergebnis), "[(1, 1, 'Beispielfirma GmbH', 'Bf GmbH', None)]")
 
@@ -58,23 +61,18 @@ class TestNutzerInsertGesellschaft(unittest.TestCase):
         anderer Abkuerzung dieser nicht eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden.
         Ausloeser ist  der unique-constraint, welcher in der Stored Procedure 'insert_gesellschaft' implementiert ist.
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft.xlsx', self.testschema)
+        self.nutzer.insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft - Gesellschaft identisch.xlsx',
-                                    self.testschema)
+            self.nutzer.insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft - Gesellschaft identisch.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Gesellschaft 'Beispielfirma GmbH' oder 'BfGmbH' bereits "
-                                                 "vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_gesellschaft(integer,character "
-                                                 "varying,character varying) Zeile 14 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Gesellschaft 'Beispielfirma GmbH' oder 'BfGmbH' bereits vorhanden!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM gesellschaften",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gesellschaften")
 
         self.assertEqual(str(ergebnis), "[(1, 1, 'Beispielfirma GmbH', 'Bf GmbH', None)]")
 
@@ -84,23 +82,18 @@ class TestNutzerInsertGesellschaft(unittest.TestCase):
         identischer Abkuerzung dieser nicht eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden.
         Ausloeser ist  der unique-constraint, welcher in der Stored Procedure 'insert_gesellschaft' implementiert ist.
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft.xlsx', self.testschema)
+        self.nutzer.insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft - Abkuerzung identisch.xlsx',
-                                    self.testschema)
+            self.nutzer.insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft - Abkuerzung identisch.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Gesellschaft 'BeispielfirmaGmbH' oder 'Bf GmbH' bereits "
-                                                 "vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_gesellschaft(integer,character "
-                                                 "varying,character varying) Zeile 14 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Gesellschaft 'BeispielfirmaGmbH' oder 'Bf GmbH' bereits vorhanden!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM gesellschaften",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gesellschaften")
 
         self.assertEqual(str(ergebnis), "[(1, 1, 'Beispielfirma GmbH', 'Bf GmbH', None)]")
 
@@ -111,23 +104,19 @@ class TestNutzerInsertGesellschaft(unittest.TestCase):
         geworfen werden. Ausloeser ist der unique-constraint, welcher in der Stored Procedure 'insert_gesellschaft'
         implementiert ist, in Kombination mit dem unique-Index 'gesellschaft_idx'.
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft.xlsx', self.testschema)
+        self.nutzer.insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen (diesmal aber in Kleinschreibung)
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft - Gesellschaft klein geschrieben.xlsx',
-                                    self.testschema)
+            self.nutzer.insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft - '
+                                            'Gesellschaft klein geschrieben.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Gesellschaft 'beispielfirma gmbh' oder 'Bf GmbH' bereits "
-                                                 "vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_gesellschaft(integer,character "
-                                                 "varying,character varying) Zeile 14 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Gesellschaft 'beispielfirma gmbh' oder 'Bf GmbH' bereits vorhanden!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM gesellschaften",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gesellschaften")
 
         self.assertEqual(str(ergebnis), "[(1, 1, 'Beispielfirma GmbH', 'Bf GmbH', None)]")
 
@@ -138,23 +127,19 @@ class TestNutzerInsertGesellschaft(unittest.TestCase):
         geworfen werden. Ausloeser ist der unique-constraint, welcher in der Stored Procedure 'insert_gesellschaft'
         implementiert ist, in Kombination mit dem unique-Index 'abk_gesellschaft_idx'.
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft.xlsx', self.testschema)
+        self.nutzer.insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen (diesmal aber in Kleinschreibung)
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft - Abkuerzung klein geschrieben.xlsx',
-                                    self.testschema)
+            self.nutzer.insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft - '
+                                            'Abkuerzung klein geschrieben.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Gesellschaft 'Beispielfirma GmbH' oder 'bf gmbh' bereits "
-                                                 "vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_gesellschaft(integer,character "
-                                                 "varying,character varying) Zeile 14 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Gesellschaft 'Beispielfirma GmbH' oder 'bf gmbh' bereits vorhanden!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM gesellschaften",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gesellschaften")
 
         self.assertEqual(str(ergebnis), "[(1, 1, 'Beispielfirma GmbH', 'Bf GmbH', None)]")
 

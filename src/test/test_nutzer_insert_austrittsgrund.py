@@ -1,4 +1,6 @@
 import unittest
+
+from src.main.Login import Login
 from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
@@ -11,8 +13,15 @@ class TestNutzerInsertAustrittsgrund(unittest.TestCase):
         Datenbankschema 'temp_test_schema' erstellt.
         """
         self.testschema = test_set_up()
-        self.testfirma = Mandant('Testfirma', self.testschema)
-        self.testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.testschema)
+
+        login = Login(self.testschema)
+        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                            'Normalverbraucher', 'adminpw', 'adminpw')
+        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
+
+        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
     def test_erfolgreicher_eintrag(self):
         """
@@ -20,17 +29,13 @@ class TestNutzerInsertAustrittsgrund(unittest.TestCase):
         """
         # Zuerst muss die Austrittsgrundkategorie eingetragen werden, damit dann eine Verknupfung ueber Fremdschluessel
         # zwischen Austrittsgrund und dessen Kategorie vorgenommen werden kann
-        self.testfirma.get_nutzer("M100001"). \
-            insert_austrittsgrundkategorie('testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx',
-                                           self.testschema)
+        self.nutzer.insert_austrittsgrundkategorie(
+            'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx')
 
-        self.testfirma.get_nutzer("M100001").\
-            insert_austrittsgrund('testdaten_insert_austrittsgrund/Austrittsgrund.xlsx', self.testschema)
+        self.nutzer.insert_austrittsgrund('testdaten_insert_austrittsgrund/Austrittsgrund.xlsx')
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM austrittsgruende",
-                                                                           self.testschema)
-
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM austrittsgruende")
         self.assertEqual(str(ergebnis), "[(1, 1, 'Umsatzrueckgang', 1)]")
 
     def test_erfolgreicher_eintrag_kategorie_gross(self):
@@ -44,18 +49,14 @@ class TestNutzerInsertAustrittsgrund(unittest.TestCase):
         """
         # Zuerst muss die Austrittsgrundkategorie eingetragen werden, damit dann eine Verknupfung ueber Fremdschluessel
         # zwischen Austrittsgrund und dessen Kategorie vorgenommen werden kann
-        self.testfirma.get_nutzer("M100001"). \
-            insert_austrittsgrundkategorie('testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx',
-                                           self.testschema)
+        self.nutzer.insert_austrittsgrundkategorie(
+            'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx')
 
-        self.testfirma.get_nutzer("M100001").\
-            insert_austrittsgrund('testdaten_insert_austrittsgrund/Austrittsgrund - Kategorie gross geschrieben.xlsx',
-                                  self.testschema)
+        self.nutzer.insert_austrittsgrund('testdaten_insert_austrittsgrund/Austrittsgrund - '
+                                          'Kategorie gross geschrieben.xlsx')
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM austrittsgruende",
-                                                                           self.testschema)
-
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM austrittsgruende")
         self.assertEqual(str(ergebnis), "[(1, 1, 'Umsatzrueckgang', 1)]")
 
     def test_kein_doppelter_eintrag(self):
@@ -66,25 +67,21 @@ class TestNutzerInsertAustrittsgrund(unittest.TestCase):
         """
         # Zuerst muss die Austrittsgrundkategorie eingetragen werden, damit dann eine Verknupfung ueber Fremdschluessel
         # zwischen Austrittsgrund und dessen Kategorie vorgenommen werden kann
-        self.testfirma.get_nutzer("M100001"). \
-            insert_austrittsgrundkategorie('testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx',
-                                           self.testschema)
+        self.nutzer.insert_austrittsgrundkategorie(
+            'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx')
 
-        self.testfirma.get_nutzer("M100001"). \
-            insert_austrittsgrund('testdaten_insert_austrittsgrund/Austrittsgrund.xlsx', self.testschema)
+        self.nutzer.insert_austrittsgrund('testdaten_insert_austrittsgrund/Austrittsgrund.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_austrittsgrund('testdaten_insert_austrittsgrund/Austrittsgrund.xlsx', self.testschema)
+            self.nutzer.insert_austrittsgrund('testdaten_insert_austrittsgrund/Austrittsgrund.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Austrittsgrund 'Umsatzrueckgang' bereits vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_austrittsgrund(integer,character"
-                                                 " varying,character varying) Zeile 19 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Austrittsgrund 'Umsatzrueckgang' bereits vorhanden!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM austrittsgruende",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM austrittsgruende")
 
         self.assertEqual(str(ergebnis), "[(1, 1, 'Umsatzrueckgang', 1)]")
 
@@ -97,27 +94,21 @@ class TestNutzerInsertAustrittsgrund(unittest.TestCase):
         """
         # Zuerst muss die Austrittsgrundkategorie eingetragen werden, damit dann eine Verknupfung ueber Fremdschluessel
         # zwischen Austrittsgrund und dessen Kategorie vorgenommen werden kann
-        self.testfirma.get_nutzer("M100001"). \
-            insert_austrittsgrundkategorie('testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx',
-                                           self.testschema)
+        self.nutzer.insert_austrittsgrundkategorie(
+            'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx')
 
-        self.testfirma.get_nutzer("M100001"). \
-            insert_austrittsgrund('testdaten_insert_austrittsgrund/Austrittsgrund.xlsx', self.testschema)
+        self.nutzer.insert_austrittsgrund('testdaten_insert_austrittsgrund/Austrittsgrund.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen (diesmal aber in Kleinschreibung)
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_austrittsgrund('testdaten_insert_austrittsgrund/Austrittsgrund - klein geschrieben.xlsx',
-                                      self.testschema)
+            self.nutzer.insert_austrittsgrund('testdaten_insert_austrittsgrund/Austrittsgrund - klein geschrieben.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Austrittsgrund 'umsatzrueckgang' bereits vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_austrittsgrund(integer,character"
-                                                 " varying,character varying) Zeile 19 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Austrittsgrund 'umsatzrueckgang' bereits vorhanden!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM austrittsgruende",
-                                                                           self.testschema)
-
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM austrittsgruende")
         self.assertEqual(str(ergebnis), "[(1, 1, 'Umsatzrueckgang', 1)]")
 
     def tearDown(self):

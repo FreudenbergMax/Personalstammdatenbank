@@ -5,7 +5,7 @@ from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
 
-class TestRLS(unittest.TestCase):
+class TestNutzerDeleteMandantendaten(unittest.TestCase):
 
     def setUp(self):
         """
@@ -14,7 +14,6 @@ class TestRLS(unittest.TestCase):
         """
         self.testschema = test_set_up()
 
-        # ersten Mandanten + deren Admin und einen Nutzer erstellen
         login = Login(self.testschema)
         login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
                                             'Normalverbraucher', 'adminpw', 'adminpw')
@@ -23,16 +22,6 @@ class TestRLS(unittest.TestCase):
 
         self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
         self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
-
-        # zweiten Mandanten + deren Admin und einen Nutzer erstellen
-        login = Login(self.testschema)
-        login.registriere_mandant_und_admin('Testbetrieb', 'mpw', 'mpw', 'M1', 'Max', 'Mustermann',
-                                            'apw', 'apw')
-        self.admin2 = login.login_admin('Testbetrieb', 'mpw', 'M1', 'apw')
-        self.admin2.nutzer_anlegen('M2', 'Max', 'Mustermann', 'npw', 'npw')
-
-        self.nutzer2 = login.login_nutzer('Testbetrieb', 'mpw', 'M2', 'npw')
-        self.nutzer2.passwort_aendern('neues_pw', 'neues_pw')
 
         # Eintragen personenbezogener Daten
         self.nutzer.insert_geschlecht('testdaten_insert_geschlecht/Geschlecht.xlsx')
@@ -87,22 +76,12 @@ class TestRLS(unittest.TestCase):
 
         self.nutzer.insert_neuer_mitarbeiter('testdaten_delete_Mandantendaten/Mitarbeiter - Minijobber.xlsx')
 
-    def test_fremder_mandant_kann_nicht_auf_daten_zugreifen(self):
+    def test_erfolgreiche_entfernung_aller_mandantendaten(self):
         """
-        Test prueft, ob Mandant 'prueffirma' keinen Zugang zu den Daten des Mandanten 'testfirma' hat. Keinesfalls
-        darf 'prueffirma' diese Daten einsehen koennen.
+        Test prueft, ob aller Mndantendaten nach Nutzung der Methode "delete_mandantendaten" entfernt sind
         """
 
         # Alle Tabellen abfragen und pruefen, ob Datensaetze in allen Tabellen vorhanden sind
-        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM mandanten")
-        self.assertEqual(str(ergebnis), "[(1, 'Testfirma', 'mandantenpw')]")
-
-        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM nutzer")
-        self.assertEqual(str(ergebnis), "[(1, 1, 'M100001', 'Erika', 'Musterfrau', 'neues passwort', 0)]")
-
-        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM administratoren")
-        self.assertEqual(str(ergebnis), "[(1, 1, 'M100000', 'Otto', 'Normalverbraucher', 'adminpw', 0)]")
-
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM mitarbeiter")
         self.assertEqual(str(ergebnis), "[(4,)]")
 
@@ -283,6 +262,15 @@ class TestRLS(unittest.TestCase):
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM kategorien_austrittsgruende")
         self.assertEqual(str(ergebnis), "[(1,)]")
 
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM mandanten")
+        self.assertEqual(str(ergebnis), "[(1,)]")
+
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM administratoren")
+        self.assertEqual(str(ergebnis), "[(1,)]")
+
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM nutzer")
+        self.assertEqual(str(ergebnis), "[(1,)]")
+
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_jobtitel")
         self.assertEqual(str(ergebnis), "[(4,)]")
 
@@ -310,224 +298,223 @@ class TestRLS(unittest.TestCase):
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM steuerklassen")
         self.assertEqual(str(ergebnis), "[(1,)]")
 
-        # Nutzer eines anderen Mandanten ruft nun die Tabellen ab. Es darf nichts zu sehen sein.
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM mitarbeiter")
+        # Mandantendaten loeschen. In allen Tabellen duerfen nun keine Datensaetze des Mandanten vorhanden sein
+        self.admin.delete_mandantendaten()
+
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM mitarbeiter")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM hat_gesetzliche_Rentenversicherung")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_gesetzliche_Rentenversicherung")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM rentenversicherungen")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM rentenversicherungen")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM hat_rv_beitraege")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_rv_beitraege")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM rentenversicherungsbeitraege")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM rentenversicherungsbeitraege")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM hat_gesetzliche_arbeitslosenversicherung")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_gesetzliche_arbeitslosenversicherung")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM arbeitslosenversicherungen")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM arbeitslosenversicherungen")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM hat_av_beitraege")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_av_beitraege")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM arbeitslosenversicherungsbeitraege")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM arbeitslosenversicherungsbeitraege")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM arbeitet_in_sachsen")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM arbeitet_in_sachsen")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM arbeitsort_sachsen")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM arbeitsort_sachsen")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM hat_gesetzlichen_ag_pv_beitragssatz")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_gesetzlichen_ag_pv_beitragssatz")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM ag_pflegeversicherungsbeitraege_gesetzlich")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM ag_pflegeversicherungsbeitraege_gesetzlich")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM hat_x_kinder_unter_25")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_x_kinder_unter_25")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM anzahl_kinder_unter_25")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM anzahl_kinder_unter_25")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM hat_gesetzlichen_an_pv_beitragssatz")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_gesetzlichen_an_pv_beitragssatz")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM an_pflegeversicherungsbeitraege_gesetzlich")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM an_pflegeversicherungsbeitraege_gesetzlich")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM hat_gesetzliche_krankenversicherung")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_gesetzliche_krankenversicherung")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM krankenversicherungen")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM krankenversicherungen")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM hat_gkv_beitraege")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_gkv_beitraege")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM gkv_beitraege")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM gkv_beitraege")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM ist_in_gkv")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM ist_in_gkv")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM gesetzliche_krankenkassen")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM gesetzliche_krankenkassen")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM hat_gkv_zusatzbeitrag")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_gkv_zusatzbeitrag")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM gkv_zusatzbeitraege")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM gkv_zusatzbeitraege")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM hat_privatkrankenkasse")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_privatkrankenkasse")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM privatkrankenkassen")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM privatkrankenkassen")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM ist_anderweitig_versichert")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM ist_anderweitig_versichert")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM gemeldete_krankenkassen")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM gemeldete_krankenkassen")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM hat_umlagen_gesetzlich")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_umlagen_gesetzlich")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM hat_umlagen_privat")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_umlagen_privat")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM hat_umlagen_anderweitig")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_umlagen_anderweitig")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM umlagen")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM umlagen")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM ist_minijobber")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM ist_minijobber")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM minijobs")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM minijobs")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM hat_pauschalabgaben")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_pauschalabgaben")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM pauschalabgaben")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM pauschalabgaben")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM in_gesellschaft")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM in_gesellschaft")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM gesellschaften")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM gesellschaften")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM unfallversicherungsbeitraege")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM unfallversicherungsbeitraege")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM berufsgenossenschaften")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM berufsgenossenschaften")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM ist_mitarbeitertyp")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM ist_mitarbeitertyp")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM mitarbeitertypen")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM mitarbeitertypen")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM hat_geschlecht")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_geschlecht")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM geschlechter")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM geschlechter")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM wohnt_in")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM wohnt_in")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM strassenbezeichnungen")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM strassenbezeichnungen")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM postleitzahlen")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM postleitzahlen")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM staedte")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM staedte")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM regionen")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM regionen")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM laender")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM laender")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM hat_tarif")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_tarif")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM tarife")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM tarife")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM gewerkschaften")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM gewerkschaften")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM hat_verguetungsbestandteil_tarif")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_verguetungsbestandteil_tarif")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM aussertarifliche")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM aussertarifliche")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM hat_verguetungsbestandteil_at")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_verguetungsbestandteil_at")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM verguetungsbestandteile")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM verguetungsbestandteile")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM austrittsgruende")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM austrittsgruende")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM kategorien_austrittsgruende")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM kategorien_austrittsgruende")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        # In Tabelle Mandanten kann er sich selbst sehen, ...
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT * FROM mandanten")
-        self.assertEqual(str(ergebnis), "[(2, 'Testbetrieb', 'mpw')]")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM mandanten")
+        self.assertEqual(str(ergebnis), "[(0,)]")
 
-        # ... seinen Nutzer ...
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT * FROM nutzer")
-        self.assertEqual(str(ergebnis), "[(2, 2, 'M2', 'Max', 'Mustermann', 'neues_pw', 0)]")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM administratoren")
+        self.assertEqual(str(ergebnis), "[(0,)]")
 
-        # ... und seinen Administrator
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT * FROM administratoren")
-        self.assertEqual(str(ergebnis), "[(2, 2, 'M1', 'Max', 'Mustermann', 'apw', 0)]")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM nutzer")
+        self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM hat_jobtitel")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM hat_jobtitel")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM jobtitel")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM jobtitel")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM erfahrungsstufen")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM erfahrungsstufen")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM eingesetzt_in")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM eingesetzt_in")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM abteilungen")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM abteilungen")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM arbeitet_x_wochenstunden")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM arbeitet_x_wochenstunden")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM wochenarbeitsstunden")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM wochenarbeitsstunden")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM in_steuerklasse")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM in_steuerklasse")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM steuerklassen")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM steuerklassen")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
     def tearDown(self):

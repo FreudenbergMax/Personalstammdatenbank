@@ -1,5 +1,7 @@
 from datetime import datetime
 import unittest
+
+from src.main.Login import Login
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 from src.main.Mandant import Mandant
 
@@ -12,15 +14,22 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
         Datenbankschema 'temp_test_schema' erstellt.
         """
         self.testschema = test_set_up()
-        self.testfirma = Mandant('Testfirma', self.testschema)
-        self.testfirma.nutzer_anlegen('M10001', 'Max', 'Mustermann', self.testschema)
+
+        login = Login(self.testschema)
+        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                            'Normalverbraucher', 'adminpw', 'adminpw')
+        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
+
+        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
     def test_vorherigen_tag_berechnen(self):
         """
         Test prüft, ob der vorherige Tag eines übergebenen Datums korrekt berechnet wird
         """
         eingabedatum = datetime.strptime("01.01.2024", '%d.%m.%Y').date()
-        vorheriger_tag = self.testfirma.get_nutzer('M10001')._vorherigen_tag_berechnen(eingabedatum)
+        vorheriger_tag = self.nutzer._vorherigen_tag_berechnen(eingabedatum)
 
         self.assertEqual(str(vorheriger_tag), "2023-12-31")
 
@@ -29,12 +38,12 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
         Test prüft, ob das uebergebene Datum den richtigen Datentyp hat. Es wird der datetime-Datentyp benoetigt.
         """
         eingabedatum = datetime.strptime("01.01.2024", '%d.%m.%Y').date()
-        vorheriger_tag = self.testfirma.get_nutzer('M10001')._vorherigen_tag_berechnen(eingabedatum)
+        vorheriger_tag = self.nutzer._vorherigen_tag_berechnen(eingabedatum)
 
         self.assertEqual(str(vorheriger_tag), "2023-12-31")
 
         with self.assertRaises(TypeError) as context:
-            vorheriger_tag = self.testfirma.get_nutzer('M10001')._vorherigen_tag_berechnen("01.01.2024")
+            vorheriger_tag = self.nutzer._vorherigen_tag_berechnen("01.01.2024")
 
         self.assertEqual(str(context.exception), "'01.01.2024' ist kein datetime-Objekt!")
 

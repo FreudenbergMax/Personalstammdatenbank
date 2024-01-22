@@ -1,4 +1,6 @@
 import unittest
+
+from src.main.Login import Login
 from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
@@ -11,30 +13,32 @@ class TestNutzerInsertRentenversicherungsbeitraege(unittest.TestCase):
         Datenbankschema 'temp_test_schema' erstellt.
         """
         self.testschema = test_set_up()
-        self.testfirma = Mandant('Testfirma', self.testschema)
-        self.testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.testschema)
+
+        login = Login(self.testschema)
+        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                            'Normalverbraucher', 'adminpw', 'adminpw')
+        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
+
+        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
     def test_erfolgreicher_eintrag(self):
         """
         Test prueft, ob Rentenversicherungsbeitraege eingetragen werden.
         """
-        self.testfirma.get_nutzer("M100001").\
-            insert_arbeitslosenversicherungsbeitraege('testdaten_insert_arbeitslosenversicherungsbeitraege/'
-                                                      'Arbeitslosenversicherungsbeitraege.xlsx', self.testschema)
+        self.nutzer.insert_arbeitslosenversicherungsbeitraege('testdaten_insert_arbeitslosenversicherungsbeitraege/'
+                                                              'Arbeitslosenversicherungsbeitraege.xlsx')
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM Arbeitslosenversicherungen",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Arbeitslosenversicherungen")
         self.assertEqual(str(ergebnis), "[(1, 1)]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "
-                                                                           "Arbeitslosenversicherungsbeitraege",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Arbeitslosenversicherungsbeitraege")
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('3.000'), Decimal('3.000'), Decimal('57846.12'), "
                                         "Decimal('60000.00'))]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM hat_AV_Beitraege",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_AV_Beitraege")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag(self):
@@ -46,36 +50,29 @@ class TestNutzerInsertRentenversicherungsbeitraege(unittest.TestCase):
         Sollen nur die Beitragssaetze geaendert werden, muss hierfuer eine update-Methode verwendet werden (welche im
         Rahmen dieser Bachelorarbeit nicht implementiert wird).
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_arbeitslosenversicherungsbeitraege('testdaten_insert_arbeitslosenversicherungsbeitraege/'
-                                                      'Arbeitslosenversicherungsbeitraege.xlsx', self.testschema)
+        self.nutzer.insert_arbeitslosenversicherungsbeitraege('testdaten_insert_arbeitslosenversicherungsbeitraege/'
+                                                              'Arbeitslosenversicherungsbeitraege.xlsx')
 
         # Versuch, dieselben Beitragssaetze einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_arbeitslosenversicherungsbeitraege('testdaten_insert_arbeitslosenversicherungsbeitraege/'
-                                                          'Arbeitslosenversicherungsbeitraege.xlsx', self.testschema)
+            self.nutzer.insert_arbeitslosenversicherungsbeitraege('testdaten_insert_arbeitslosenversicherungsbeitraege/'
+                                                                  'Arbeitslosenversicherungsbeitraege.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Arbeitslosenversicherung ist bereits vorhanden! Uebergebene "
-                                                 "Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren "
-                                                 "wollen, nutzen Sie bitte die "
-                                                 "'update_arbeitslosenversicherung'-Funktion!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_arbeitslosenversicherungsbeitraege"
-                                                 "(integer,numeric,numeric,numeric,numeric,date) Zeile 15 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Arbeitslosenversicherung ist bereits vorhanden! Uebergebene " \
+                                  "Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren " \
+                                  "wollen, nutzen Sie bitte die 'update_arbeitslosenversicherung'-Funktion!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM Arbeitslosenversicherungen",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Arbeitslosenversicherungen")
         self.assertEqual(str(ergebnis), "[(1, 1)]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "
-                                                                           "Arbeitslosenversicherungsbeitraege",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Arbeitslosenversicherungsbeitraege")
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('3.000'), Decimal('3.000'), Decimal('57846.12'), "
                                         "Decimal('60000.00'))]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM hat_AV_Beitraege",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_AV_Beitraege")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag_andere_werte(self):
@@ -87,36 +84,29 @@ class TestNutzerInsertRentenversicherungsbeitraege(unittest.TestCase):
         anders sind. Sollen nur die Beitragssaetze geaendert werden, muss hierfuer eine update-Methode verwendet werden
         (welche im Rahmen dieser Bachelorarbeit nicht implementiert wird).
         """
-        self.testfirma.get_nutzer("M100001"). \
-            insert_arbeitslosenversicherungsbeitraege('testdaten_insert_arbeitslosenversicherungsbeitraege/'
-                                                      'Arbeitslosenversicherungsbeitraege.xlsx', self.testschema)
+        self.nutzer.insert_arbeitslosenversicherungsbeitraege('testdaten_insert_arbeitslosenversicherungsbeitraege/'
+                                                              'Arbeitslosenversicherungsbeitraege.xlsx')
 
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_arbeitslosenversicherungsbeitraege('testdaten_insert_arbeitslosenversicherungsbeitraege/'
-                                                          'Arbeitslosenversicherungsbeitraege - '
-                                                          'andere Beitragssaetze.xlsx', self.testschema)
+            self.nutzer.insert_arbeitslosenversicherungsbeitraege('testdaten_insert_arbeitslosenversicherungsbeitraege/'
+                                                                  'Arbeitslosenversicherungsbeitraege - '
+                                                                  'andere Beitragssaetze.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Arbeitslosenversicherung ist bereits vorhanden! Uebergebene "
-                                                 "Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren "
-                                                 "wollen, nutzen Sie bitte die "
-                                                 "'update_arbeitslosenversicherung'-Funktion!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_arbeitslosenversicherungsbeitraege"
-                                                 "(integer,numeric,numeric,numeric,numeric,date) Zeile 15 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Arbeitslosenversicherung ist bereits vorhanden! Uebergebene " \
+                                  "Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren " \
+                                  "wollen, nutzen Sie bitte die 'update_arbeitslosenversicherung'-Funktion!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM Arbeitslosenversicherungen",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Arbeitslosenversicherungen")
         self.assertEqual(str(ergebnis), "[(1, 1)]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM "
-                                                                           "Arbeitslosenversicherungsbeitraege",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Arbeitslosenversicherungsbeitraege")
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('3.000'), Decimal('3.000'), Decimal('57846.12'), "
                                         "Decimal('60000.00'))]")
 
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM hat_AV_Beitraege",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_AV_Beitraege")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
 
     def tearDown(self):

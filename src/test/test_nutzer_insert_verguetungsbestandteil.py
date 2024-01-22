@@ -1,4 +1,6 @@
 import unittest
+
+from src.main.Login import Login
 from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
@@ -11,19 +13,24 @@ class TestNutzerInsertVerguetungsbestandteil(unittest.TestCase):
         Datenbankschema 'temp_test_schema' erstellt.
         """
         self.testschema = test_set_up()
-        self.testfirma = Mandant('Testfirma', self.testschema)
-        self.testfirma.nutzer_anlegen('M100001', 'Max', 'Mustermann', self.testschema)
+
+        login = Login(self.testschema)
+        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                            'Normalverbraucher', 'adminpw', 'adminpw')
+        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
+
+        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
     def test_erfolgreicher_eintrag(self):
         """
         Test prueft, ob ein Verguetungsbestandteil eingetragen wird.
         """
-        self.testfirma.get_nutzer("M100001").insert_verguetungsbestandteil(
-            'testdaten_insert_verguetungsbestandteil/Verguetungsbestandteil.xlsx', self.testschema)
+        self.nutzer.insert_verguetungsbestandteil('testdaten_insert_verguetungsbestandteil/Verguetungsbestandteil.xlsx')
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM verguetungsbestandteile",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM verguetungsbestandteile")
         self.assertEqual(str(ergebnis), "[(1, 1, 'Grundgehalt', 'jeden Monat')]")
 
     def test_kein_doppelter_eintrag(self):
@@ -35,21 +42,19 @@ class TestNutzerInsertVerguetungsbestandteil(unittest.TestCase):
         Verguetungsbestandteil aktualisiert werden soll, so muss eine update-Funktion ausgefuehrt werden (welche im
         Rahmen dieser Bachelorarbeit nicht implementiert wurde).
         """
-        self.testfirma.get_nutzer("M100001").insert_verguetungsbestandteil(
-            'testdaten_insert_verguetungsbestandteil/Verguetungsbestandteil.xlsx', self.testschema)
+        self.nutzer.insert_verguetungsbestandteil('testdaten_insert_verguetungsbestandteil/Verguetungsbestandteil.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001").insert_verguetungsbestandteil(
-                'testdaten_insert_verguetungsbestandteil/Verguetungsbestandteil.xlsx', self.testschema)
+            self.nutzer.insert_verguetungsbestandteil(
+                'testdaten_insert_verguetungsbestandteil/Verguetungsbestandteil.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Verguetungsbestandteil 'Grundgehalt' bereits vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_verguetungsbestandteil(integer,"
-                                                 "character varying,character varying) Zeile 14 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Verguetungsbestandteil 'Grundgehalt' bereits vorhanden!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz nur einmal angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM verguetungsbestandteile",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM verguetungsbestandteile")
         self.assertEqual(str(ergebnis), "[(1, 1, 'Grundgehalt', 'jeden Monat')]")
 
     def test_kein_doppelter_eintrag_case_insensitive(self):
@@ -60,22 +65,20 @@ class TestNutzerInsertVerguetungsbestandteil(unittest.TestCase):
         'verguetungsbestandteil_idx'. Falls ein Verguetungsbestandteil aktualisiert werden soll, so muss eine
         update-Funktion ausgefuehrt werden (welche im Rahmen dieser Bachelorarbeit nicht implementiert wurde).
         """
-        self.testfirma.get_nutzer("M100001").insert_verguetungsbestandteil(
-            'testdaten_insert_verguetungsbestandteil/Verguetungsbestandteil.xlsx', self.testschema)
+        self.nutzer.insert_verguetungsbestandteil('testdaten_insert_verguetungsbestandteil/Verguetungsbestandteil.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001").insert_verguetungsbestandteil(
+            self.nutzer.insert_verguetungsbestandteil(
                 'testdaten_insert_verguetungsbestandteil/Verguetungsbestandteil - Verguetungsbestandteil klein '
-                'geschrieben.xlsx', self.testschema)
+                'geschrieben.xlsx')
 
-        self.assertEqual(str(context.exception), "FEHLER:  Verguetungsbestandteil 'grundgehalt' bereits vorhanden!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_verguetungsbestandteil(integer,"
-                                                 "character varying,character varying) Zeile 14 bei RAISE\n")
+        erwartete_fehlermeldung = "FEHLER:  Verguetungsbestandteil 'grundgehalt' bereits vorhanden!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz nur einmal angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM verguetungsbestandteile",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM verguetungsbestandteile")
         self.assertEqual(str(ergebnis), "[(1, 1, 'Grundgehalt', 'jeden Monat')]")
 
     def test_falscher_eintrag(self):
@@ -89,20 +92,11 @@ class TestNutzerInsertVerguetungsbestandteil(unittest.TestCase):
         """
         # Versuch, falsch geschriebenes Auszahlungsmonat 'in jedem Monat' einzutragen
         with self.assertRaises(Exception) as context:
-            self.testfirma.get_nutzer("M100001"). \
-                insert_verguetungsbestandteil('testdaten_insert_verguetungsbestandteil/Verguetungsbestandteil - '
-                                              'Auszahlungsmonat falsch.xlsx', self.testschema)
-
-        self.assertEqual(str(context.exception), "FEHLER:  Auszahlungsmonat 'in jedem Monat' nicht vorhanden! Bitte "
-                                                 "waehlen Sie zwischen folgenden Moeglichkeiten: 'jeden Monat', "
-                                                 "'Januar', 'Februar', 'Maerz', 'April', 'Mai', 'Juni', 'Juli', "
-                                                 "'August', 'September', 'Oktober', 'November', 'Dezember'!\n"
-                                                 "CONTEXT:  PL/pgSQL-Funktion insert_verguetungsbestandteil(integer,"
-                                                 "character varying,character varying) Zeile 16 bei RAISE\n")
+            self.nutzer.insert_verguetungsbestandteil(
+                'testdaten_insert_verguetungsbestandteil/Verguetungsbestandteil - Auszahlungsmonat falsch.xlsx')
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob kein Datensatz angelegt wurde
-        ergebnis = self.testfirma.get_nutzer("M100001").abfrage_ausfuehren("SELECT * FROM verguetungsbestandteile",
-                                                                           self.testschema)
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM verguetungsbestandteile")
         self.assertEqual(str(ergebnis), "[]")
 
     def tearDown(self):

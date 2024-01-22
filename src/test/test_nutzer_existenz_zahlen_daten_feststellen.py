@@ -1,5 +1,7 @@
 import decimal
 import unittest
+
+from src.main.Login import Login
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 from src.main.Mandant import Mandant
 
@@ -12,8 +14,15 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
         Datenbankschema 'temp_test_schema' erstellt.
         """
         self.testschema = test_set_up()
-        self.testfirma = Mandant('Testfirma', self.testschema)
-        self.testfirma.nutzer_anlegen('M10001', 'Max', 'Mustermann', self.testschema)
+
+        login = Login(self.testschema)
+        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                            'Normalverbraucher', 'adminpw', 'adminpw')
+        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
+
+        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
     def test_optionaler_zahlenwert_ist_leer(self):
         """
@@ -21,8 +30,7 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
         übergegebene Variable ein optionaler leerer String ist.
         """
         zahlenwert = ''
-        zahlenwert = self.testfirma.get_nutzer('M10001'). \
-            _existenz_zahlen_daten_feststellen(zahlenwert, 50, 'Zahlenwert', False)
+        zahlenwert = self.nutzer._existenz_zahlen_daten_feststellen(zahlenwert, 50, 'Zahlenwert', False)
 
         self.assertEqual(zahlenwert, None)
 
@@ -35,8 +43,7 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
 
         # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
         with self.assertRaises(ValueError) as context:
-            zahlenwert = self.testfirma.get_nutzer('M10001'). \
-                _existenz_zahlen_daten_feststellen(zahlenwert, 50, 'Zahlenwert', True)
+            zahlenwert = self.nutzer._existenz_zahlen_daten_feststellen(zahlenwert, 50, 'Zahlenwert', True)
 
         self.assertEqual(str(context.exception), "'Zahlenwert' ist nicht vorhanden.")
 
@@ -49,8 +56,7 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
 
         # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
         with self.assertRaises(TypeError) as context:
-            zahlenwert = self.testfirma.get_nutzer('M10001'). \
-                _existenz_zahlen_daten_feststellen(zahlenwert, 50, 'Zahlenwert', True)
+            zahlenwert = self.nutzer._existenz_zahlen_daten_feststellen(zahlenwert, 50, 'Zahlenwert', True)
 
         self.assertEqual(str(context.exception), "Der übergebene Wert 'hallo welt' konnte nicht in eine Gleitkommazahl "
                                                  "konvertiert werden!")
@@ -64,8 +70,7 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
 
         # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
         with self.assertRaises(TypeError) as context:
-            none = self.testfirma.get_nutzer('M10001'). \
-                _existenz_zahlen_daten_feststellen(none, 50, 'None', True)
+            none = self.nutzer._existenz_zahlen_daten_feststellen(none, 50, 'None', True)
 
         self.assertEqual(str(context.exception), "Der übergebene Wert 'None' konnte nicht in eine Gleitkommazahl "
                                                  "konvertiert werden!")
@@ -80,8 +85,7 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
 
         # Quelle: https://stackoverflow.com/questions/129507/how-do-you-test-that-a-python-function-throws-an-exception
         with self.assertRaises(ValueError) as context:
-            none = self.testfirma.get_nutzer('M10001'). \
-                _existenz_zahlen_daten_feststellen(testzahl, hoechstbetrag, 'Testzahl', True)
+            none = self.nutzer._existenz_zahlen_daten_feststellen(testzahl, hoechstbetrag, 'Testzahl', True)
 
         self.assertEqual(str(context.exception), "'Testzahl' ist mit '6543.21' hoeher als der zulaessige Maximalbetrag "
                                                  "von '6000'!")
@@ -93,8 +97,7 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
         """
         anzahl_kinder = 3
 
-        anzahl_kinder = self.testfirma.get_nutzer('M10001'). \
-            _existenz_zahlen_daten_feststellen(anzahl_kinder, 99, 'Anzahl Kinder', False)
+        anzahl_kinder = self.nutzer._existenz_zahlen_daten_feststellen(anzahl_kinder, 99, 'Anzahl Kinder', False)
 
         self.assertEqual(type(anzahl_kinder), int)
 
@@ -106,8 +109,8 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
         """
         beitragsjahr_uv = 2023
 
-        beitragsjahr_uv = self.testfirma.get_nutzer('M10001'). \
-            _existenz_zahlen_daten_feststellen(beitragsjahr_uv, 9999, 'Beitragsjahr Unfallversicherung', False)
+        beitragsjahr_uv = self.nutzer._existenz_zahlen_daten_feststellen(beitragsjahr_uv, 9999,
+                                                                         'Beitragsjahr Unfallversicherung', False)
 
         self.assertEqual(type(beitragsjahr_uv), int)
 
@@ -118,8 +121,7 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
         """
         dezimalzahl = 1.5
 
-        dezimalzahl = self.testfirma.get_nutzer('M10001'). \
-            _existenz_zahlen_daten_feststellen(dezimalzahl, 50, 'Dezimalzahl', False)
+        dezimalzahl = self.nutzer._existenz_zahlen_daten_feststellen(dezimalzahl, 50, 'Dezimalzahl', False)
 
         self.assertEqual(type(dezimalzahl), decimal.Decimal)
 
@@ -130,8 +132,7 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
         """
         zahlenwert = 35
 
-        zahlenwert = self.testfirma.get_nutzer('M10001'). \
-            _existenz_zahlen_daten_feststellen(zahlenwert, 50, 'Zahlenwert', False)
+        zahlenwert = self.nutzer._existenz_zahlen_daten_feststellen(zahlenwert, 50, 'Zahlenwert', False)
 
         self.assertEqual(type(zahlenwert), decimal.Decimal)
 
