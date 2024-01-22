@@ -1,4 +1,6 @@
 import unittest
+
+from src.main.Login import Login
 from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
@@ -11,6 +13,15 @@ class TestNutzerDeleteMandantendaten(unittest.TestCase):
         Datenbankschema 'temp_test_schema' erstellt.
         """
         self.testschema = test_set_up()
+
+        login = Login()
+        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                            'Normalverbraucher', 'adminpw', 'adminpw')
+        admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        admin.nutzer_anlegen("M100001", "Erika", "Musterfrau", "nutzerpw", "nutzerpw")
+
+        nutzer = login.login_nutzer('Testfirma', 'mandantenpw', "M100001", "nutzerpw")
+
         self.testfirma = Mandant('Testfirma', self.testschema)
         self.testfirma.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', self.testschema)
 

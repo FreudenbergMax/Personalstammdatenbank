@@ -5,41 +5,19 @@ set role postgres;
 
 create table Mandanten(
 	Mandant_ID serial primary key,
-	Firma varchar(128) unique not null,
-	passwort varchar(128) not null
+	Firma varchar(128) unique not null
 );
 alter table Mandanten enable row level security;
 create policy FilterMandant_Mandanten
     on Mandanten
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
-create table Administratoren(
-	Administrator_ID serial primary key,
-	Mandant_ID integer not null,
-	Personalnummer varchar(32) not null,
-	Vorname varchar(64) not null,
-	Nachname varchar(64) not null,
-	Passwort varchar(128) not null,
-	Anmeldeversuche integer not null,
-	unique(Mandant_ID, Personalnummer),
-	constraint fk_Nutzer_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
-);
---create unique index nutzer_idx on Nutzer(lower(Personalnummer));
-alter table Administratoren enable row level security;
-create policy FilterMandant_Administrator
-    on Administratoren
-    using (Mandant_ID = current_setting('app.current_tenant')::int);
-   
 create table Nutzer(
 	Nutzer_ID serial primary key,
 	Mandant_ID integer not null,
 	Personalnummer varchar(32) not null,
 	Vorname varchar(64) not null,
 	Nachname varchar(64) not null,
-	Passwort varchar(128) not null,
-	Anmeldeversuche integer not null,
 	unique(Mandant_ID, Personalnummer),
 	constraint fk_Nutzer_mandanten
 		foreign key (Mandant_ID) 
@@ -1424,8 +1402,7 @@ create policy FilterMandant_hatpauschalabgaben
  * Funktion legt neuen Mandanten in der Datenbank an.
  */
 create or replace function mandant_anlegen(
-	p_firma varchar(128),
-	p_passwort varchar(128)
+	p_firma varchar(128)
 ) returns integer as
 $$
 declare
@@ -1439,7 +1416,7 @@ begin
 	if v_mandant is not null then
 		raise exception 'Dieser Mandant ist bereits angelegt!';
 	else
-		insert into Mandanten(Firma, Passwort) values(p_firma, p_passwort);
+		insert into Mandanten(Firma) values(p_firma);
 	end if;
     
 	-- Mandant_ID des soeben angelegten Mandanten abfragen, damit diese im Mandant-Objekt auf der Python-Seite gespeichert werden kann.
@@ -1452,143 +1429,21 @@ $$
 language plpgsql;
 
 /*
- * Funktion prueft, ob beim Login das richtige Mandantenpasswort eingetragen wurde.
- */
-create or replace function mandantenpasswort_pruefen(
-	p_mandant_id integer,
-	p_eingegebenes_passwort varchar(128)
-) returns boolean as
-$$
-declare
-	v_tatsaechliches_passwort varchar(128);
-begin
-	
-	set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    execute 'SELECT passwort FROM mandanten WHERE mandant_id = $1' INTO v_tatsaechliches_passwort USING p_mandant_id;
-    
-    -- Wenn der Admin nicht existiert, wird eine Fehlermeldung ausgegeben
-    if v_tatsaechliches_passwort is null then
-    	raise exception 'Mandant existiert nicht!';  	
-    end if;
-   	
-   	-- Ist das eingegebene Passwort falsch, wird falsch zurueckgegeben...
-    if p_eingegebenes_passwort != v_tatsaechliches_passwort then
-    	return false;
-    -- ... falls das Passwort stimmt, wird richtig zurueckgegeben
-    else
-    	return true;
-    end if;
-	
-end;
-$$
-language plpgsql;
-
-/*
- * Funktion trägt die Daten eines neuen Administrators in die Datenbank ein.
- */
-create or replace function administrator_anlegen(
-	p_mandant_id integer,
-	p_personalnummer varchar(32),
-	p_vorname varchar(64),
-	p_nachname varchar(64),
-	p_passwort varchar(128)
-) returns integer as
-$$
-declare
-	v_administrator_id integer;
-begin
-	
-	set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    insert into Administratoren(Mandant_ID, Personalnummer, Vorname, Nachname, Passwort, Anmeldeversuche)
-		values(p_mandant_id, p_personalnummer, p_vorname, p_nachname, p_passwort, 0);
-	
-	-- Mandant_ID des soeben angelegten Mandanten abfragen, damit diese im Mandant-Objekt auf der Python-Seite gespeichert werden kann.
-	execute 'SELECT administrator_id FROM administratoren WHERE personalnummer = $1' INTO v_administrator_id USING p_personalnummer;	
-
-	return v_administrator_id;
-
-exception
-    when unique_violation then
-        raise exception 'Personalnummer ''%'' wird bereits verwendet!', p_personalnummer;
-	
-end;
-$$
-language plpgsql;
-
-/*
- * Funktion prueft, ob beim Login das richtige Adminpasswort eingetragen wurde.
- */
-create or replace function adminpasswort_pruefen(
-	p_mandant_id integer,
-	p_personalnummer varchar(32),
-	p_eingegebenes_passwort varchar(128),
-	p_mandantenpasswort varchar(128)
-) returns boolean as
-$$
-declare
-	v_tatsaechliches_passwort varchar(128);
-	v_anmeldeversuche integer;
-	v_mandantenpasswort_richtig boolean;
-begin
-	
-	set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    execute 'SELECT passwort, anmeldeversuche FROM administratoren WHERE personalnummer = $1' INTO v_tatsaechliches_passwort, v_anmeldeversuche USING p_personalnummer;
-   
-    -- Wenn man dreimal hintereinander das falsche Passwort eingibt, soll sichergestellt sein, dass danach ein Aufruf nicht mehr moeglich ist --> Zugangssperre
-   	if v_anmeldeversuche = 3 then
-   		raise exception 'Administrator ist gesperrt!';
-   	end if;
-    
-    -- Wenn der Admin nicht existiert, wird eine Fehlermeldung ausgegeben
-    if v_tatsaechliches_passwort is null then
-    	raise exception 'Administrator existiert nicht!';  	
-    end if;
-    
-    -- Pruefen, ob das eingegebene Mandantenpasswort korrekt ist
-    v_mandantenpasswort_richtig := mandantenpasswort_pruefen(p_mandant_id, p_mandantenpasswort);
-   	
-   	-- Ist das eingegebene Passwort falsch, wird die Anzahl der Anmeldeversuche um 1 erhoeht...
-    if p_eingegebenes_passwort != v_tatsaechliches_passwort or v_mandantenpasswort_richtig is false then
-    	v_anmeldeversuche := v_anmeldeversuche + 1;
-    	execute 'UPDATE administratoren SET anmeldeversuche = $1 WHERE personalnummer = $2' using v_anmeldeversuche, p_personalnummer;
-    	return false;
-    -- ... falls das Passwort stimmt, wird die Zahl der Anmeldeversuche wieder auf 0 gesetzt
-    else
-    	v_anmeldeversuche := 0;
-    	execute 'UPDATE administratoren SET anmeldeversuche = $1 WHERE personalnummer = $2' using v_anmeldeversuche, p_personalnummer;
-    	return true;
-    end if;
-	
-end;
-$$
-language plpgsql;
-
-/*
  * Funktion trägt die Daten eines neuen Nutzers in die Datenbank ein.
  */
 create or replace function nutzer_anlegen(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_vorname varchar(64),
-	p_nachname varchar(64),
-	p_passwort varchar(128)
+	p_nachname varchar(64)
 ) returns integer as
 $$
 declare
 	v_nutzer_id integer;
 begin
-	
-	set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
 
-    insert into Nutzer(Mandant_ID, Personalnummer, Vorname, Nachname, Passwort, Anmeldeversuche)
-		values(p_mandant_id, p_personalnummer, p_vorname, p_nachname, p_passwort, 0);
+    insert into Nutzer(Mandant_ID, Personalnummer, Vorname, Nachname)
+		values(p_mandant_id, p_personalnummer, p_vorname, p_nachname);
 	
 	-- Mandant_ID des soeben angelegten Mandanten abfragen, damit diese im Mandant-Objekt auf der Python-Seite gespeichert werden kann.
 	execute 'SELECT nutzer_id FROM nutzer WHERE personalnummer = $1' INTO v_nutzer_id USING p_personalnummer;	
@@ -1604,96 +1459,6 @@ $$
 language plpgsql;
 
 /*
- * Funktion prueft, ob beim Login das richtige Nutzerpasswort eingetragen wurde.
- */
-create or replace function nutzerpasswort_pruefen(
-	p_mandant_id integer,
-	p_personalnummer varchar(32),
-	p_eingegebenes_passwort varchar(128),
-	p_mandantenpasswort varchar(128)
-) returns boolean as
-$$
-declare
-	v_tatsaechliches_passwort varchar(128);
-	v_anmeldeversuche integer;
-	v_mandantenpasswort_richtig boolean;
-begin
-	
-	set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-
-    execute 'SELECT passwort, anmeldeversuche FROM nutzer WHERE personalnummer = $1' INTO v_tatsaechliches_passwort, v_anmeldeversuche USING p_personalnummer;
-   
-    -- Wenn man dreimal hintereinander das falsche Passwort eingibt, soll sichergestellt sein, dass danach ein Aufruf nicht mehr moeglich ist --> Zugangssperre
-   	if v_anmeldeversuche = 3 then
-   		raise exception 'Nutzer ist gesperrt!';
-   	end if;
-    
-    -- Wenn der Nutzer nicht existiert, wird eine Fehlermeldung ausgegeben
-    if v_tatsaechliches_passwort is null then
-    	raise exception 'Nutzer existiert nicht!';  	
-    end if;
-    
-    -- Pruefen, ob das eingegebene Mandantenpasswort korrekt ist
-    v_mandantenpasswort_richtig := mandantenpasswort_pruefen(p_mandant_id, p_mandantenpasswort);
-   	
-   	-- Ist das eingegebene Passwort falsch, wird die Anzahl der Anmeldeversuche um 1 erhoeht...
-    if p_eingegebenes_passwort != v_tatsaechliches_passwort or v_mandantenpasswort_richtig is false then
-    	v_anmeldeversuche := v_anmeldeversuche + 1;
-    	execute 'UPDATE nutzer SET anmeldeversuche = $1 WHERE personalnummer = $2' using v_anmeldeversuche, p_personalnummer;
-    	return false;
-    -- ... falls das Passwort stimmt, wird die Zahl der Anmeldeversuche wieder auf 0 gesetzt
-    else
-    	v_anmeldeversuche := 0;
-    	execute 'UPDATE administratoren SET anmeldeversuche = $1 WHERE personalnummer = $2' using v_anmeldeversuche, p_personalnummer;
-    	return true;
-    end if;
-	
-end;
-$$
-language plpgsql;
-
-/*
- * Funktion gibt einen gesperrten Nutzer wieder frei.
- */
-create or replace procedure nutzer_entsperren(
-	p_mandant_id integer,
-	p_personalnummer varchar(32),
-	p_neues_passwort varchar(128)
-) as
-$$
-begin
-	
-	set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-   
-    execute 'UPDATE nutzer SET anmeldeversuche = $1, passwort = $2 WHERE personalnummer = $3' using 0, p_neues_passwort, p_personalnummer;
-	
-end;
-$$
-language plpgsql;
-
-/*
- * Funktion aendert Passwort eines Nutzers.
- */
-create or replace procedure nutzerpasswort_aendern(
-	p_mandant_id integer,
-	p_personalnummer varchar(32),
-	p_neues_passwort varchar(128)
-) as
-$$
-begin
-	
-	set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
-   
-    execute 'UPDATE nutzer SET passwort = $1 WHERE personalnummer = $2' using p_neues_passwort, p_personalnummer;
-	
-end;
-$$
-language plpgsql;
-
-/*
  * Funktion entfernt einen Nutzer aus der Datenbank.
  */
 create or replace procedure nutzer_entfernen(
@@ -1702,9 +1467,6 @@ create or replace procedure nutzer_entfernen(
 ) as
 $$
 begin
-	
-	set session role tenant_user;
-    execute 'SET app.current_tenant=' || p_mandant_id;
 	
     delete from 
    		nutzer 

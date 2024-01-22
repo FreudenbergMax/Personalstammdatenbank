@@ -1,5 +1,30 @@
+from src.main.Login import Login
 from src.main.Mandant import Mandant
 
+login = Login()
+login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto', 'Normalverbraucher',
+                                    'adminpw', 'adminpw')
+admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+admin.nutzer_anlegen("M100001", "Erika", "Musterfrau", "nutzerpw", "nutzerpw")
+
+nutzer = login.login_nutzer('Testfirma', 'mandantenpw', "M100001", "nutzerpw")
+
+# zweiter Mandant
+login.registriere_mandant_und_admin('Testu', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto', 'Normalverbraucher',
+                                    'adminpw', 'adminpw')
+admin2 = login.login_admin('Testu', 'mandantenpw', 'M100000', 'adminpw')
+admin2.nutzer_anlegen("M100001", "Max", "Mustermann", "nutzerpw", "nutzerpw")
+
+nutzer2 = login.login_nutzer('Testu', 'mandantenpw', "M100001", "nutzerpaw")
+nutzer2 = login.login_nutzer('Testu', 'mandantenpw', "M100001", "nutzerpaw")
+nutzer2 = login.login_nutzer('Testu', 'mandantenpw', "M100001", "nutzerpaw")
+
+admin2.nutzer_entsperren("M100001", "neues_nutzerpw", "neues_nutzerpw")
+nutzer2 = login.login_nutzer('Testu', 'mandantenpw', "M100001", "neues_nutzerpw")
+#nutzer2.abfrage_ausfuehren("SELECT * FROM mandanten")
+nutzer2.passwort_aendern("wieder_geheim", "wieder_geheim")
+
+"""
 insert_personenbezogene_daten = "1 insert personenbezogene Daten"
 insert_sozialversicherungsdaten = "2 insert Sozialversicherungsdaten"
 insert_tarifliche_entgeltdaten = "3 insert tarifliche Entgeltdaten"
@@ -8,7 +33,7 @@ neuen_mitarbeiter_anlegen = "4 neuen Mitarbeiter anlegen"
 # Mandant und Nutzer anlegen
 testfirma = Mandant("testu")
 testfirma.nutzer_anlegen("M100001", "Erika", "Musterfrau")
-"""
+
 # personenbezogene Daten eingeben
 testfirma.get_nutzer("M100001").insert_geschlecht(f'{insert_personenbezogene_daten}/1 Geschlecht.xlsx')
 testfirma.get_nutzer("M100001").insert_mitarbeitertyp(f'{insert_personenbezogene_daten}/2 Mitarbeitertyp.xlsx')
@@ -68,11 +93,11 @@ testfirma.get_nutzer("M100001").\
 # Update Sozialversicherungsdaten
 testfirma.get_nutzer("M100001").\
     update_krankenversicherungsbeitraege('update Sozialversicherungsdaten/1 Krankenversicherungsbeitraege.xlsx')
-"""
+
 # Delete Daten
 testfirma.get_nutzer("M100001").delete_mitarbeiterdaten('delete personenbezogene Daten/Personalnummer.xlsx')
 #testfirma.get_nutzer("M100001").delete_mandantendaten()
-
+"""
 
 
 

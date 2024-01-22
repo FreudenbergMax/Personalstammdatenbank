@@ -7,13 +7,14 @@ from src.main.Administrator import Administrator
 
 class Login:
 
-    def __init__(self):
+    def __init__(self, schema='public'):
+        self.schema = schema
         self.liste_mandanten = []
         self.liste_admins = []
 
     def registriere_mandant_und_admin(self, mandantenname, mandantenpasswort, mandantenpasswort_wiederholen,
                                       admin_personalnummer, admin_vorname, admin_nachname, adminpasswort,
-                                      adminpasswort_wiederholen, schema='public'):
+                                      adminpasswort_wiederholen):
         """
         Methode erstellt einen neuen Mandanten
         :param mandantenname: Name der Firma, der als Mandant dienen soll
@@ -26,12 +27,11 @@ class Login:
         :param adminpasswort: Passwort des Administrators, welches für Login benoetigt wird
         :param adminpasswort_wiederholen: Test, um zu pruefen, ob der Anmelder das Passwort fuer den Administrator beim
                                           ersten Mal wie beabsichtigt geschrieben hat
-        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
         try:
-            neuer_mandant = Mandant(mandantenname, mandantenpasswort, mandantenpasswort_wiederholen, schema)
+            neuer_mandant = Mandant(mandantenname, mandantenpasswort, mandantenpasswort_wiederholen, self.schema)
             neuer_admin = Administrator(neuer_mandant, admin_personalnummer, admin_vorname, admin_nachname,
-                                        adminpasswort, adminpasswort_wiederholen, schema)
+                                        adminpasswort, adminpasswort_wiederholen, self.schema)
         except ValueError:
             raise (ValueError(f"Registrierung wurde nicht durchgefuehrt!"))
 
@@ -54,14 +54,13 @@ class Login:
 
         return conn
 
-    def login_admin(self, mandantenname, mandantenpasswort, personalnummer, adminpasswort, schema='public'):
+    def login_admin(self, mandantenname, mandantenpasswort, personalnummer, adminpasswort):
         """
         Ueber diese Funktion kann sich ein Admin einloggen und erhaelt Zugang zu seinem Administrator-Objekt
-        :param mandantename: Mandant, zu dem der Admin gehoert
+        :param mandantenname: Mandant, zu dem der Admin gehoert
         :param mandantenpasswort: Passwort des Mandanten
         :param personalnummer: Personalnummer des Administrators
         :param adminpasswort: Passwort des Administrators
-        :param schema: enthaelt das Schema, welches angesprochen werden soll
         :return: Administrator-Objekt
         """
         gesuchter_admin = None
@@ -74,7 +73,7 @@ class Login:
                 # Passwoerter in Datenbank abgleichen
                 conn = self._datenbankbverbindung_aufbauen()
 
-                passwort_query = f"set search_path to {schema};" \
+                passwort_query = f"set search_path to {self.schema};" \
                                  f"SELECT adminpasswort_pruefen('" \
                                  f"{self.liste_admins[i].get_mandant().get_mandant_id()}', " \
                                  f"'{personalnummer}', '{adminpasswort}', '{mandantenpasswort}')"
@@ -100,14 +99,13 @@ class Login:
         else:
             return gesuchter_admin
 
-    def login_nutzer(self, mandantenname, mandantenpasswort, personalnummer, nutzerpasswort, schema='public'):
+    def login_nutzer(self, mandantenname, mandantenpasswort, personalnummer, nutzerpasswort):
         """
         Ueber diese Funktion kann sich ein Nutzer einloggen und erhaelt Zugang zu seinem Nutzer-Objekt
         :param mandantenname: Mandant, zu dem der Admin gehoert
         :param mandantenpasswort: Passwort des Mandanten
         :param personalnummer: Personalnummer des Administrators
         :param nutzerpasswort: Passwort des Nutzers
-        :param schema: enthaelt das Schema, welches angesprochen werden soll
         :return: Nutzer-Objekt
         """
         gesuchter_nutzer = None
@@ -119,7 +117,7 @@ class Login:
                 # Passwoerter in Datenbank abgleichen
                 conn = self._datenbankbverbindung_aufbauen()
 
-                passwort_query = f"set search_path to {schema};" \
+                passwort_query = f"set search_path to {self.schema};" \
                                  f"SELECT nutzerpasswort_pruefen('" \
                                  f"{self.liste_mandanten[i].get_mandant_id()}', " \
                                  f"'{personalnummer}', '{nutzerpasswort}', '{mandantenpasswort}')"
@@ -139,12 +137,6 @@ class Login:
                     for k in range(len(self.liste_mandanten[i].get_nutzerliste())):
                         if self.liste_mandanten[i].get_nutzerliste()[k].get_personalnummer() == personalnummer:
                             gesuchter_nutzer = self.liste_mandanten[i].get_nutzerliste()[k]
-
-                            # falls nach einer Entsperrung der Administrator ein neues Passwort vergeben musste,
-                            # muss der Nutzer das Passwort nochmal aendern, damit er ein Passwort hat, welches nur der
-                            # Nutzer kennt
-
-
 
                     return gesuchter_nutzer
                 else:

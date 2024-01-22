@@ -104,7 +104,7 @@ class Administrator:
 
         return conn
 
-    def nutzer_anlegen(self, personalnummer, vorname, nachname, passwort, passwort_wiederholen, schema='public'):
+    def nutzer_anlegen(self, personalnummer, vorname, nachname, passwort, passwort_wiederholen):
         """
         Da jeder Mandant mehrere Nutzer haben kann, werden alle Nutzer eines Mandanten hier erzeugt und in einer
         klasseneigenen Liste "liste_nutzer" gespeichert.
@@ -114,10 +114,9 @@ class Administrator:
         :param passwort: Passwort des Nutzers, welches für Login benoetigt wird
         :param passwort_wiederholen: Test, um zu pruefen, ob der Anmelder das Passwort fuer den Mandanten beim
                                      ersten Mal wie beabsichtigt geschrieben hat
-        :param schema: Datenbankschema, das verwendet werden soll
         """
         nutzer = Nutzer(self.mandant.get_mandant_id(), personalnummer, vorname, nachname, passwort,
-                        passwort_wiederholen, schema)
+                        passwort_wiederholen, self.schema)
         self.mandant.get_nutzerliste().append(nutzer)
 
     def nutzer_entsperren(self, personalnummer, neues_passwort, neues_passwort_wiederholen):
@@ -191,3 +190,23 @@ class Administrator:
 
         if not nutzer_entfernt:
             print(f"Nutzer {personalnummer} existiert nicht!")
+
+    def delete_mandantendaten(self):
+        """
+        Methode ruft die Stored Procedure 'delete_mandantendaten' auf, welche alle Daten des Mandanten aus allen
+        Tabellen entfernt.
+        :param schema: enthaelt das Schema, welches angesprochen werden soll
+        """
+        export_daten = [self.mandant.get_mandant_id()]
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        cur.execute(f"set search_path to {self.schema}; call delete_mandantendaten(%s)", export_daten)
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()

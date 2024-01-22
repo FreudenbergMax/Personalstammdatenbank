@@ -8,7 +8,7 @@ import psycopg2
 
 class Nutzer:
 
-    def __init__(self, mandant_id, personalnummer, vorname, nachname, passwort, passwort_wiederholen, schema='public'):
+    def __init__(self, mandant_id, personalnummer, vorname, nachname, schema='public'):
 
         if personalnummer == "":
             raise (ValueError(f"Die Personalnummer des Nutzers muss aus mindestens einem Zeichen bestehen."))
@@ -43,12 +43,6 @@ class Nutzer:
             raise (ValueError(f"Der Nachname darf höchstens 64 Zeichen lang sein. "
                               f"'{nachname}' besitzt {len(nachname)} Zeichen!"))
 
-        if len(str(passwort)) > 128:
-            raise (ValueError("Passwort darf hoechstens 128 Zeichen haben!"))
-
-        if passwort != passwort_wiederholen:
-            raise (ValueError("Passwoerter stimmen nicht ueberein!"))
-
         if schema != 'public' and schema != 'temp_test_schema':
             raise (ValueError("Diese Bezeichnung für ein Schema ist nicht erlaubt!"))
 
@@ -57,8 +51,7 @@ class Nutzer:
         self.personalnummer = str(personalnummer)
         self.vorname = vorname
         self.nachname = nachname
-        self.nutzer_id = self._in_datenbank_anlegen(passwort)
-        self.neues_passwort_geaendert = True
+        self.nutzer_id = self._in_datenbank_anlegen()
 
     def get_nutzer_id(self):
         return self.nutzer_id
@@ -72,14 +65,10 @@ class Nutzer:
     def get_nachname(self):
         return self.nachname
 
-    def get_neues_passwort_geaendert(self):
-        return self.neues_passwort_geaendert
-
-    def _in_datenbank_anlegen(self, passwort):
+    def _in_datenbank_anlegen(self):
         """
         Methode ruft die Stored Procedure 'nutzer_anlegen' auf, welche die Daten des Nutzers in der
         Personalstammdatenbank speichert.
-        :param passwort: Passwort des Nutzers, welches in die Datenbank gespeichert wird
         :return: Nutzer_ID, welche als Objekt-Variable gespeichert wird
         """
 
@@ -87,7 +76,7 @@ class Nutzer:
 
         nutzer_insert_query = f"set search_path to {self.schema};" \
                               f"SELECT nutzer_anlegen('{self.mandant_id}', '{self.personalnummer}', " \
-                              f"'{self.vorname}', '{self.nachname}', '{passwort}')"
+                              f"'{self.vorname}', '{self.nachname}')"
         cur = conn.cursor()
         nutzer_id = cur.execute(nutzer_insert_query)
 
@@ -100,44 +89,13 @@ class Nutzer:
 
         return nutzer_id
 
-    def passwort_aendern(self, neues_passwort, neues_passwort_wiederholen):
-        """
-        Diese Funktion wird aufgerufen, wenn der Administrator den Nutzer entsperren und das Passwort zurueckgesetzt
-        hat. In dem Zuge vergibt der Administrator ein neues Passwort, welches er dann aber kennt. Mit dieser Funktion
-        ist der Nutzer gezwungen, daraufhin ein neues Passwort zu vergeben, womit der Administrator das dann gueltige
-        Passwort des Nutzers nicht mehr kennt
-        :param neues_passwort: Passwort des Nutzers
-        :param neues_passwort_wiederholen: Test, um zu pruefen, ob das gewaehlte Passwort des Administrators beim ersten
-                                           Mal wie beabsichtigt eingegeben wurde
-        """
-        if neues_passwort != neues_passwort_wiederholen:
-            raise(ValueError("Zweite Passworteingabe ist anders als erste Passworteingabe!"))
-
-        conn = self._datenbankbverbindung_aufbauen()
-
-        nutzer_insert_query = f"set search_path to {self.schema};" \
-                              f"CALL nutzerpasswort_aendern('{self.mandant_id}', '{self.personalnummer}', " \
-                              f"'{neues_passwort}')"
-        cur = conn.cursor()
-        cur.execute(nutzer_insert_query)
-
-        # Commit der Änderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
-
-    def abfrage_ausfuehren(self, abfrage, schema='public'):
+    def abfrage_ausfuehren(self, abfrage, schema):
         """
         Methode übermittelt ein SQL-Befehl an die Datenbank, wo sie ausgeführt und das Ergebnis zurückgegeben wird.
         :param abfrage: enthaelt den SQL-SELECT-Befehl.
         :param schema: enthaelt das Schema, welches angesprochen werden soll
         :return: Ergebnis der Datenbankabfrage
         """
-        if self.neues_passwort_geaendert:
-            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
-
         conn = self._datenbankbverbindung_aufbauen()
 
         with conn.cursor() as cur:
