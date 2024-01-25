@@ -32,12 +32,9 @@ class Login:
         :param adminpasswort_wiederholen: Test, um zu pruefen, ob der Anmelder das Passwort fuer den Administrator beim
                                           ersten Mal wie beabsichtigt geschrieben hat
         """
-        #try:
         neuer_mandant = Mandant(mandantenname, mandantenpasswort, mandantenpasswort_wiederholen, self.schema)
         neuer_admin = Administrator(neuer_mandant, admin_personalnummer, admin_vorname, admin_nachname,
-                                        adminpasswort, adminpasswort_wiederholen, self.schema)
-        #except ValueError:
-        #    raise (ValueError(f"Registrierung wurde nicht durchgefuehrt!"))
+                                    adminpasswort, adminpasswort_wiederholen, self.schema)
 
         self.liste_mandanten.append(neuer_mandant)
         self.liste_admins.append(neuer_admin)
@@ -145,3 +142,50 @@ class Login:
                     return gesuchter_nutzer
                 else:
                     print("Eingegebene Passwoerter sind falsch!")
+
+    def entferne_mandant_nutzer_und_admin(self, mandantenname, mandantenpasswort, mandantenpasswort_wiederholen,
+                                          admin_personalnummer, adminpasswort, adminpasswort_wiederholen):
+        """
+        Methode entfernt alle Daten des Mandanten aus der Datenbank und entfernt den Mandanten und dessen Administrator
+        aus den Listen "liste_mandanten" und "liste_admins". Diese Methode wird verwendet, wenn die Dienste der
+        Personalstammdatenbank nicht mehr verwendet werden soll.
+        :param mandantenname: Mandant, der entfernt werden soll
+        :param mandantenpasswort: Passwort des Mandanten
+        :param mandantenpasswort_wiederholen: Test, um zu pruefen, ob der Anmelder das Passwort fuer den Mandanten beim
+                                              ersten Mal wie beabsichtigt geschrieben hat
+        :param admin_personalnummer: Personalnummer des Admins des Mandanten, der entfernt werden soll
+        :param adminpasswort: Passwort des Administrators
+        :param adminpasswort_wiederholen: Test, um zu pruefen, ob der Anmelder das Passwort fuer den Administrator beim
+                                          ersten Mal wie beabsichtigt geschrieben hat
+        """
+        if mandantenpasswort != mandantenpasswort_wiederholen or adminpasswort != adminpasswort_wiederholen:
+            raise (ValueError("Passwort falsch eingegeben."))
+
+        # Login des Admins
+        admin = self.login_admin(mandantenname, mandantenpasswort, admin_personalnummer, adminpasswort)
+
+        # Entfernung aller der Daten des Mandanten aus der Datenbank
+        export_daten = [admin.get_mandant().get_mandant_id()]
+
+        conn = self._datenbankbverbindung_aufbauen()
+        cur = conn.cursor()
+
+        cur.execute(f"set search_path to {self.schema}; call delete_mandantendaten(%s)", export_daten)
+
+        # Commit der Aenderungen
+        conn.commit()
+
+        # Cursor und Konnektor zu Datenbank schließen
+        cur.close()
+        conn.close()
+
+        # Entfernung des Administrators aus Login_Liste "liste_admins"
+        for i in range(len(self.liste_admins)):
+            if self.liste_admins[i].get_personalnummer() == admin_personalnummer and \
+                    self.liste_admins[i].get_mandant().get_mandantenname() == mandantenname:
+                self.liste_admins[i].remove()
+
+        # Entfernung des Mandanten aus Login-Liste "liste_mandanten"
+        for i in range(len(self.liste_mandanten)):
+            if self.liste_mandanten[i].get_mandantenname() == mandantenname:
+                self.liste_mandanten[i].remove()

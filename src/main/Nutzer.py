@@ -152,6 +152,8 @@ class Nutzer:
         :param neuanlage_krankenversicherungsbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen
         werden sollen.
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_krankenversicherungsbeitraege)
@@ -196,6 +198,8 @@ class Nutzer:
         :param neuanlage_gesetzliche_krankenkasse: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen
         werden sollen.
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_gesetzliche_krankenkasse)
@@ -229,6 +233,9 @@ class Nutzer:
         :param neuanlage_private_krankenkasse: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_private_krankenkasse)
 
@@ -260,6 +267,10 @@ class Nutzer:
         :param neuanlage_gemeldete_krankenkasse: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
         """
+
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_gemeldete_krankenkasse)
 
@@ -289,6 +300,9 @@ class Nutzer:
         der Stored Procedure 'insert_anzahl_kinder_an_pv_beitrag' aufgerufen wird.
         :param neuanlage_anzahl_kinder: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_anzahl_kinder)
 
@@ -323,6 +337,9 @@ class Nutzer:
         :param neuanlage_wohnhaft_sachsen: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_wohnhaft_sachsen)
 
@@ -341,8 +358,10 @@ class Nutzer:
         dem der Stored Procedure 'insert_arbeitslosenversicherungsbeitraege' aufgerufen wird.
         :param neuanlage_arbeitslosenversicherungsbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
-        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_arbeitslosenversicherungsbeitraege)
 
@@ -375,6 +394,9 @@ class Nutzer:
         :param neuanlage_rentenversicherungsbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_rentenversicherungsbeitraege)
 
@@ -407,6 +429,9 @@ class Nutzer:
         :param neuanlage_minijobbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_minijobbeitraege)
 
@@ -456,8 +481,9 @@ class Nutzer:
         durch eine Excel-Datei), in dem die Stored Procedure 'insert_berufsgenossenschaft' aufgerufen wird.
         :param neuanlage_berufsgenossenschaft: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden
         sollen.
-        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_berufsgenossenschaft)
 
@@ -476,6 +502,9 @@ class Nutzer:
         :param neuanlage_unfallversicherungsbeitrag: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen
         werden sollen.
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_unfallversicherungsbeitrag)
 
@@ -508,6 +537,9 @@ class Nutzer:
         Excel-Datei) in die Datenbank, in dem der Stored Procedure 'insert_gewerkschaft' aufgerufen wird.
         :param neuanlage_gewerkschaft: Name der Excel-Datei, dessen Daten in die Datenbank
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_gewerkschaft)
 
@@ -524,6 +556,9 @@ class Nutzer:
         Stored Procedure 'insert_tarif' aufgerufen wird.
         :param neuanlage_tarif: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_tarif)
 
@@ -536,10 +571,13 @@ class Nutzer:
 
     def insert_verguetungsbestandteil(self, neuanalage_verguetungsbestandteil):
         """
-        MEthode schreibt ein neues Verguetungsbestandteil und dessen Auszahlungsmonat in die Datenbank ein.
+        Methode schreibt ein neues Verguetungsbestandteil und dessen Auszahlungsmonat in die Datenbank ein.
         :param neuanalage_verguetungsbestandteil: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanalage_verguetungsbestandteil)
 
@@ -558,6 +596,9 @@ class Nutzer:
         :param neuanlage_tarifliches_verguetungsbestandteil: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_tarifliches_verguetungsbestandteil)
 
@@ -576,6 +617,9 @@ class Nutzer:
         die Datenbank, in dem die Stored Procedure 'insert_geschlecht' aufgerufen wird.
         :param neuanlage_geschlecht: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_geschlecht)
 
@@ -607,6 +651,9 @@ class Nutzer:
         Datenbank, in dem die Stored Procedure 'insert_steuerklasse' aufgerufen wird.
         :param neuanlage_steuerklasse: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_steuerklasse)
 
@@ -621,8 +668,10 @@ class Nutzer:
         Diese Methode uebertraegt eine Abteilung und deren Abkuerzung in die Datenbank (im Rahmen der Bachelorarbeit
         dargestellt durch eine Excel-Datei), in dem die Stored Procedure 'insert_abteilung' aufgerufen wird.
         :param neuanlage_abteilung: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
-        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_abteilung)
 
@@ -638,8 +687,10 @@ class Nutzer:
         Diese Methode uebertraegt einen Jobtitel (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei),
         in dem die Stored Procedure 'insert_jobtitel' aufgerufen wird.
         :param neuanlage_jobtitel: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
-        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_jobtitel)
 
@@ -654,8 +705,10 @@ class Nutzer:
         Diese Methode uebertraegt eine Erfahrungsstufe wie bspw. 'Junior', 'Senior' etc. (im Rahmen der Bachelorarbeit
         dargestellt durch eine Excel-Datei), in dem die Stored Procedure 'insert_erfahrungsstufe' aufgerufen wird.
         :param neuanlage_erfahrungsstufe: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
-        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_erfahrungsstufe)
 
@@ -671,8 +724,10 @@ class Nutzer:
         Bachelorarbeit dargestellt durch eine Excel-Datei), in dem die Stored Procedure 'insert_gesellschaft' aufgerufen
         wird.
         :param neuanlage_gesellschaft: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
-        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_gesellschaft)
 
@@ -691,6 +746,9 @@ class Nutzer:
         :param neuanlage_austrittsgrundkategorie: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden
                                                   sollen.
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_austrittsgrundkategorie)
 
@@ -706,8 +764,10 @@ class Nutzer:
         der Bachelorarbeit dargestellt durch eine Excel-Datei), in dem die Stored Procedure 'insert_austrittsgruende'
         aufgerufen wird.
         :param neuanlage_austrittsgrund: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
-        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_austrittsgrund)
 
@@ -726,6 +786,9 @@ class Nutzer:
         :param mitarbeiterdaten: Name der Excel-Datei, dessen Mitarbeiterdaten in die Datenbank
         eingetragen werden sollen.
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(mitarbeiterdaten)
 
@@ -919,6 +982,9 @@ class Nutzer:
         :param neuanlage_aussertariflicher_verguetungsbestandteil: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_aussertariflicher_verguetungsbestandteil)
 
@@ -939,6 +1005,9 @@ class Nutzer:
         :param update_adressdaten: Name der Excel-Datei, dessen Adressdaten in die Datenbank
         eingetragen werden sollen.
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(update_adressdaten)
 
@@ -975,6 +1044,9 @@ class Nutzer:
         :param update_mitarbeiterentlassung: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(update_mitarbeiterentlassung)
 
@@ -994,6 +1066,9 @@ class Nutzer:
         :param update_krankenversicherungsbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(update_krankenversicherungsbeitraege)
 
@@ -1037,8 +1112,10 @@ class Nutzer:
         'update_erstelle_abteilungshierarchie' aufgerufen wird.
         :param update_abteilungshierarchie: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
-        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(update_abteilungshierarchie)
 
@@ -1057,6 +1134,9 @@ class Nutzer:
         :param mitarbeiter: Name der Excel-Datei, die die Personalnummer des Mitarbeiters enthaelt, der entfernt
                             werden soll
         """
+        if not self.neues_passwort_geaendert:
+            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(mitarbeiter)
 

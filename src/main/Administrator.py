@@ -142,7 +142,8 @@ class Administrator:
 
     def nutzer_entfernen(self, personalnummer):
         """
-        Funktion entfernt einen Nutzer.
+        Funktion entfernt einen Nutzer aus der Datenbank und aus der Liste "liste_nutzer" des jeweiligen Mandant-
+        Objekts.
         :param personalnummer: des Nutzers, der entfernt werden soll
         """
 
@@ -176,23 +177,3 @@ class Administrator:
 
         if not nutzer_entfernt:
             raise (ValueError(f"Nutzer {personalnummer} existiert nicht!"))
-
-    def delete_mandantendaten(self):
-        """
-        Methode ruft die Stored Procedure 'delete_mandantendaten' auf, welche alle Daten des Mandanten aus allen
-        Tabellen entfernt.
-        :param schema: enthaelt das Schema, welches angesprochen werden soll
-        """
-        export_daten = [self.mandant.get_mandant_id()]
-
-        conn = self._datenbankbverbindung_aufbauen()
-        cur = conn.cursor()
-
-        cur.execute(f"set search_path to {self.schema}; call delete_mandantendaten(%s)", export_daten)
-
-        # Commit der Aenderungen
-        conn.commit()
-
-        # Cursor und Konnektor zu Datenbank schließen
-        cur.close()
-        conn.close()
