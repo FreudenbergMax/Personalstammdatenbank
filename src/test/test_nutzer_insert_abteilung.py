@@ -58,7 +58,8 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_abteilung' mit derselben Abteilung aber anderer
         Abkuerzung dieser nicht eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden.
-        Ausloeser ist  der unique-constraint, welcher in der Stored Procedure 'insert_abteilung' implementiert ist.
+        Ausloeser ist die unique violation, welcher in der Stored Procedure 'insert_abteilung' implementiert ist und
+        auf unique-constraints der Tabelle "Abteilungen" verweist.
         """
         self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx')
 
@@ -79,7 +80,8 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_abteilung' mit anderer Abteilung aber identischer
         Abkuerzung dieser nicht eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden.
-        Ausloeser ist  der unique-constraint, welcher in der Stored Procedure 'insert_abteilung' implementiert ist.
+        Ausloeser ist die unique violation, welcher in der Stored Procedure 'insert_abteilung' implementiert ist und
+        auf unique-constraints der Tabelle "Abteilungen" verweist.
         """
         self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx')
 
