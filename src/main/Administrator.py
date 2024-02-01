@@ -1,6 +1,5 @@
 import psycopg2
 
-from src.main.Mandant import Mandant
 from src.main.Nutzer import Nutzer
 
 
@@ -12,21 +11,21 @@ class Administrator:
             raise (ValueError(f"Die Personalnummer des Nutzers muss aus mindestens einem Zeichen bestehen."))
 
         if len(str(personalnummer)) > 32:
-            raise (ValueError(f"Die Personalnummer darf höchstens 32 Zeichen lang sein. "
+            raise (ValueError(f"Die Personalnummer darf hoechstens 32 Zeichen lang sein. "
                               f"'{personalnummer}' besitzt {len(str(personalnummer))} Zeichen!"))
 
         if str(vorname) == "":
             raise (ValueError(f"Der Vorname des Nutzers muss aus mindestens einem Zeichen bestehen."))
 
         if len(str(vorname)) > 64:
-            raise (ValueError(f"Der Vorname darf höchstens 64 Zeichen lang sein. "
+            raise (ValueError(f"Der Vorname darf hoechstens 64 Zeichen lang sein. "
                               f"'{vorname}' besitzt {len(vorname)} Zeichen!"))
 
         if str(nachname) == "":
             raise (ValueError(f"Der Nachname des Nutzers muss aus mindestens einem Zeichen bestehen."))
 
         if len(str(nachname)) > 64:
-            raise (ValueError(f"Der Nachname darf höchstens 64 Zeichen lang sein. "
+            raise (ValueError(f"Der Nachname darf hoechstens 64 Zeichen lang sein. "
                               f"'{nachname}' besitzt {len(nachname)} Zeichen!"))
 
         if len(str(passwort)) > 128:
@@ -64,10 +63,10 @@ class Administrator:
         cur = conn.cursor()
         nutzer_id = cur.execute(admin_insert_query)
 
-        # Commit der Änderungen
+        # Commit der Aenderungen
         conn.commit()
 
-        # Cursor und Konnektor zu Datenbank schließen
+        # Cursor und Konnektor zu Datenbank schliessen
         cur.close()
         conn.close()
 
@@ -77,7 +76,7 @@ class Administrator:
         """
         Baut eine Connection zur Datenbank auf. Diese Methode wird jedes Mal aufgerufen, bevor mit der Datenbank
         interagiert werden soll.
-        :return: conn-Variable, die die Verbindung zur Datenbank enthält
+        :return: conn-Variable, die die Verbindung zur Datenbank enthaelt
         """
         conn = psycopg2.connect(
             host="localhost",
@@ -96,7 +95,7 @@ class Administrator:
         :param personalnummer: des Nutzers
         :param vorname: Vorname des Nutzers
         :param nachname: Nachname des Nutzers
-        :param passwort: Passwort des Nutzers, welches für Login benoetigt wird
+        :param passwort: Passwort des Nutzers, welches fuer Login benoetigt wird
         :param passwort_wiederholen: Test, um zu pruefen, ob der Anmelder das Passwort fuer den Mandanten beim
                                      ersten Mal wie beabsichtigt geschrieben hat
         """
@@ -136,10 +135,10 @@ class Administrator:
                 cur = conn.cursor()
                 cur.execute(nutzer_delete_query)
 
-                # Commit der Änderungen
+                # Commit der Aenderungen
                 conn.commit()
 
-                # Cursor und Konnektor zu Datenbank schließen
+                # Cursor und Konnektor zu Datenbank schliessen
                 cur.close()
                 conn.close()
 
@@ -170,10 +169,10 @@ class Administrator:
                 cur = conn.cursor()
                 cur.execute(nutzer_delete_query)
 
-                # Commit der Änderungen
+                # Commit der Aenderungen
                 conn.commit()
 
-                # Cursor und Konnektor zu Datenbank schließen
+                # Cursor und Konnektor zu Datenbank schliessen
                 cur.close()
                 conn.close()
 

@@ -74,7 +74,7 @@ class TestNeuerMandant(unittest.TestCase):
             login.registriere_mandant_und_admin(name_129_zeichen, 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
                                                 'Normalverbraucher', 'adminpw', 'adminpw')
 
-        self.assertEqual(str(context.exception), "Der Name des Mandanten darf höchstens 128 Zeichen lang sein."
+        self.assertEqual(str(context.exception), "Der Name des Mandanten darf hoechstens 128 Zeichen lang sein."
                                                  "'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
                                                  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' "
                                                  "besitzt 129 Zeichen!")
@@ -89,7 +89,7 @@ class TestNeuerMandant(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             login = Login(falsches_schema)
 
-        self.assertEqual(str(context.exception), "Diese Bezeichnung für ein Schema ist nicht erlaubt!")
+        self.assertEqual(str(context.exception), "Diese Bezeichnung fuer ein Schema ist nicht erlaubt!")
 
     def test_zu_langes_passwort_exception(self):
         """

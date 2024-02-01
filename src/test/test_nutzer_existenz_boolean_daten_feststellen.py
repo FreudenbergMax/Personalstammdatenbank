@@ -101,8 +101,8 @@ class TestExistenzBooleanDatenFeststellen(unittest.TestCase):
         with self.assertRaises(TypeError) as context:
             boolean = self.nutzer._existenz_boolean_daten_feststellen(boolean, 'boolean', True)
 
-        self.assertEqual(str(context.exception), "Der übergebene Wert 'hallo welt' konnte nicht verarbeitet werden. "
-                                                 "Bitte geben Sie ausschließlich 'ja' oder 'nein' ein.")
+        self.assertEqual(str(context.exception), "Der uebergebene Wert 'hallo welt' konnte nicht verarbeitet werden. "
+                                                 "Bitte geben Sie ausschliesslich 'ja' oder 'nein' ein.")
 
     def tearDown(self):
         """

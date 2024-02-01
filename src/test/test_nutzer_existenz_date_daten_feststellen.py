@@ -72,7 +72,7 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             eintrittsdatum = self.nutzer._existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
 
-        self.assertEqual(str(context.exception), "'32.12.2023' ist nicht möglich!")
+        self.assertEqual(str(context.exception), "'32.12.2023' ist nicht moeglich!")
 
     def test_datum_unmoeglicher_hoher_monat(self):
         """
@@ -86,7 +86,7 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             eintrittsdatum = self.nutzer._existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
 
-        self.assertEqual(str(context.exception), "'31.13.2023' ist nicht möglich!")
+        self.assertEqual(str(context.exception), "'31.13.2023' ist nicht moeglich!")
 
     def test_datum_tag_0(self):
         """
@@ -99,7 +99,7 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             eintrittsdatum = self.nutzer._existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
 
-        self.assertEqual(str(context.exception), "'00.01.2024' ist nicht möglich!")
+        self.assertEqual(str(context.exception), "'00.01.2024' ist nicht moeglich!")
 
     def test_datum_monat_0(self):
         """
@@ -112,7 +112,7 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             eintrittsdatum = self.nutzer._existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
 
-        self.assertEqual(str(context.exception), "'01.00.2024' ist nicht möglich!")
+        self.assertEqual(str(context.exception), "'01.00.2024' ist nicht moeglich!")
 
     def test_datum_falsches_schaltjahr(self):
         """
@@ -126,7 +126,7 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             eintrittsdatum = self.nutzer._existenz_date_daten_feststellen(eintrittsdatum, 'Eintrittsdatum', True)
 
-        self.assertEqual(str(context.exception), "'29.02.2023' ist nicht möglich!")
+        self.assertEqual(str(context.exception), "'29.02.2023' ist nicht moeglich!")
 
     def test_datum_richtiges_schaltjahr(self):
         """

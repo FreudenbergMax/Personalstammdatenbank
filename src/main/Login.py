@@ -1,6 +1,5 @@
 import psycopg2
 
-from src.main.Nutzer import Nutzer
 from src.main.Mandant import Mandant
 from src.main.Administrator import Administrator
 
@@ -10,7 +9,7 @@ class Login:
     def __init__(self, schema='public'):
 
         if schema != 'public' and schema != 'temp_test_schema':
-            raise(ValueError("Diese Bezeichnung für ein Schema ist nicht erlaubt!"))
+            raise(ValueError("Diese Bezeichnung fuer ein Schema ist nicht erlaubt!"))
 
         self.schema = schema
         self.liste_mandanten = []
@@ -22,13 +21,13 @@ class Login:
         """
         Methode erstellt einen neuen Mandanten
         :param mandantenname: Name der Firma, der als Mandant dienen soll
-        :param mandantenpasswort: Passwort des Mandanten, welches für Login benoetigt wird
+        :param mandantenpasswort: Passwort des Mandanten, welches fuer Login benoetigt wird
         :param mandantenpasswort_wiederholen: Test, um zu pruefen, ob der Anmelder das Passwort fuer den Mandanten beim
                                               ersten Mal wie beabsichtigt geschrieben hat
         :param admin_personalnummer: Personalnummer des Administrators
         :param admin_vorname: Vorname des Administrators
         :param admin_nachname: Nachname des Administrators
-        :param adminpasswort: Passwort des Administrators, welches für Login benoetigt wird
+        :param adminpasswort: Passwort des Administrators, welches fuer Login benoetigt wird
         :param adminpasswort_wiederholen: Test, um zu pruefen, ob der Anmelder das Passwort fuer den Administrator beim
                                           ersten Mal wie beabsichtigt geschrieben hat
         """
@@ -43,7 +42,7 @@ class Login:
         """
         Baut eine Connection zur Datenbank auf. Diese Methode wird jedes Mal aufgerufen, bevor mit der Datenbank
         interagiert werden soll.
-        :return: conn-Variable, die die Verbindung zur Datenbank enthält
+        :return: conn-Variable, die die Verbindung zur Datenbank enthaelt
         """
         conn = psycopg2.connect(
             host="localhost",
@@ -82,10 +81,10 @@ class Login:
                 cur.execute(passwort_query)
                 boolean = cur.fetchone()[0]
 
-                # Commit der Änderungen
+                # Commit der Aenderungen
                 conn.commit()
 
-                # Cursor und Konnektor zu Datenbank schließen
+                # Cursor und Konnektor zu Datenbank schliessen
                 cur.close()
                 conn.close()
 
@@ -126,10 +125,10 @@ class Login:
                 cur.execute(passwort_query)
                 boolean = cur.fetchone()[0]
 
-                # Commit der Änderungen
+                # Commit der Aenderungen
                 conn.commit()
 
-                # Cursor und Konnektor zu Datenbank schließen
+                # Cursor und Konnektor zu Datenbank schliessen
                 cur.close()
                 conn.close()
 
@@ -178,7 +177,7 @@ class Login:
         # Commit der Aenderungen
         conn.commit()
 
-        # Cursor und Konnektor zu Datenbank schließen
+        # Cursor und Konnektor zu Datenbank schliessen
         cur.close()
         conn.close()
 

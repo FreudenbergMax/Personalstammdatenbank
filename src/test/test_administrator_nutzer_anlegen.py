@@ -92,7 +92,7 @@ class TestNutzerAnlegen(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             self.admin.nutzer_anlegen(personalnummer_33_zeichen, 'Max', 'Mustermann', 'nutzerpw', 'nutzerpw')
 
-        self.assertEqual(str(context.exception), f"Die Personalnummer darf höchstens 32 Zeichen lang sein. "
+        self.assertEqual(str(context.exception), f"Die Personalnummer darf hoechstens 32 Zeichen lang sein. "
                                                  f"'123456789012345678901234567890123' besitzt "
                                                  f"33 Zeichen!")
 
@@ -115,7 +115,7 @@ class TestNutzerAnlegen(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             self.admin.nutzer_anlegen('M100001', vorname_65_zeichen, 'Mustermann', 'nutzerpw', 'nutzerpw')
 
-        self.assertEqual(str(context.exception), "Der Vorname darf höchstens 64 Zeichen lang sein. "
+        self.assertEqual(str(context.exception), "Der Vorname darf hoechstens 64 Zeichen lang sein. "
                                                  "'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' "
                                                  "besitzt 65 Zeichen!")
 
@@ -138,7 +138,7 @@ class TestNutzerAnlegen(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             self.admin.nutzer_anlegen('M100001', 'Max', nachname_65_zeichen, 'nutzerpw', 'nutzerpw')
 
-        self.assertEqual(str(context.exception), "Der Nachname darf höchstens 64 Zeichen lang sein. "
+        self.assertEqual(str(context.exception), "Der Nachname darf hoechstens 64 Zeichen lang sein. "
                                                  "'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' "
                                                  "besitzt 65 Zeichen!")
 

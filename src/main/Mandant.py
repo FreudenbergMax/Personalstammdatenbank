@@ -1,5 +1,4 @@
 import psycopg2
-from src.main.Nutzer import Nutzer
 
 
 class Mandant:
@@ -10,7 +9,7 @@ class Mandant:
             raise(ValueError(f"Der Name des Mandanten muss aus mindestens einem Zeichen bestehen."))
 
         if len(str(mandantenname)) > 128:
-            raise(ValueError(f"Der Name des Mandanten darf höchstens 128 Zeichen lang sein."
+            raise(ValueError(f"Der Name des Mandanten darf hoechstens 128 Zeichen lang sein."
                              f"'{mandantenname}' besitzt {len(mandantenname)} Zeichen!"))
 
         if len(str(passwort)) > 128:
@@ -37,7 +36,7 @@ class Mandant:
         """
         Baut eine Connection zur Datenbank auf. Diese Methode wird jedes Mal aufgerufen, bevor mit der Datenbank
         interagiert werden soll.
-        :return: conn-Variable, die die Verbindung zur Datenbank enthält
+        :return: conn-Variable, die die Verbindung zur Datenbank enthaelt
         """
         conn = psycopg2.connect(
             host="localhost",
@@ -62,12 +61,12 @@ class Mandant:
         cur = conn.cursor()
         cur.execute(mandant_insert_query)
 
-        # Commit der Änderungen
+        # Commit der Aenderungen
         conn.commit()
 
         mandant_id = cur.fetchone()[0]
 
-        # Cursor und Konnektor zu Datenbank schließen
+        # Cursor und Konnektor zu Datenbank schliessen
         cur.close()
         conn.close()
 

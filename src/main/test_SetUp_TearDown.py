@@ -3,8 +3,8 @@ import psycopg2
 
 def test_set_up():
     """
-    Methode erstellt eine Verbindung zur Datenbank in einem Testschema. So können die
-    Unit- und Integrationstests so ausgeführt werden, dass die Produktivdatenbank im Schema 'public' nicht manipuliert
+    Methode erstellt eine Verbindung zur Datenbank in einem Testschema. So koennen die
+    Unit- und Integrationstests so ausgefuehrt werden, dass die Produktivdatenbank im Schema 'public' nicht manipuliert
     wird.
     """
     testschema = 'temp_test_schema'
@@ -51,7 +51,7 @@ def test_set_up():
 
     conn.commit()
 
-    # Cursor und Konnektor zu Datenbank schließen
+    # Cursor und Konnektor zu Datenbank schliessen
     cur.close()
     conn.close()
 
@@ -61,7 +61,7 @@ def test_set_up():
 def test_tear_down():
     """
     Methode entfernt das Testschema 'temp_test_schema' mit allen Daten, Tabellen und stored Procedures aus der
-    Datenbank. Diese soll nur für die Unit-Tests aufgebaut werden. In der Praxis würden die Nutzer auf dem Schema
+    Datenbank. Diese soll nur fuer die Unit-Tests aufgebaut werden. In der Praxis wuerden die Nutzer auf dem Schema
     'public' arbeiten.
     """
     conn = psycopg2.connect(

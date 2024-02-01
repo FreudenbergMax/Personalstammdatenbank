@@ -58,7 +58,7 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
         with self.assertRaises(TypeError) as context:
             zahlenwert = self.nutzer._existenz_zahlen_daten_feststellen(zahlenwert, 50, 'Zahlenwert', True)
 
-        self.assertEqual(str(context.exception), "Der übergebene Wert 'hallo welt' konnte nicht in eine Gleitkommazahl "
+        self.assertEqual(str(context.exception), "Der uebergebene Wert 'hallo welt' konnte nicht in eine Gleitkommazahl "
                                                  "konvertiert werden!")
 
     def test_none_konvertierung_scheitert(self):
@@ -72,7 +72,7 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
         with self.assertRaises(TypeError) as context:
             none = self.nutzer._existenz_zahlen_daten_feststellen(none, 50, 'None', True)
 
-        self.assertEqual(str(context.exception), "Der übergebene Wert 'None' konnte nicht in eine Gleitkommazahl "
+        self.assertEqual(str(context.exception), "Der uebergebene Wert 'None' konnte nicht in eine Gleitkommazahl "
                                                  "konvertiert werden!")
 
     def test_hoechstbetrag_ueberschritten(self):

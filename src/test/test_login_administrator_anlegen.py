@@ -72,7 +72,7 @@ class TestNeuerAdministrator(unittest.TestCase):
                                                      personalnummer_33_zeichen, 'Otto', 'Normalverbraucher',
                                                      'adminpw', 'adminpw')
 
-        self.assertEqual(str(context.exception), f"Die Personalnummer darf höchstens 32 Zeichen lang sein. "
+        self.assertEqual(str(context.exception), f"Die Personalnummer darf hoechstens 32 Zeichen lang sein. "
                                                  f"'123456789012345678901234567890123' besitzt "
                                                  f"33 Zeichen!")
 
@@ -97,7 +97,7 @@ class TestNeuerAdministrator(unittest.TestCase):
             self.login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000',
                                                      vorname_65_zeichen, 'Normalverbraucher', 'adminpw', 'adminpw')
 
-        self.assertEqual(str(context.exception), "Der Vorname darf höchstens 64 Zeichen lang sein. "
+        self.assertEqual(str(context.exception), "Der Vorname darf hoechstens 64 Zeichen lang sein. "
                                                  "'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' "
                                                  "besitzt 65 Zeichen!")
 
@@ -122,7 +122,7 @@ class TestNeuerAdministrator(unittest.TestCase):
             self.login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000',
                                                      'Otto', nachname_65_zeichen, 'adminpw', 'adminpw')
 
-        self.assertEqual(str(context.exception), "Der Nachname darf höchstens 64 Zeichen lang sein. "
+        self.assertEqual(str(context.exception), "Der Nachname darf hoechstens 64 Zeichen lang sein. "
                                                  "'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' "
                                                  "besitzt 65 Zeichen!")
 

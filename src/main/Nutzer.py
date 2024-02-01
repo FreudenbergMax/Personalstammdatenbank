@@ -14,21 +14,21 @@ class Nutzer:
             raise (ValueError("Die Personalnummer des Nutzers muss aus mindestens einem Zeichen bestehen."))
 
         if len(str(personalnummer)) > 32:
-            raise (ValueError(f"Die Personalnummer darf höchstens 32 Zeichen lang sein. "
+            raise (ValueError(f"Die Personalnummer darf hoechstens 32 Zeichen lang sein. "
                               f"'{personalnummer}' besitzt {len(str(personalnummer))} Zeichen!"))
 
         if str(vorname) == "":
             raise (ValueError(f"Der Vorname des Nutzers muss aus mindestens einem Zeichen bestehen."))
 
         if len(str(vorname)) > 64:
-            raise (ValueError(f"Der Vorname darf höchstens 64 Zeichen lang sein. "
+            raise (ValueError(f"Der Vorname darf hoechstens 64 Zeichen lang sein. "
                               f"'{vorname}' besitzt {len(vorname)} Zeichen!"))
 
         if str(nachname) == "":
             raise (ValueError(f"Der Nachname des Nutzers muss aus mindestens einem Zeichen bestehen."))
 
         if len(str(nachname)) > 64:
-            raise (ValueError(f"Der Nachname darf höchstens 64 Zeichen lang sein. "
+            raise (ValueError(f"Der Nachname darf hoechstens 64 Zeichen lang sein. "
                               f"'{nachname}' besitzt {len(nachname)} Zeichen!"))
 
         if len(str(passwort)) > 128:
@@ -76,10 +76,10 @@ class Nutzer:
         cur = conn.cursor()
         nutzer_id = cur.execute(nutzer_insert_query)
 
-        # Commit der Änderungen
+        # Commit der Aenderungen
         conn.commit()
 
-        # Cursor und Konnektor zu Datenbank schließen
+        # Cursor und Konnektor zu Datenbank schliessen
         cur.close()
         conn.close()
 
@@ -106,10 +106,10 @@ class Nutzer:
         cur = conn.cursor()
         cur.execute(nutzer_insert_query)
 
-        # Commit der Änderungen
+        # Commit der Aenderungen
         conn.commit()
 
-        # Cursor und Konnektor zu Datenbank schließen
+        # Cursor und Konnektor zu Datenbank schliessen
         cur.close()
         conn.close()
 
@@ -117,7 +117,7 @@ class Nutzer:
 
     def abfrage_ausfuehren(self, abfrage):
         """
-        Methode übermittelt ein SQL-Befehl an die Datenbank, wo sie ausgeführt und das Ergebnis zurückgegeben wird.
+        Methode uebermittelt ein SQL-Befehl an die Datenbank, wo sie ausgefuehrt und das Ergebnis zurueckgegeben wird.
         :param abfrage: enthaelt den SQL-SELECT-Befehl.
         :return: Ergebnis der Datenbankabfrage
         """
@@ -135,10 +135,10 @@ class Nutzer:
                         f"{abfrage}")
             ergebnis = cur.fetchall()
 
-        # Commit der Änderungen
+        # Commit der Aenderungen
         conn.commit()
 
-        # Cursor und Konnektor zu Datenbank schließen
+        # Cursor und Konnektor zu Datenbank schliessen
         cur.close()
         conn.close()
 
@@ -780,7 +780,7 @@ class Nutzer:
 
     def insert_neuer_mitarbeiter(self, mitarbeiterdaten):
         """
-        Diese Methode überträgt die eingetragenen Mitarbeiterdaten (im Rahmen der Bachelorarbeit
+        Diese Methode uebertraegt die eingetragenen Mitarbeiterdaten (im Rahmen der Bachelorarbeit
         dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
         'insert_neuer_mitarbeiter' aufgerufen wird.
         :param mitarbeiterdaten: Name der Excel-Datei, dessen Mitarbeiterdaten in die Datenbank
@@ -999,7 +999,7 @@ class Nutzer:
 
     def update_adresse(self, update_adressdaten):
         """
-        Diese Methode überträgt die neue Adresse eines Mitarbeiters (im Rahmen der Bachelorarbeit
+        Diese Methode uebertraegt die neue Adresse eines Mitarbeiters (im Rahmen der Bachelorarbeit
         dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
         'update_adresse' aufgerufen wird.
         :param update_adressdaten: Name der Excel-Datei, dessen Adressdaten in die Datenbank
@@ -1161,7 +1161,7 @@ class Nutzer:
         """
         Baut eine Connection zur Datenbank auf. Diese Methode wird jedes Mal aufgerufen, bevor mit der Datenbank
         interagiert werden soll.
-        :return: conn-Variable, die die Verbindung zur Datenbank enthält
+        :return: conn-Variable, die die Verbindung zur Datenbank enthaelt
         """
         conn = psycopg2.connect(
             host="localhost",
@@ -1189,27 +1189,27 @@ class Nutzer:
         # Commit der Aenderungen
         conn.commit()
 
-        # Cursor und Konnektor zu Datenbank schließen
+        # Cursor und Konnektor zu Datenbank schliessen
         cur.close()
         conn.close()
 
     def _existenz_str_daten_feststellen(self, str_daten, art, anzahl_zeichen, pflicht):
         """
         Methode stellt fest, ob optionale Daten vorliegen oder nicht und wenn ja, so sollen diese auf jeden Fall
-        als String zurückgegeben werden. So soll sichergestellt werden, dass dem Datenbanksystem die Daten in dem
-        Datentyp übergeben werden, in der sie in der Personalstammdatenbank gespeichert werden können.
+        als String zurueckgegeben werden. So soll sichergestellt werden, dass dem Datenbanksystem die Daten in dem
+        Datentyp uebergeben werden, in der sie in der Personalstammdatenbank gespeichert werden koennen.
         :param str_daten: wird untersucht, ob Daten darin enthalten sind
-        :param art: gibt an, um was für Daten es sich handeln soll
-        :param anzahl_zeichen: Anzahl der Zeichen, die der Inhalt von 'str_daten' höchstens besitzen darf
+        :param art: gibt an, um was fuer Daten es sich handeln soll
+        :param anzahl_zeichen: Anzahl der Zeichen, die der Inhalt von 'str_daten' hoechstens besitzen darf
         :param pflicht: boolean, der bei 'True' angibt, dass 'str_daten' kein leerer String sein darf
-        :return: Falls Parameter 'daten' keine Daten enthält, wird None zurückgegeben, sonst Daten
+        :return: Falls Parameter 'daten' keine Daten enthaelt, wird None zurueckgegeben, sonst Daten
         """
         if str_daten == '' and not pflicht:
             str_daten = None
         elif str_daten == '' and pflicht:
             raise (ValueError(f"'{art}' ist nicht vorhanden."))
         elif len(str(str_daten)) > anzahl_zeichen:
-            raise (ValueError(f"'{art}' darf höchstens {anzahl_zeichen} Zeichen lang sein. "
+            raise (ValueError(f"'{art}' darf hoechstens {anzahl_zeichen} Zeichen lang sein. "
                               f"Ihre Eingabe '{str_daten}' besitzt {len(str_daten)} Zeichen!"))
         else:
             str_daten = str(str_daten)
@@ -1219,12 +1219,12 @@ class Nutzer:
     def _existenz_date_daten_feststellen(self, date_daten, art, pflicht):
         """
         Methode stellt fest, ob optionale Daten vorliegen oder nicht und wenn ja, so sollen diese auf jeden Fall
-        als Date-Datentyp zurückgegeben werden. So soll sichergestellt werden, dass dem Datenbanksystem die Daten in dem
-        Datentyp übergeben werden, in der sie in der Personalstammdatenbank gespeichert werden können.
+        als Date-Datentyp zurueckgegeben werden. So soll sichergestellt werden, dass dem Datenbanksystem die Daten in dem
+        Datentyp uebergeben werden, in der sie in der Personalstammdatenbank gespeichert werden koennen.
         :param date_daten: wird untersucht, ob Daten darin enthalten sind
-        :param art: gibt an, um was für Daten es sich handeln soll
+        :param art: gibt an, um was fuer Daten es sich handeln soll
         :param pflicht: boolean, der bei 'True' angibt, dass 'date_daten' kein leerer String sein darf
-        :return: Falls Parameter 'daten' keine Daten enthält, wird None zurückgegeben, sonst Daten
+        :return: Falls Parameter 'daten' keine Daten enthaelt, wird None zurueckgegeben, sonst Daten
         """
         if date_daten == '' and not pflicht:
             date_daten = None
@@ -1239,21 +1239,21 @@ class Nutzer:
         try:
             date_daten = datetime.strptime(date_daten, '%d.%m.%Y').date()
         except ValueError:
-            raise (ValueError(f"'{date_daten}' ist nicht möglich!"))
+            raise (ValueError(f"'{date_daten}' ist nicht moeglich!"))
 
         return date_daten
 
     def _existenz_zahlen_daten_feststellen(self, zahlen_daten, hoechstbetrag, art, pflicht):
         """
         Methode stellt fest, ob optionale Daten vorliegen oder nicht und wenn ja, so sollen diese auf jeden Fall
-        als Decimal-Datentyp mit zwei Nachkommastellen zurückgegeben werden. So soll sichergestellt werden, dass dem
-        Datenbanksystem die Daten in dem Datentyp übergeben werden, in der sie in der Personalstammdatenbank gespeichert
-        werden können.
+        als Decimal-Datentyp mit zwei Nachkommastellen zurueckgegeben werden. So soll sichergestellt werden, dass dem
+        Datenbanksystem die Daten in dem Datentyp uebergeben werden, in der sie in der Personalstammdatenbank gespeichert
+        werden koennen.
         :param zahlen_daten: wird untersucht, ob Daten darin enthalten sind
-        :param hoechstbetrag: der Wert der Variablen 'zahlen_daten' darf nicht höher sein
-        :param art: gibt an, um was für Daten es sich handeln soll
+        :param hoechstbetrag: der Wert der Variablen 'zahlen_daten' darf nicht hoeher sein
+        :param art: gibt an, um was fuer Daten es sich handeln soll
         :param pflicht: boolean, der bei 'True' angibt, dass 'zahlen_daten' kein leerer String sein darf
-        :return: Falls Parameter 'daten' keine Daten enthält, wird None zurückgegeben, sonst Daten
+        :return: Falls Parameter 'daten' keine Daten enthaelt, wird None zurueckgegeben, sonst Daten
         """
         if zahlen_daten == '' and not pflicht:
             zahlen_daten = None
@@ -1261,7 +1261,7 @@ class Nutzer:
         elif zahlen_daten == '' and pflicht:
             raise (ValueError(f"'{art}' ist nicht vorhanden."))
         elif not isinstance(zahlen_daten, int) and not isinstance(zahlen_daten, float):
-            raise (TypeError(f"Der übergebene Wert '{zahlen_daten}' konnte nicht in eine Gleitkommazahl "
+            raise (TypeError(f"Der uebergebene Wert '{zahlen_daten}' konnte nicht in eine Gleitkommazahl "
                              f"konvertiert werden!"))
         elif zahlen_daten > hoechstbetrag:
             raise (ValueError(f"'{art}' ist mit '{zahlen_daten}' hoeher als der zulaessige Maximalbetrag von "
@@ -1276,12 +1276,12 @@ class Nutzer:
     def _existenz_boolean_daten_feststellen(self, boolean_daten, art, pflicht):
         """
             Methode stellt fest, ob optionale Daten vorliegen oder nicht und wenn ja, so sollen diese auf jeden Fall
-            als boolean-Datentyp zurückgegeben werden. So soll sichergestellt werden, dass dem Datenbanksystem die Daten
-            in dem Datentyp übergeben werden, in der sie in der Personalstammdatenbank gespeichert werden können.
+            als boolean-Datentyp zurueckgegeben werden. So soll sichergestellt werden, dass dem Datenbanksystem die Daten
+            in dem Datentyp uebergeben werden, in der sie in der Personalstammdatenbank gespeichert werden koennen.
             :param boolean_daten: wird untersucht, ob Daten darin enthalten sind
-            :param art: gibt an, um was für Daten es sich handeln soll
+            :param art: gibt an, um was fuer Daten es sich handeln soll
             :param pflicht: boolean, der bei 'True' angibt, dass 'boolean_daten' kein leerer String sein darf
-            :return: Falls Parameter 'daten' keine Daten enthält, wird None zurückgegeben, sonst Daten
+            :return: Falls Parameter 'daten' keine Daten enthaelt, wird None zurueckgegeben, sonst Daten
             """
         if boolean_daten == '' and not pflicht:
             boolean_daten = None
@@ -1295,13 +1295,13 @@ class Nutzer:
             boolean_daten = False
             return boolean_daten
         else:
-            raise TypeError(f"Der übergebene Wert '{boolean_daten}' konnte nicht verarbeitet werden. Bitte geben "
-                            f"Sie ausschließlich 'ja' oder 'nein' ein.")
+            raise TypeError(f"Der uebergebene Wert '{boolean_daten}' konnte nicht verarbeitet werden. Bitte geben "
+                            f"Sie ausschliesslich 'ja' oder 'nein' ein.")
 
     def _vorherigen_tag_berechnen(self, datum):
         """
-        Methode berechnet den Vortag des Datums, ab dem ein neuer Eintrag gültig sein soll. Dies wird benoetigt,
-        um fuer diverse 'update'-Methoden in der Spalte "Datum_Bis" des vorherigen Eintrags (gilt für alle
+        Methode berechnet den Vortag des Datums, ab dem ein neuer Eintrag gueltig sein soll. Dies wird benoetigt,
+        um fuer diverse 'update'-Methoden in der Spalte "Datum_Bis" des vorherigen Eintrags (gilt fuer alle
         Assoziationstabellen) ein Datum eintragen zu koennen.
         :param datum: Datum, ab dem ein neuer Eintrag gueltig werden soll
         :return: Datum des Vortags, dass gleichzeitig das Enddatum des alten Eintrags ist

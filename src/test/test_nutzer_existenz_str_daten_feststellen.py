@@ -90,7 +90,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             personalnummer = self.nutzer._existenz_str_daten_feststellen(personalnummer, 'Personalnummer', 32, True)
 
-        self.assertEqual(str(context.exception), "'Personalnummer' darf höchstens 32 Zeichen lang sein. "
+        self.assertEqual(str(context.exception), "'Personalnummer' darf hoechstens 32 Zeichen lang sein. "
                                                  "Ihre Eingabe '012345678123456781234567812345678' besitzt 33 Zeichen!")
 
     def tearDown(self):
