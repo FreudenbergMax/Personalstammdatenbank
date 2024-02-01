@@ -1,7 +1,6 @@
 import unittest
 
 from src.main.Login import Login
-from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
 
@@ -87,7 +86,7 @@ class TestNutzerUpdateAdresse(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, '12358', 'Ost', 1), (2, 1, '10369', 'Ost', 2)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM strassenbezeichnungen")
-        self.assertEqual(str(ergebnis), "[(1, 1, 'Musterstraße', '1', 1), (2, 1, 'neue Straße', '42', 2)]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 'Musterstrasse', '1', 1), (2, 1, 'neue Strasse', '42', 2)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM wohnt_in")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(2026, 12, 31)), "
@@ -136,7 +135,7 @@ class TestNutzerUpdateAdresse(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, '12358', 'Ost', 1)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM strassenbezeichnungen")
-        self.assertEqual(str(ergebnis), "[(1, 1, 'Musterstraße', '1', 1)]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 'Musterstrasse', '1', 1)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM wohnt_in")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(2026, 12, 31)), "

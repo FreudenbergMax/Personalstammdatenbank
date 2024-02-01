@@ -54,10 +54,10 @@ class TestAdminNutzerEntsperren(unittest.TestCase):
         cur.execute(nutzer_query)
         ergebnis = cur.fetchall()
 
-        # Commit der Änderungen
+        # Commit der Aenderungen
         conn.commit()
 
-        # Cursor und Konnektor zu Datenbank schließen
+        # Cursor und Konnektor zu Datenbank schliessen
         cur.close()
         conn.close()
 

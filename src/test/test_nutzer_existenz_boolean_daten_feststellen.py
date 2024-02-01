@@ -2,7 +2,6 @@ import unittest
 
 from src.main.Login import Login
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
-from src.main.Mandant import Mandant
 
 
 class TestExistenzBooleanDatenFeststellen(unittest.TestCase):
@@ -25,8 +24,8 @@ class TestExistenzBooleanDatenFeststellen(unittest.TestCase):
 
     def test_optionaler_zahlenwert_ist_leer(self):
         """
-        Test prüft, ob die Methode '_existenz_boolean_daten_feststellen' ein 'None' zurückgibt, wenn die
-        übergegebene Variable ein optionaler leerer String ist.
+        Test prueft, ob die Methode '_existenz_boolean_daten_feststellen' ein 'None' zurueckgibt, wenn die
+        uebergegebene Variable ein optionaler leerer String ist.
         """
         boolean = ''
         boolean = self.nutzer._existenz_boolean_daten_feststellen(boolean, 'boolean', False)
@@ -35,8 +34,8 @@ class TestExistenzBooleanDatenFeststellen(unittest.TestCase):
 
     def test_pflicht_zahlenwert_ist_leer(self):
         """
-        Test prüft, ob die Methode '_existenz_boolean_daten_feststellen' ein ValueError-Exception wirft, wenn die
-        übergegebene Variable ein leerer Pflicht-String ist.
+        Test prueft, ob die Methode '_existenz_boolean_daten_feststellen' ein ValueError-Exception wirft, wenn die
+        uebergegebene Variable ein leerer Pflicht-String ist.
         """
         boolean = ''
 
@@ -48,8 +47,8 @@ class TestExistenzBooleanDatenFeststellen(unittest.TestCase):
 
     def test_nein_zu_false(self):
         """
-        Test prüft, ob die Methode '_existenz_boolean_daten_feststellen' 'False' zurückgibt, wenn die
-        übergegebene Variable ein String 'nein' ist.
+        Test prueft, ob die Methode '_existenz_boolean_daten_feststellen' 'False' zurueckgibt, wenn die
+        uebergegebene Variable ein String 'nein' ist.
         """
         boolean = 'nein'
 
@@ -59,8 +58,8 @@ class TestExistenzBooleanDatenFeststellen(unittest.TestCase):
 
     def test_NEIN_zu_false(self):
         """
-        Test prüft, ob die Methode '_existenz_boolean_daten_feststellen' 'False' zurückgibt, wenn die
-        übergegebene Variable ein String 'NEIN' mit Grossbuchstaben ist.
+        Test prueft, ob die Methode '_existenz_boolean_daten_feststellen' 'False' zurueckgibt, wenn die
+        uebergegebene Variable ein String 'NEIN' mit Grossbuchstaben ist.
         """
         boolean = 'NEIN'
 
@@ -70,8 +69,8 @@ class TestExistenzBooleanDatenFeststellen(unittest.TestCase):
 
     def test_ja_zu_true(self):
         """
-        Test prüft, ob die Methode '_existenz_boolean_daten_feststellen' 'True' zurückgibt, wenn die
-        übergegebene Variable ein String 'ja' ist.
+        Test prueft, ob die Methode '_existenz_boolean_daten_feststellen' 'True' zurueckgibt, wenn die
+        uebergegebene Variable ein String 'ja' ist.
         """
         boolean = 'ja'
 
@@ -81,8 +80,8 @@ class TestExistenzBooleanDatenFeststellen(unittest.TestCase):
 
     def test_JA_zu_true(self):
         """
-        Test prüft, ob die Methode '_existenz_boolean_daten_feststellen' 'True' zurückgibt, wenn die
-        übergegebene Variable ein String 'JA' mit Grossbuchstaben ist.
+        Test prueft, ob die Methode '_existenz_boolean_daten_feststellen' 'True' zurueckgibt, wenn die
+        uebergegebene Variable ein String 'JA' mit Grossbuchstaben ist.
         """
         boolean = 'JA'
 
@@ -92,8 +91,8 @@ class TestExistenzBooleanDatenFeststellen(unittest.TestCase):
 
     def test_inkompatibler_wert(self):
         """
-        Test prüft, ob eine TypeError-Exeption geworfen wird, weil der Methode '_existenz_boolean_daten_feststellen'
-        ein String übergeben wird, der nicht in einen Wahrheitswert konvertiert werden kann
+        Test prueft, ob eine TypeError-Exeption geworfen wird, weil der Methode '_existenz_boolean_daten_feststellen'
+        ein String uebergeben wird, der nicht in einen Wahrheitswert konvertiert werden kann
         """
         boolean = 'hallo welt'
 

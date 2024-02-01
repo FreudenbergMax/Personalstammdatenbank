@@ -1,5 +1,4 @@
 import unittest
-import psycopg2
 
 from src.main.Login import Login
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
@@ -22,7 +21,7 @@ class TestLoginNutzerlogin(unittest.TestCase):
 
     def test_erfolgreicher_nutzerlogin(self):
         """
-        Test prueft, ob ein Login erfolgreich durchgeführt wird, sofern die richtigen Werte beim Nutzerlogin eingegeben
+        Test prueft, ob ein Login erfolgreich durchgefuehrt wird, sofern die richtigen Werte beim Nutzerlogin eingegeben
         werden
         """
         nutzer = self.login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')

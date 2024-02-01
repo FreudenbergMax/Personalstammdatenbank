@@ -3,7 +3,6 @@ import unittest
 import psycopg2
 
 from src.main.Login import Login
-from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
 
@@ -27,9 +26,9 @@ class TestNutzerEntfernen(unittest.TestCase):
 
     def test_nutzer_erfolgreich_entfernen(self):
         """
-        Test prüft, ob nach Ausführung der Methode 'nutzer_entfernen' der Nutzer erfolgreich entfernt wurde.
+        Test prueft, ob nach Ausfuehrung der Methode 'nutzer_entfernen' der Nutzer erfolgreich entfernt wurde.
         """
-        # Zwischenprüfung, ob Nutzer in Nutzerliste angelegt ist
+        # Zwischenpruefung, ob Nutzer in Nutzerliste angelegt ist
         vorname = self.admin.get_mandant().get_nutzerliste()[0].get_vorname()
         nachnamename = self.admin.get_mandant().get_nutzerliste()[0].get_nachname()
         personalnummer = self.admin.get_mandant().get_nutzerliste()[0].get_personalnummer()
@@ -38,7 +37,7 @@ class TestNutzerEntfernen(unittest.TestCase):
         self.assertEqual(nachnamename, 'Musterfrau')
         self.assertEqual(personalnummer, 'M100001')
 
-        # Prüfung, ob Nutzer nun entfernt wird
+        # Pruefung, ob Nutzer nun entfernt wird
         self.admin.nutzer_entfernen('M100001')
 
         # Nachdem der Nutzer entfernt wurde, darf in der Nutzer-Liste kein Nutzerobjekt mehr vorhanden sein, da zuvor
@@ -62,10 +61,10 @@ class TestNutzerEntfernen(unittest.TestCase):
         cur.execute(nutzer_query)
         ergebnis = cur.fetchall()
 
-        # Commit der Änderungen
+        # Commit der Aenderungen
         conn.commit()
 
-        # Cursor und Konnektor zu Datenbank schließen
+        # Cursor und Konnektor zu Datenbank schliessen
         cur.close()
         conn.close()
 

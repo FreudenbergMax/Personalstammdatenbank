@@ -1,5 +1,4 @@
 import unittest
-import psycopg2
 
 from src.main.Login import Login
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
@@ -20,7 +19,7 @@ class TestLoginAdminlogin(unittest.TestCase):
 
     def test_erfolgreicher_adminlogin(self):
         """
-        Test prueft, ob ein Login erfolgreich durchgeführt wird, sofern die richtigen Werte beim Adminlogin eingegeben
+        Test prueft, ob ein Login erfolgreich durchgefuehrt wird, sofern die richtigen Werte beim Adminlogin eingegeben
         werden
         """
         admin = self.login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')

@@ -3,7 +3,6 @@ import unittest
 
 from src.main.Login import Login
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
-from src.main.Mandant import Mandant
 
 
 class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
@@ -26,7 +25,7 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
 
     def test_vorherigen_tag_berechnen(self):
         """
-        Test prüft, ob der vorherige Tag eines übergebenen Datums korrekt berechnet wird
+        Test prueft, ob der vorherige Tag eines uebergebenen Datums korrekt berechnet wird
         """
         eingabedatum = datetime.strptime("01.01.2024", '%d.%m.%Y').date()
         vorheriger_tag = self.nutzer._vorherigen_tag_berechnen(eingabedatum)
@@ -35,7 +34,7 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
 
     def test_falscher_Datentyp(self):
         """
-        Test prüft, ob das uebergebene Datum den richtigen Datentyp hat. Es wird der datetime-Datentyp benoetigt.
+        Test prueft, ob das uebergebene Datum den richtigen Datentyp hat. Es wird der datetime-Datentyp benoetigt.
         """
         eingabedatum = datetime.strptime("01.01.2024", '%d.%m.%Y').date()
         vorheriger_tag = self.nutzer._vorherigen_tag_berechnen(eingabedatum)

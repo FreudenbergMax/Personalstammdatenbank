@@ -1,7 +1,6 @@
 import unittest
 
 from src.main.Login import Login
-from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
 

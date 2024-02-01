@@ -3,7 +3,6 @@ import unittest
 import psycopg2
 
 from src.main.Login import Login
-from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
 
@@ -23,7 +22,7 @@ class TestGetNutzer(unittest.TestCase):
 
     def test_nutzer_objekt_vorhanden(self):
         """
-        Test prüft, ob ein tatsächlich angelegter Nutzer gefunden und übergeben wird
+        Test prueft, ob ein tatsaechlich angelegter Nutzer gefunden und uebergeben wird
         """
         self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
 
@@ -50,10 +49,10 @@ class TestGetNutzer(unittest.TestCase):
         cur.execute(nutzer_query)
         ergebnis = cur.fetchall()
 
-        # Commit der Änderungen
+        # Commit der Aenderungen
         conn.commit()
 
-        # Cursor und Konnektor zu Datenbank schließen
+        # Cursor und Konnektor zu Datenbank schliessen
         cur.close()
         conn.close()
 
@@ -61,7 +60,7 @@ class TestGetNutzer(unittest.TestCase):
 
     def test_nutzer_objekt_nicht_vorhanden(self):
         """
-        Test prüft, ob bei der Eingabe eines nicht vorhandenen Nutzers eine Fehlermeldung kommt.
+        Test prueft, ob bei der Eingabe eines nicht vorhandenen Nutzers eine Fehlermeldung kommt.
         """
         with self.assertRaises(Exception) as context:
             self.nutzer = self.login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
@@ -72,7 +71,7 @@ class TestGetNutzer(unittest.TestCase):
 
     def test_kein_zugriff_auf_nutzer_anderer_mandanten(self):
         """
-        Test prüft, ob Mandant A keinen Zugriff auf Nutzer des Mandanten B hat und umgekehrt.
+        Test prueft, ob Mandant A keinen Zugriff auf Nutzer des Mandanten B hat und umgekehrt.
         """
         self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
 

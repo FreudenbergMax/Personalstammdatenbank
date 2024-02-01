@@ -3,7 +3,6 @@ import unittest
 
 from src.main.Login import Login
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
-from src.main.Mandant import Mandant
 
 
 class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
@@ -26,8 +25,8 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
 
     def test_optionaler_zahlenwert_ist_leer(self):
         """
-        Test prüft, ob die Methode '_existenz_zahlen_daten_feststellen' ein 'None' zurückgibt, wenn die
-        übergegebene Variable ein optionaler leerer String ist.
+        Test prueft, ob die Methode '_existenz_zahlen_daten_feststellen' ein 'None' zurueckgibt, wenn die
+        uebergegebene Variable ein optionaler leerer String ist.
         """
         zahlenwert = ''
         zahlenwert = self.nutzer._existenz_zahlen_daten_feststellen(zahlenwert, 50, 'Zahlenwert', False)
@@ -36,8 +35,8 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
 
     def test_pflicht_zahlenwert_ist_leer(self):
         """
-        Test prüft, ob die Methode '_existenz_zahlen_daten_feststellen' ein ValueError-Exception wirft, wenn die
-        übergegebene Variable ein leerer Pflicht-String ist.
+        Test prueft, ob die Methode '_existenz_zahlen_daten_feststellen' ein ValueError-Exception wirft, wenn die
+        uebergegebene Variable ein leerer Pflicht-String ist.
         """
         zahlenwert = ''
 
@@ -49,8 +48,8 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
 
     def test_str_konvertierung_scheitert(self):
         """
-        Test prüft, ob eine TypeError-Exeption geworfen wird, weil der Methode '_existenz_zahlen_daten_feststellen'
-        ein String übergeben wird, der nicht in eine Dezimal-Zahl konvertiert werden kann
+        Test prueft, ob eine TypeError-Exeption geworfen wird, weil der Methode '_existenz_zahlen_daten_feststellen'
+        ein String uebergeben wird, der nicht in eine Dezimal-Zahl konvertiert werden kann
         """
         zahlenwert = 'hallo welt'
 
@@ -63,8 +62,8 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
 
     def test_none_konvertierung_scheitert(self):
         """
-        Test prüft, ob eine TypeError-Exeption geworfen wird, weil der Methode '_existenz_zahlen_daten_feststellen'
-        ein None übergeben wird, der nicht in eine Dezimal-Zahl konvertiert werden kann
+        Test prueft, ob eine TypeError-Exeption geworfen wird, weil der Methode '_existenz_zahlen_daten_feststellen'
+        ein None uebergeben wird, der nicht in eine Dezimal-Zahl konvertiert werden kann
         """
         none = None
 
@@ -77,7 +76,7 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
 
     def test_hoechstbetrag_ueberschritten(self):
         """
-        Test prüft, ob eine ValueError-Exeption geworfen wird, weil der Methode '_existenz_zahlen_daten_feststellen'
+        Test prueft, ob eine ValueError-Exeption geworfen wird, weil der Methode '_existenz_zahlen_daten_feststellen'
         ein Wert uebergeben wird, der hoeher ist, als der definierte Hoechstbetrag
         """
         testzahl = 6543.21
@@ -92,8 +91,8 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
 
     def test_anzahl_kinder_ist_integer(self):
         """
-        Test prüft, ob die Methode '_existenz_zahlen_daten_feststellen' die Variable 'Anzahl Kinder' bei einer
-        Ganzzahl belaesst, wenn der übergebene Wert bereits ein integer ist
+        Test prueft, ob die Methode '_existenz_zahlen_daten_feststellen' die Variable 'Anzahl Kinder' bei einer
+        Ganzzahl belaesst, wenn der uebergebene Wert bereits ein integer ist
         """
         anzahl_kinder = 3
 
@@ -103,8 +102,8 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
 
     def test_jahr_ist_integer(self):
         """
-        Test prüft, ob die Methode '_existenz_zahlen_daten_feststellen' die Variable 'beitragsjahr_uv' bei einer
-        Ganzzahl belaesst, wenn der übergebene Wert bereits ein integer ist. Dies sit wichtig, wenn für die Unfall-
+        Test prueft, ob die Methode '_existenz_zahlen_daten_feststellen' die Variable 'beitragsjahr_uv' bei einer
+        Ganzzahl belaesst, wenn der uebergebene Wert bereits ein integer ist. Dies sit wichtig, wenn fuer die Unfall-
         versicheurng der BEitragsjahr an die DAtenbank uebergeben werden soll
         """
         beitragsjahr_uv = 2023
@@ -116,8 +115,8 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
 
     def test_float_zu_dezimalzahl(self):
         """
-        Test prüft, ob die Methode '_existenz_zahlen_daten_feststellen' einen Float-Wert (was bereits eine Dezimalzahl
-        ist) in einen Wert vom Datentyp 'decimal.Decimal' (welche für SQL benötigt wird) zurückgibt.
+        Test prueft, ob die Methode '_existenz_zahlen_daten_feststellen' einen Float-Wert (was bereits eine Dezimalzahl
+        ist) in einen Wert vom Datentyp 'decimal.Decimal' (welche fuer SQL benoetigt wird) zurueckgibt.
         """
         dezimalzahl = 1.5
 
@@ -127,8 +126,8 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
 
     def test_ganzzahl_zu_dezimalzahl(self):
         """
-        Test prüft, ob die Methode '_existenz_zahlen_daten_feststellen' eine Dezimalzahl zurückgibt, wenn die
-        übergegebene Variable eine Ganzzahl ist.
+        Test prueft, ob die Methode '_existenz_zahlen_daten_feststellen' eine Dezimalzahl zurueckgibt, wenn die
+        uebergegebene Variable eine Ganzzahl ist.
         """
         zahlenwert = 35
 

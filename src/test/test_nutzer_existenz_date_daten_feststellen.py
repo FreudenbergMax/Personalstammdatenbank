@@ -3,7 +3,6 @@ from datetime import datetime
 
 from src.main.Login import Login
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
-from src.main.Mandant import Mandant
 
 
 class TestExistenzDateDatenFeststellen(unittest.TestCase):
@@ -26,8 +25,8 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
     def test_optionales_datum_ist_leer(self):
         """
-        Test prüft, ob die Methode 'existenz_data_daten_feststellen' ein 'None' zurückgibt, wenn die
-        übergegebene Variable ein optionaler leerer String ist.
+        Test prueft, ob die Methode 'existenz_data_daten_feststellen' ein 'None' zurueckgibt, wenn die
+        uebergegebene Variable ein optionaler leerer String ist.
         """
         austrittsdatum = ''
         austrittsdatum = self.nutzer._existenz_date_daten_feststellen(austrittsdatum, 'Austrittsdatum', False)
@@ -36,8 +35,8 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
     def test_pflicht_datum_ist_leer(self):
         """
-        Test prüft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
-        übergegebene Variable ein leeres Pflicht-Pflicht ist.
+        Test prueft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
+        uebergegebene Variable ein leeres Pflicht-Pflicht ist.
         """
         eintrittsdatum = ''
 
@@ -49,8 +48,8 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
     def test_falsches_datumsformat(self):
         """
-        Test prüft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
-        übergegebene Variable ein Datum im falschen Format (z.B. englisches statt deutsches Format) ist.
+        Test prueft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
+        uebergegebene Variable ein Datum im falschen Format (z.B. englisches statt deutsches Format) ist.
         """
         eintrittsdatum = '01-01-2024'
 
@@ -62,8 +61,8 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
     def test_datum_unmoeglicher_tag(self):
         """
-        Test prüft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
-        übergegebene Variable ein Datum im richtigen format (deutsch), aber der Tag unmöglich hoch ist
+        Test prueft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
+        uebergegebene Variable ein Datum im richtigen format (deutsch), aber der Tag unmoeglich hoch ist
         (z.B. 32.12.2023).
         """
         eintrittsdatum = '32.12.2023'
@@ -76,8 +75,8 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
     def test_datum_unmoeglicher_hoher_monat(self):
         """
-        Test prüft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
-        übergegebene Variable ein Datum im richtigen format (deutsch), aber der Monat unmöglich hoch ist
+        Test prueft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
+        uebergegebene Variable ein Datum im richtigen format (deutsch), aber der Monat unmoeglich hoch ist
         (z.B. 31.13.2023).
         """
         eintrittsdatum = '31.13.2023'
@@ -90,8 +89,8 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
     def test_datum_tag_0(self):
         """
-        Test prüft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
-        übergegebene Variable ein Datum im richtigen format (deutsch), aber der Tag 0 ist (z.B. 00.01.2024).
+        Test prueft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
+        uebergegebene Variable ein Datum im richtigen format (deutsch), aber der Tag 0 ist (z.B. 00.01.2024).
         """
         eintrittsdatum = '00.01.2024'
 
@@ -103,8 +102,8 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
     def test_datum_monat_0(self):
         """
-        Test prüft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
-        übergegebene Variable ein Datum im richtigen format (deutsch), aber der Monat 0 ist (z.B. 01.00.2024).
+        Test prueft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
+        uebergegebene Variable ein Datum im richtigen format (deutsch), aber der Monat 0 ist (z.B. 01.00.2024).
         """
         eintrittsdatum = '01.00.2024'
 
@@ -116,8 +115,8 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
     def test_datum_falsches_schaltjahr(self):
         """
-        Test prüft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
-        übergegebene Variable ein Datum im richtigen format (deutsch), aber es sich um einen 29. Februar in Jahr
+        Test prueft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
+        uebergegebene Variable ein Datum im richtigen format (deutsch), aber es sich um einen 29. Februar in Jahr
         handelt, welches kein Schaltjahr ist.
         """
         eintrittsdatum = '29.02.2023'
@@ -130,8 +129,8 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
     def test_datum_richtiges_schaltjahr(self):
         """
-        Test prüft, ob die Methode 'existenz_date_daten_feststellen' mit der Angabe 29. Februar zurecht kommt,
-        sofern es sich tatsächlich um ein Schaltjahr handelt.
+        Test prueft, ob die Methode 'existenz_date_daten_feststellen' mit der Angabe 29. Februar zurecht kommt,
+        sofern es sich tatsaechlich um ein Schaltjahr handelt.
         """
         eintrittsdatum = '29.02.2024'
 
