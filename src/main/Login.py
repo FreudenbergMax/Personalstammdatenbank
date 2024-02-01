@@ -96,7 +96,7 @@ class Login:
                     raise ValueError("Eingegebene Passwoerter sind falsch!")
 
         if gesuchter_admin is None:
-            raise ValueError(f"Admin mit Personalnummer {personalnummer} nicht vorhanden!")
+            raise ValueError(f"Admin mit Personalnummer '{personalnummer}' nicht vorhanden!")
         else:
             return gesuchter_admin
 
@@ -141,7 +141,10 @@ class Login:
 
                     return gesuchter_nutzer
                 else:
-                    print("Eingegebene Passwoerter sind falsch!")
+                    raise ValueError("Eingegebene Passwoerter sind falsch!")
+
+        if gesuchter_nutzer is None:
+            raise ValueError(f"Nutzer mit Personalnummer '{personalnummer}' nicht vorhanden!")
 
     def entferne_mandant_nutzer_und_admin(self, mandantenname, mandantenpasswort, mandantenpasswort_wiederholen,
                                           admin_personalnummer, adminpasswort, adminpasswort_wiederholen):
@@ -183,9 +186,9 @@ class Login:
         for i in range(len(self.liste_admins)):
             if self.liste_admins[i].get_personalnummer() == admin_personalnummer and \
                     self.liste_admins[i].get_mandant().get_mandantenname() == mandantenname:
-                self.liste_admins[i].remove()
+                del self.liste_admins[i]
 
         # Entfernung des Mandanten aus Login-Liste "liste_mandanten"
         for i in range(len(self.liste_mandanten)):
             if self.liste_mandanten[i].get_mandantenname() == mandantenname:
-                self.liste_mandanten[i].remove()
+                del self.liste_mandanten[i]

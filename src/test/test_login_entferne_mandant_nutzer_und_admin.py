@@ -1,7 +1,6 @@
 import unittest
 
 from src.main.Login import Login
-from src.main.Mandant import Mandant
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
 
@@ -14,13 +13,13 @@ class TestNutzerDeleteMandantendaten(unittest.TestCase):
         """
         self.testschema = test_set_up()
 
-        login = Login(self.testschema)
-        login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
-                                            'Normalverbraucher', 'adminpw', 'adminpw')
-        self.admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
+        self.login = Login(self.testschema)
+        self.login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
+                                                 'Normalverbraucher', 'adminpw', 'adminpw')
+        self.admin = self.login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
         self.admin.nutzer_anlegen('M100001', 'Erika', 'Musterfrau', 'nutzerpw', 'nutzerpw')
 
-        self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
+        self.nutzer = self.login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
         self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
         # Eintragen personenbezogener Daten
@@ -299,7 +298,8 @@ class TestNutzerDeleteMandantendaten(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1,)]")
 
         # Mandantendaten loeschen. In allen Tabellen duerfen nun keine Datensaetze des Mandanten vorhanden sein
-        self.admin.delete_mandantendaten()
+        self.login.entferne_mandant_nutzer_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'adminpw',
+                                                     'adminpw')
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM mitarbeiter")
         self.assertEqual(str(ergebnis), "[(0,)]")
@@ -516,6 +516,62 @@ class TestNutzerDeleteMandantendaten(unittest.TestCase):
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM steuerklassen")
         self.assertEqual(str(ergebnis), "[(0,)]")
+
+    def test_mandant_entfernt(self):
+        """
+        Test prueft, ob Mandant entfernt wird
+        """
+
+        # Pruefung, ob Mandant vorhanden ist
+        mandant = None
+
+        for i in range(len(self.login.liste_mandanten)):
+            if self.login.liste_mandanten[i].get_mandantenname() == 'Testfirma':
+                mandant = self.login.liste_mandanten[i]
+
+        self.assertIsNotNone(mandant)
+
+        # Mandant (und Administrator) entfernen
+        self.login.entferne_mandant_nutzer_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'adminpw',
+                                                     'adminpw')
+
+        # Pruefen, ob Mandant nun entfernt ist
+        mandant = None
+
+        for i in range(len(self.login.liste_mandanten)):
+            if self.login.liste_mandanten[i].get_mandantenname() == 'Testfirma':
+                mandant = self.login.liste_mandanten[i]
+
+        self.assertIsNone(mandant)
+
+    def test_admin_entfernt(self):
+        """
+        Test prueft, ob Admin entfernt sind
+        """
+
+        # Pruefung, ob Administrator vorhanden ist
+        admin = None
+
+        for i in range(len(self.login.liste_admins)):
+            if self.login.liste_admins[i].get_personalnummer() == 'M100000' and \
+                    self.login.liste_admins[i].get_mandant().get_mandantenname() == 'Testfirma':
+                admin = self.login.liste_admins[i]
+
+        self.assertIsNotNone(admin)
+
+        # Administrator (und Admin) entfernen
+        self.login.entferne_mandant_nutzer_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'adminpw',
+                                                     'adminpw')
+
+        # Pruefen, ob Administrator nun entfernt ist
+        admin = None
+
+        for i in range(len(self.login.liste_admins)):
+            if self.login.liste_admins[i].get_personalnummer() == 'M100000' and \
+                    self.login.liste_admins[i].get_mandant().get_mandantenname() == 'Testfirma':
+                admin = self.login.liste_admins[i]
+
+        self.assertIsNone(admin)
 
     def tearDown(self):
         """

@@ -119,14 +119,19 @@ class Administrator:
         if neues_passwort != neues_passwort_wiederholen:
             raise(ValueError("Zweite Passworteingabe ist anders als erste Passworteingabe!"))
 
+        gesuchter_nutzer = None
+
         for i in range(len(self.get_mandant().get_nutzerliste())):
             if self.get_mandant().get_nutzerliste()[i].get_personalnummer() == personalnummer:
-                conn = self._datenbankbverbindung_aufbauen()
+
+                gesuchter_nutzer = self.get_mandant().get_nutzerliste()[i]
 
                 # Nutzer aus Datenbank entfernen
                 nutzer_delete_query = f"set search_path to {self.schema};" \
                                       f"CALL nutzer_entsperren({self.get_mandant().get_mandant_id()}, " \
                                       f"'{personalnummer}', '{neues_passwort}')"
+
+                conn = self._datenbankbverbindung_aufbauen()
 
                 cur = conn.cursor()
                 cur.execute(nutzer_delete_query)
@@ -138,7 +143,10 @@ class Administrator:
                 cur.close()
                 conn.close()
 
-                self.get_mandant().get_nutzerliste()[i].get_neues_passwort_geaendert = False
+                gesuchter_nutzer.get_neues_passwort_geaendert = False
+
+        if gesuchter_nutzer is None:
+            raise ValueError(f"Nutzer mit Personalnummer '{personalnummer}' nicht vorhanden!")
 
     def nutzer_entfernen(self, personalnummer):
         """
