@@ -21,15 +21,15 @@ class Login:
         """
         Methode erstellt einen neuen Mandanten
         :param mandantenname: Name der Firma, der als Mandant dienen soll
-        :param mandantenpasswort: Passwort des Mandanten, welches fuer Login benoetigt wird
-        :param mandantenpasswort_wiederholen: Test, um zu pruefen, ob der Anmelder das Passwort fuer den Mandanten beim
-                                              ersten Mal wie beabsichtigt geschrieben hat
+        :param mandantenpasswort: Passwort des Mandanten, welches fuer das Login benoetigt wird
+        :param mandantenpasswort_wiederholen: Test, um zu pruefen, ob der Administrator das Passwort fuer den Mandanten
+                                              beim ersten Mal wie beabsichtigt geschrieben hat
         :param admin_personalnummer: Personalnummer des Administrators
         :param admin_vorname: Vorname des Administrators
         :param admin_nachname: Nachname des Administrators
-        :param adminpasswort: Passwort des Administrators, welches fuer Login benoetigt wird
-        :param adminpasswort_wiederholen: Test, um zu pruefen, ob der Anmelder das Passwort fuer den Administrator beim
-                                          ersten Mal wie beabsichtigt geschrieben hat
+        :param adminpasswort: Passwort des Administrators, welches fuer das Login benoetigt wird
+        :param adminpasswort_wiederholen: Test, um zu pruefen, ob der Administrator sein Passwort beim ersten Mal wie
+                                          beabsichtigt geschrieben hat
         """
         neuer_mandant = Mandant(mandantenname, mandantenpasswort, mandantenpasswort_wiederholen, self.schema)
         neuer_admin = Administrator(neuer_mandant, admin_personalnummer, admin_vorname, admin_nachname,
@@ -40,8 +40,7 @@ class Login:
 
     def _datenbankbverbindung_aufbauen(self):
         """
-        Baut eine Connection zur Datenbank auf. Diese Methode wird jedes Mal aufgerufen, bevor mit der Datenbank
-        interagiert werden soll.
+        Baut eine Connection zur Datenbank auf.
         :return: conn-Variable, die die Verbindung zur Datenbank enthaelt
         """
         conn = psycopg2.connect(

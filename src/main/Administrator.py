@@ -49,7 +49,7 @@ class Administrator:
 
     def _in_datenbank_anlegen(self, passwort):
         """
-        Methode ruft die Stored Procedure 'nutzer_anlegen' auf, welche die Daten des Nutzers in der
+        Methode ruft die Stored Procedure 'administrator_anlegen' auf, welche die Daten des Nutzers in der
         Personalstammdatenbank speichert.
         :param passwort: Passwort des Admins
         :return: Nutzer_ID, welche als Objekt-Variable gespeichert wird
@@ -74,8 +74,7 @@ class Administrator:
 
     def _datenbankbverbindung_aufbauen(self):
         """
-        Baut eine Connection zur Datenbank auf. Diese Methode wird jedes Mal aufgerufen, bevor mit der Datenbank
-        interagiert werden soll.
+        Baut eine Connection zur Datenbank auf.
         :return: conn-Variable, die die Verbindung zur Datenbank enthaelt
         """
         conn = psycopg2.connect(
@@ -90,8 +89,8 @@ class Administrator:
 
     def nutzer_anlegen(self, personalnummer, vorname, nachname, passwort, passwort_wiederholen):
         """
-        Da jeder Mandant mehrere Nutzer haben kann, werden alle Nutzer eines Mandanten hier erzeugt und in einer
-        klasseneigenen Liste "liste_nutzer" gespeichert.
+        Da jeder Mandant mehrere Nutzer haben kann, werden alle Nutzer eines Mandanten hier erzeugt und im
+        Listen-Objekt "liste_nutzer" von 'Mandant' gespeichert.
         :param personalnummer: des Nutzers
         :param vorname: Vorname des Nutzers
         :param nachname: Nachname des Nutzers
@@ -106,7 +105,7 @@ class Administrator:
 
     def nutzer_entsperren(self, personalnummer, neues_passwort, neues_passwort_wiederholen):
         """
-        Methode entsperrt einen Nutzer, nachdem er das Passwort dreimal falsch eingegeben hat.
+        Methode entsperrt einen Nutzer, nachdem er das Passwort dreimal hintereinander falsch eingegeben hat.
         :param personalnummer: Personalnummer des Nutzers, der sich gesperrt hat
         :param neues_passwort: neues Passwort vom Administrator fuer den Nutzer. Nachdem die Sperre aufgehoben ist,
                                kann der Administrator dem wieder entsperrten Nutzer das Passwort uebergeben. Nutzer

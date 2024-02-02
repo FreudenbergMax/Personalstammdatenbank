@@ -49,7 +49,7 @@ class TestNeuerAdministrator(unittest.TestCase):
 
     def test_leere_personalnummer_exception(self):
         """
-        Test prueft, ob die Raise-Funktion aufgerufen wird, wenn die Personalnummer des Administrators ein leerer String
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn die Personalnummer des Administrators ein leerer String
         ist.
         """
         with self.assertRaises(ValueError) as context:
@@ -61,9 +61,9 @@ class TestNeuerAdministrator(unittest.TestCase):
 
     def test_zu_lange_personalnummer_exception(self):
         """
-        Test prueft, ob die Raise-Funktion aufgerufen wird, wenn versucht wird, einen Vornamen fuer einen Administrator
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn versucht wird, einen Vornamen fuer einen Administrator
         zu waehlen, der laenger als 64 Zeichen lang ist. Es wird auch gleichzeitig getestet, ob Personalnummern, welche
-        nur aus Zahlen bestehen, in ein string umgewandelt werden.
+        nur aus Zahlen bestehen, in ein String umgewandelt werden.
         """
         personalnummer_33_zeichen = 123456789012345678901234567890123
 
@@ -78,7 +78,7 @@ class TestNeuerAdministrator(unittest.TestCase):
 
     def test_leerer_vorname_exception(self):
         """
-        Test prueft, ob die Raise-Funktion aufgerufen wird, wenn der Vorname des Administrators ein leerer String ist.
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn der Vorname des Administrators ein leerer String ist.
         """
         with self.assertRaises(ValueError) as context:
             self.login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', '',
@@ -88,7 +88,7 @@ class TestNeuerAdministrator(unittest.TestCase):
 
     def test_zu_langer_vorname_exception(self):
         """
-        Test prueft, ob die Raise-Funktion aufgerufen wird, wenn versucht wird, einen Vornamen fuer einen Administrator
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn versucht wird, einen Vornamen fuer einen Administrator
         zu waehlen, der laenger als 64 Zeichen lang ist.
         """
         vorname_65_zeichen = "a" * 65
@@ -103,7 +103,7 @@ class TestNeuerAdministrator(unittest.TestCase):
 
     def test_leerer_nachname_exception(self):
         """
-        Test prueft, ob die Raise-Funktion aufgerufen wird, wenn der Nachname des Administrators ein leerer String ist.
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn der Nachname des Administrators ein leerer String ist.
         """
         with self.assertRaises(ValueError) as context:
             self.login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000',
@@ -113,7 +113,7 @@ class TestNeuerAdministrator(unittest.TestCase):
 
     def test_zu_langer_nachname_exception(self):
         """
-        Test prueft, ob die Raise-Funktion aufgerufen wird, wenn versucht wird, einen Nachnamen fuer einen Administrator
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn versucht wird, einen Nachnamen fuer einen Administrator
         zu waehlen, der laenger als 64 Zeichen lang ist.
         """
         nachname_65_zeichen = "a" * 65
@@ -128,8 +128,8 @@ class TestNeuerAdministrator(unittest.TestCase):
 
     def test_zu_langes_passwort_exception(self):
         """
-        Test prueft, ob die Raise-Funktion aufgerufen wird, wenn versucht wird, ein Passwort zu
-        waehlen, das laenger als 128 Zeichen lang ist.
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn versucht wird, ein Passwort zu waehlen, das laenger als
+        128 Zeichen lang ist.
         """
         pw_129_zeichen = "a" * 129
 
@@ -141,8 +141,8 @@ class TestNeuerAdministrator(unittest.TestCase):
 
     def test_wiederholtes_passwort_falsch_exception(self):
         """
-        Test prueft, ob die Raise-Funktion aufgerufen wird, wenn bei der zweiten Passworteingabe ein anderer String
-        enthalten ist, als in der ersten Eingabe.
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn bei der zweiten Passworteingabe ein anderer String
+        eingegeben wird, als in der ersten Eingabe.
         """
         erste_pw_eingabe = 'nutzerpasswort'
         zweite_pw_eingabe = 'npw'

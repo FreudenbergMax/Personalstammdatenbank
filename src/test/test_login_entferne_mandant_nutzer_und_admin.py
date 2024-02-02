@@ -546,7 +546,7 @@ class TestNutzerDeleteMandantendaten(unittest.TestCase):
 
     def test_admin_entfernt(self):
         """
-        Test prueft, ob Admin entfernt sind
+        Test prueft, ob Administrator entfernt wird
         """
 
         # Pruefung, ob Administrator vorhanden ist

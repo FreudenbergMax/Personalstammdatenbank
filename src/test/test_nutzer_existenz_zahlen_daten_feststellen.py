@@ -35,8 +35,8 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
 
     def test_pflicht_zahlenwert_ist_leer(self):
         """
-        Test prueft, ob die Methode '_existenz_zahlen_daten_feststellen' ein ValueError-Exception wirft, wenn die
-        uebergegebene Variable ein leerer Pflicht-String ist.
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn die uebergegebene Variable ein leerer Pflicht-String
+        ist.
         """
         zahlenwert = ''
 
@@ -48,7 +48,7 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
 
     def test_str_konvertierung_scheitert(self):
         """
-        Test prueft, ob eine TypeError-Exeption geworfen wird, weil der Methode '_existenz_zahlen_daten_feststellen'
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, weil der Methode '_existenz_zahlen_daten_feststellen'
         ein String uebergeben wird, der nicht in eine Dezimal-Zahl konvertiert werden kann
         """
         zahlenwert = 'hallo welt'
@@ -57,12 +57,12 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
         with self.assertRaises(TypeError) as context:
             zahlenwert = self.nutzer._existenz_zahlen_daten_feststellen(zahlenwert, 50, 'Zahlenwert', True)
 
-        self.assertEqual(str(context.exception), "Der uebergebene Wert 'hallo welt' konnte nicht in eine Gleitkommazahl "
-                                                 "konvertiert werden!")
+        self.assertEqual(str(context.exception), "Der uebergebene Wert 'hallo welt' konnte nicht in eine Gleitkommazahl"
+                                                 " konvertiert werden!")
 
     def test_none_konvertierung_scheitert(self):
         """
-        Test prueft, ob eine TypeError-Exeption geworfen wird, weil der Methode '_existenz_zahlen_daten_feststellen'
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, weil der Methode '_existenz_zahlen_daten_feststellen'
         ein None uebergeben wird, der nicht in eine Dezimal-Zahl konvertiert werden kann
         """
         none = None
@@ -76,7 +76,7 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
 
     def test_hoechstbetrag_ueberschritten(self):
         """
-        Test prueft, ob eine ValueError-Exeption geworfen wird, weil der Methode '_existenz_zahlen_daten_feststellen'
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, weil der Methode '_existenz_zahlen_daten_feststellen'
         ein Wert uebergeben wird, der hoeher ist, als der definierte Hoechstbetrag
         """
         testzahl = 6543.21
@@ -103,8 +103,8 @@ class TestExistenzZahlenDatenFeststellen(unittest.TestCase):
     def test_jahr_ist_integer(self):
         """
         Test prueft, ob die Methode '_existenz_zahlen_daten_feststellen' die Variable 'beitragsjahr_uv' bei einer
-        Ganzzahl belaesst, wenn der uebergebene Wert bereits ein integer ist. Dies sit wichtig, wenn fuer die Unfall-
-        versicheurng der BEitragsjahr an die DAtenbank uebergeben werden soll
+        Ganzzahl belaesst, wenn der uebergebene Wert bereits ein integer ist. Dies ist wichtig, wenn fuer die Unfall-
+        versicherung der Beitragsjahr an die Datenbank uebergeben werden soll
         """
         beitragsjahr_uv = 2023
 

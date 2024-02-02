@@ -29,8 +29,8 @@ drop table if exists Erfahrungsstufen;
 drop table if exists Unfallversicherungsbeitraege;
 drop table if exists Berufsgenossenschaften;
 
-drop table if exists in_Gesellschaft;
-drop table if exists Gesellschaften;
+drop table if exists in_Unternehmen;
+drop table if exists Unternehmen;
 
 drop table if exists hat_Tarif;
 drop table if exists hat_Verguetungsbestandteil_Tarif;
@@ -159,8 +159,8 @@ drop procedure if exists insert_jobtitel(integer, varchar(32));
 -- Loeschung der Stored Procedure fuer Use Case "Eintrag neue Erfahrungsstufe" 
 drop procedure if exists insert_erfahrungsstufe(integer, varchar(32));
 
--- Loeschung Stored Procedure fuer Use Case "Eintrag neue Gesellschaft" 
-drop procedure if exists insert_gesellschaft(integer, varchar(128), varchar(16));
+-- Loeschung Stored Procedure fuer Use Case "Eintrag neues Unternehmen" 
+drop procedure if exists insert_unternehmen(integer, varchar(128), varchar(16));
 
 -- Loeschung der Stored Procedure fuer Use Case "Eintrag neue Austrittsgrundkategorie" 
 drop procedure if exists insert_austrittsgrundkategorie(integer, varchar(16));
@@ -169,7 +169,7 @@ drop procedure if exists insert_austrittsgrundkategorie(integer, varchar(16));
 drop procedure if exists insert_austrittsgrund(integer, varchar(32), varchar(16));
 
 -- Loeschung der Stored Procedures fuer Use Case "Eintrag neuer Mitarbeiter"
-drop procedure if exists insert_mitarbeiterdaten(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, 
+drop procedure if exists insert_neuer_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, 
 varchar(32), varchar(32), varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), 
 varchar(16), varchar(8), varchar(128), varchar(128), varchar(128), varchar(32), varchar(32), char(1), decimal(4, 2), 
 varchar(64), varchar(16), boolean, varchar(32), varchar(32), varchar(128), boolean, varchar(16), boolean, varchar(128), 
@@ -189,7 +189,7 @@ drop procedure if exists insert_tbl_wochenarbeitsstunden(integer, decimal(4, 2))
 drop procedure if exists insert_tbl_arbeitet_x_wochenarbeitsstunden(integer, varchar(32), decimal(4, 2), date);
 drop procedure if exists insert_tbl_eingesetzt_in(integer, varchar(32), varchar(64), varchar(16), boolean, date);
 drop procedure if exists insert_tbl_hat_jobtitel(integer, varchar(32), varchar(32), varchar(32), date);
-drop procedure if exists insert_tbl_in_gesellschaft(integer, varchar(32), varchar(128), date);
+drop procedure if exists insert_tbl_in_unternehmen(integer, varchar(32), varchar(128), date);
 drop procedure if exists insert_tbl_hat_tarif(integer, varchar(32), varchar(16), date);
 drop procedure if exists insert_tbl_aussertarifliche(varchar(32), integer, date);
 drop procedure if exists insert_tbl_hat_private_krankenversicherung(integer, varchar(32), varchar(128), decimal(6, 2), decimal(6, 2), date);

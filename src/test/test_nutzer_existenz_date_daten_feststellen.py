@@ -35,8 +35,8 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
     def test_pflicht_datum_ist_leer(self):
         """
-        Test prueft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
-        uebergegebene Variable ein leeres Pflicht-Pflicht ist.
+        Test prueft, ob eine Fehlermeldung ausgegeben wird, wenn die uebergegebene Variable, welche nicht leer sein
+        darf, denoch leer ist.
         """
         eintrittsdatum = ''
 
@@ -48,8 +48,8 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
     def test_falsches_datumsformat(self):
         """
-        Test prueft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
-        uebergegebene Variable ein Datum im falschen Format (z.B. englisches statt deutsches Format) ist.
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn die uebergegebene Variable ein Datum im falschen Format
+        (z.B. englisches statt deutsches Format) ist.
         """
         eintrittsdatum = '01-01-2024'
 
@@ -61,9 +61,8 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
     def test_datum_unmoeglicher_tag(self):
         """
-        Test prueft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
-        uebergegebene Variable ein Datum im richtigen format (deutsch), aber der Tag unmoeglich hoch ist
-        (z.B. 32.12.2023).
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn die uebergegebene Variable ein Datum im richtigen format
+        (deutsch), aber der Tag unmoeglich hoch ist (z.B. 32.12.2023).
         """
         eintrittsdatum = '32.12.2023'
 
@@ -75,9 +74,8 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
     def test_datum_unmoeglicher_hoher_monat(self):
         """
-        Test prueft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
-        uebergegebene Variable ein Datum im richtigen format (deutsch), aber der Monat unmoeglich hoch ist
-        (z.B. 31.13.2023).
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn die uebergegebene Variable ein Datum im richtigen format
+        (deutsch), aber der Monat unmoeglich ist (z.B. 31.13.2023).
         """
         eintrittsdatum = '31.13.2023'
 
@@ -89,8 +87,8 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
     def test_datum_tag_0(self):
         """
-        Test prueft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
-        uebergegebene Variable ein Datum im richtigen format (deutsch), aber der Tag 0 ist (z.B. 00.01.2024).
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn die uebergegebene Variable ein Datum im richtigen format
+        (deutsch), aber der Tag 0 ist (z.B. 00.01.2024).
         """
         eintrittsdatum = '00.01.2024'
 
@@ -102,8 +100,8 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
     def test_datum_monat_0(self):
         """
-        Test prueft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
-        uebergegebene Variable ein Datum im richtigen format (deutsch), aber der Monat 0 ist (z.B. 01.00.2024).
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn die uebergegebene Variable ein Datum im richtigen format
+        (deutsch), aber der Monat 0 ist (z.B. 01.00.2024).
         """
         eintrittsdatum = '01.00.2024'
 
@@ -115,9 +113,8 @@ class TestExistenzDateDatenFeststellen(unittest.TestCase):
 
     def test_datum_falsches_schaltjahr(self):
         """
-        Test prueft, ob die Methode 'existenz_date_daten_feststellen' ein ValueError-Exception wirft, wenn die
-        uebergegebene Variable ein Datum im richtigen format (deutsch), aber es sich um einen 29. Februar in Jahr
-        handelt, welches kein Schaltjahr ist.
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn die uebergegebene Variable ein Datum im richtigen Format
+        (deutsch), aber es sich um einen 29. Februar in Jahr handelt, welches kein Schaltjahr ist.
         """
         eintrittsdatum = '29.02.2023'
 

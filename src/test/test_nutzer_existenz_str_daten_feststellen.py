@@ -35,8 +35,8 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
 
     def test_pflicht_zeichenkette_ist_leer(self):
         """
-        Test prueft, ob die Methode 'existenz_str_daten_feststellen' ein ValueError-Exception wirft, wenn die
-        uebergegebene Variable ein leerer Pflicht-String ist.
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn die uebergegebene Variable ein leerer Pflicht-String
+        ist.
         """
         personalnummer = ''
 
@@ -48,9 +48,8 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
 
     def test_ganzzahl_wird_str(self):
         """
-        Test prueft, ob die Methode 'existenz_str_daten_feststellen' ein 'str' zurueckgibt, wenn die
-        uebergegebene Variable anfangs als Ganzzahl gelesen wird, aber eigentlich als Zeichenkette in die Datenbank
-        uebertragen werden soll.
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn die uebergegebene Variable anfangs als Ganzzahl gelesen
+        wird, aber eigentlich als Zeichenkette in die Datenbank uebertragen werden soll.
         """
         postleitzahl = 12345
         postleitzahl = self.nutzer._existenz_str_daten_feststellen(postleitzahl, 'Postleitzahl', 5, False)
@@ -64,7 +63,7 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         uebertragen werden soll.
         """
         double = 12.45
-        double = self.nutzer._existenz_str_daten_feststellen(double, 'Postleitzahl', 5, False)
+        double = self.nutzer._existenz_str_daten_feststellen(double, 'Zahl_zu_String', 5, False)
 
         self.assertEqual(type(double), str)
 
@@ -75,14 +74,13 @@ class TestExistenzStrDatenFeststellen(unittest.TestCase):
         die Datenbank uebertragen werden soll.
         """
         date_daten = datetime.strptime('12.12.1992', '%d.%m.%Y').date()
-        date_daten = self.nutzer._existenz_str_daten_feststellen(date_daten, 'Postleitzahl', 10, False)
+        date_daten = self.nutzer._existenz_str_daten_feststellen(date_daten, 'Datum_zu_String', 10, False)
 
         self.assertEqual(type(date_daten), str)
 
     def test_zu_lange_zeichenkette(self):
         """
-        Test prueft, ob die Methode 'existenz_str_daten_feststellen' eine ValueError-Exception wirft, wenn die
-        Zeichenkette laenger ist als erlaubt.
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn die eichenkette laenger ist als erlaubt.
         """
         personalnummer = '0' + ('12345678' * 4)
 

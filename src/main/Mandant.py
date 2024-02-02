@@ -34,8 +34,7 @@ class Mandant:
 
     def _datenbankbverbindung_aufbauen(self):
         """
-        Baut eine Connection zur Datenbank auf. Diese Methode wird jedes Mal aufgerufen, bevor mit der Datenbank
-        interagiert werden soll.
+        Baut eine Connection zur Datenbank auf.
         :return: conn-Variable, die die Verbindung zur Datenbank enthaelt
         """
         conn = psycopg2.connect(

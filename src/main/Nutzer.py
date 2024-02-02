@@ -128,9 +128,7 @@ class Nutzer:
 
         with conn.cursor() as cur:
             cur.execute(f"set search_path to {self.schema};"
-                        f"SET role postgres;"
                         f"SET session role tenant_user;"
-                        # f"SET app.current_user_id='{self.mandant_id}';"
                         f"SET app.current_tenant='{self.mandant_id}';"
                         f"{abfrage}")
             ergebnis = cur.fetchall()
@@ -146,11 +144,10 @@ class Nutzer:
 
     def insert_krankenversicherungsbeitraege(self, neuanlage_krankenversicherungsbeitraege):
         """
-        Diese Methode uebertraegt die eingetragenen Krankenversicherungsbeitraege (im Rahmen der Bachelorarbeit
-        dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
-        'insert_krankenversicherungsbeitraege' aufgerufen wird.
+        Diese Methode uebertraegt die eingetragenen Krankenversicherungsbeitraege in die Datenbank, in dem der Stored
+        Procedure 'insert_krankenversicherungsbeitraege' aufgerufen wird.
         :param neuanlage_krankenversicherungsbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen
-        werden sollen.
+                                                        werden sollen.
         """
         if not self.neues_passwort_geaendert:
             raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
@@ -158,7 +155,8 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_krankenversicherungsbeitraege)
 
-        # Daten aus importierter Excel-Tabelle '1 Krankenversicherungsbeitraege.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '2 insert Sozialversicherungsdaten/1 Krankenversicherungsbeitraege.xlsx'
+        # pruefen
         ermaessigter_beitragssatz = self._existenz_boolean_daten_feststellen(daten[0],
                                                                              'ermaessigter Beitragssatz',
                                                                              True)
@@ -192,11 +190,10 @@ class Nutzer:
 
     def insert_gesetzliche_krankenkasse(self, neuanlage_gesetzliche_krankenkasse):
         """
-        Diese Methode uebertraegt die eingetragene gesetzliche Krankenkasse mit deren Zusatzbeitrag und Umlagen (im
-        Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
-        'insert_gesetzliche_Krankenkasse' aufgerufen wird.
+        Diese Methode uebertraegt die eingetragene gesetzliche Krankenkasse mit deren Zusatzbeitrag und Umlagen in die
+        Datenbank, in dem der Stored Procedure 'insert_gesetzliche_Krankenkasse' aufgerufen wird.
         :param neuanlage_gesetzliche_krankenkasse: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen
-        werden sollen.
+                                                   werden sollen.
         """
         if not self.neues_passwort_geaendert:
             raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
@@ -204,7 +201,8 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_gesetzliche_krankenkasse)
 
-        # Daten aus importierter Excel-Tabelle '2 gesetzliche Krankenkasse.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '2 insert Sozialversicherungsdaten/2 gesetzliche Krankenkasse.xlsx'
+        # pruefen
         krankenkasse_voller_name = self._existenz_str_daten_feststellen(daten[0], 'Krankenkasse voller Name', 128, True)
         krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Krankenkasse Abkuerzung', 16, False)
         zusatzbeitrag = self._existenz_zahlen_daten_feststellen(daten[2], 99, 'Zusatzbeitrag Krankenkasse', True)
@@ -227,11 +225,10 @@ class Nutzer:
 
     def insert_private_krankenkasse(self, neuanlage_private_krankenkasse):
         """
-        Diese Methode uebertraegt die eingetragene private Krankenkasse mit deren Umlagen (im Rahmen
-        der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
-        'insert_private_Krankenkasse' aufgerufen wird.
+        Diese Methode uebertraegt die eingetragene private Krankenkasse mit deren Umlagen in die Datenbank, in dem der
+        Stored Procedure 'insert_private_Krankenkasse' aufgerufen wird.
         :param neuanlage_private_krankenkasse: Name der Excel-Datei, dessen Daten in die Datenbank
-        eingetragen werden sollen.
+                                               eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
             raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
@@ -239,7 +236,7 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_private_krankenkasse)
 
-        # Daten aus importierter Excel-Tabelle '3 private Krankenkasse.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '2 insert Sozialversicherungsdaten/3 private Krankenkasse.xlsx' pruefen
         krankenkasse_voller_name = self._existenz_str_daten_feststellen(daten[0], 'Krankenkasse voller Name', 128, True)
         krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Krankenkasse Abkuerzung', 16, False)
         u1_umlage = self._existenz_zahlen_daten_feststellen(daten[2], 99, 'U1-Umlage', True)
@@ -261,11 +258,10 @@ class Nutzer:
     def insert_gemeldete_krankenkasse(self, neuanlage_gemeldete_krankenkasse):
         """
         Diese Methode uebertraegt die eingetragene gemeldete Krankenkasse fuer Mitarbeiter, die anderweitig
-        krankenversichert sein muessen (z.B. Werkstudenten, unbezahlte Praktikanten etc.) mit deren Umlagen (im Rahmen
-        der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
-        'insert_gemeldete_Krankenkasse' aufgerufen wird.
+        krankenversichert sein muessen (z.B. Werkstudenten, unbezahlte Praktikanten etc.) mit deren Umlagen in die
+        Datenbank, in dem der Stored Procedure 'insert_gemeldete_Krankenkasse' aufgerufen wird.
         :param neuanlage_gemeldete_krankenkasse: Name der Excel-Datei, dessen Daten in die Datenbank
-        eingetragen werden sollen.
+                                                 eingetragen werden sollen.
         """
 
         if not self.neues_passwort_geaendert:
@@ -274,7 +270,7 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_gemeldete_krankenkasse)
 
-        # Daten aus importierter Excel-Tabelle '4 gemeldete Krankenkasse.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '2 insert Sozialversicherungsdaten/4 gemeldete Krankenkasse.xlsx' pruefen
         krankenkasse_voller_name = self._existenz_str_daten_feststellen(daten[0], 'Krankenkasse voller Name', 128, True)
         krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Krankenkasse Abkuerzung', 16, False)
         u1_umlage = self._existenz_zahlen_daten_feststellen(daten[2], 99, 'U1-Umlage', True)
@@ -296,8 +292,8 @@ class Nutzer:
     def insert_anzahl_kinder_an_pv_beitrag(self, neuanlage_anzahl_kinder):
         """
         Diese Methode uebertraegt die Anzahl der Kinder und der daraus resultierende Arbeitnehmerbeitrag zur
-        Pflegeversicherung (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in dem
-        der Stored Procedure 'insert_anzahl_kinder_an_pv_beitrag' aufgerufen wird.
+        Pflegeversicherung in die Datenbank, in dem der Stored Procedure 'insert_anzahl_kinder_an_pv_beitrag' aufgerufen
+        wird.
         :param neuanlage_anzahl_kinder: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
@@ -306,7 +302,8 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_anzahl_kinder)
 
-        # Daten aus importierter Excel-Tabelle '5 Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '2 insert Sozialversicherungsdaten/5 Anzahl Kinder Arbeitnehmer
+        # PV-Beitrag.xlsx' pruefen
         anzahl_kinder = self._existenz_zahlen_daten_feststellen(daten[0], 99, 'Anzahl Kinder', True)
         an_beitrag_pv_in_prozent = self._existenz_zahlen_daten_feststellen(daten[1], 99, 'AN-Beitrag PV in %', True)
         beitragsbemessungsgrenze_pv = self._existenz_zahlen_daten_feststellen(daten[2],
@@ -331,11 +328,10 @@ class Nutzer:
 
     def insert_arbeitsort_sachsen_ag_pv_beitrag(self, neuanlage_wohnhaft_sachsen):
         """
-        Diese Methode uebertraegt den Arbeitgeberbeitrag zur Pflichtversicherung in Abhaengigkeit des Wohnortes
-        (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in dem
-        der Stored Procedure 'insert_arbeitsort_sachsen_ag_pv_beitrag' aufgerufen wird.
+        Diese Methode uebertraegt den Arbeitgeberbeitrag zur Pflichtversicherung in Abhaengigkeit des Wohnortes in die
+        Datenbank, in dem der Stored Procedure 'insert_arbeitsort_sachsen_ag_pv_beitrag' aufgerufen wird.
         :param neuanlage_wohnhaft_sachsen: Name der Excel-Datei, dessen Daten in die Datenbank
-        eingetragen werden sollen.
+                                           eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
             raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
@@ -343,7 +339,8 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_wohnhaft_sachsen)
 
-        # Daten aus importierter Excel-Tabelle '6 wohnhaft Sachsen Arbeitgeber PV-Beitrag.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '2 insert Sozialversicherungsdaten/6 Arbeitsort Sachsen Arbeitgeber
+        # PV-Beitrag.xlsx' pruefen
         wohnhaft_sachsen = self._existenz_boolean_daten_feststellen(daten[0], 'wohnhaft_Sachsen', True)
         ag_beitrag_pv_in_prozent = self._existenz_zahlen_daten_feststellen(daten[1], 99, 'AG-Beitrag PV in %', True)
         eintragungsdatum = self._existenz_date_daten_feststellen(daten[2], 'Eintragungsdatum', True)
@@ -354,10 +351,10 @@ class Nutzer:
     def insert_arbeitslosenversicherungsbeitraege(self, neuanlage_arbeitslosenversicherungsbeitraege):
         """
         Diese Methode uebertraegt die Arbeitslosenversicheurngsbeitragssaetze von Arbeitnehmer und Arbeitgeber sowie die
-        Beitragsbemessungsgrenzen (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in
-        dem der Stored Procedure 'insert_arbeitslosenversicherungsbeitraege' aufgerufen wird.
+        Beitragsbemessungsgrenzen in die Datenbank, in dem der Stored Procedure
+        'insert_arbeitslosenversicherungsbeitraege' aufgerufen wird.
         :param neuanlage_arbeitslosenversicherungsbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank
-        eingetragen werden sollen.
+                                                             eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
             raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
@@ -365,7 +362,8 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_arbeitslosenversicherungsbeitraege)
 
-        # Daten aus importierter Excel-Tabelle '7 Arbeitslosenversicherungsbeitraege.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '2 insert Sozialversicherungsdaten/
+        # 7 Arbeitslosenversicherungsbeitraege.xlsx' pruefen
         an_beitrag_av_in_prozent = self._existenz_zahlen_daten_feststellen(daten[0], 99, 'AN-Beitrag AV in %', True)
         ag_beitrag_av_in_prozent = self._existenz_zahlen_daten_feststellen(daten[1], 99, 'AG-Beitrag AV in %', True)
         beitragsbemessungsgrenze_av_ost = self._existenz_zahlen_daten_feststellen(daten[2],
@@ -389,10 +387,10 @@ class Nutzer:
     def insert_rentenversicherungsbeitraege(self, neuanlage_rentenversicherungsbeitraege):
         """
         Diese Methode uebertraegt die Rentenversicherungsbeitragssaetze von Arbeitnehmer und Arbeitgeber sowie die
-        Beitragsbemessungsgrenzen (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in
-        dem der Stored Procedure 'insert_arbeitslosenversicherungsbeitraege' aufgerufen wird.
+        Beitragsbemessungsgrenzen in die Datenbank, in dem der Stored Procedure
+        'insert_arbeitslosenversicherungsbeitraege' aufgerufen wird.
         :param neuanlage_rentenversicherungsbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank
-        eingetragen werden sollen.
+                                                       eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
             raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
@@ -400,7 +398,8 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_rentenversicherungsbeitraege)
 
-        # Daten aus importierter Excel-Tabelle '8 Rentenversicherungsbeitraege.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '2 insert Sozialversicherungsdaten/8 Rentenversicherungsbeitraege.xlsx'
+        # pruefen
         an_beitrag_rv_in_prozent = self._existenz_zahlen_daten_feststellen(daten[0], 99, 'AN-Beitrag RV in %', True)
         ag_beitrag_rv_in_prozent = self._existenz_zahlen_daten_feststellen(daten[1], 99, 'AG-Beitrag RV in %', True)
         beitragsbemessungsgrenze_rv_ost = self._existenz_zahlen_daten_feststellen(daten[2],
@@ -424,10 +423,9 @@ class Nutzer:
     def insert_minijobbeitraege(self, neuanlage_minijobbeitraege):
         """
         Diese Methode uebertraegt Minijobbeitragssaetze von Arbeitnehmer und Arbeitgeber sowie die Umlagen und
-        Pauschalsteuer (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in
-        dem der Stored Procedure 'insert_minijobbeitraege' aufgerufen wird.
+        Pauschalsteuer in die Datenbank, in dem der Stored Procedure 'insert_minijobbeitraege' aufgerufen wird.
         :param neuanlage_minijobbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank
-        eingetragen werden sollen.
+                                           eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
             raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
@@ -435,7 +433,7 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_minijobbeitraege)
 
-        # Daten aus importierter Excel-Tabelle '9 Minijobbeitraege.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '2 insert Sozialversicherungsdaten/9 Minijobbeitraege.xlsx' pruefen
         kurzfristig_beschaeftigt = self._existenz_boolean_daten_feststellen(daten[0],
                                                                             'kurzfristige Minijobtaetigkeit?',
                                                                             True)
@@ -477,8 +475,8 @@ class Nutzer:
 
     def insert_berufsgenossenschaft(self, neuanlage_berufsgenossenschaft):
         """
-        Diese Methode uebertraegt eine Berufsgenossenschaft in die Datenbank (im Rahmen der Bachelorarbeit dargestellt
-        durch eine Excel-Datei), in dem die Stored Procedure 'insert_berufsgenossenschaft' aufgerufen wird.
+        Diese Methode uebertraegt eine Berufsgenossenschaft in die Datenbank, in dem die Stored Procedure
+        'insert_berufsgenossenschaft' aufgerufen wird.
         :param neuanlage_berufsgenossenschaft: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden
         sollen.
         """
@@ -487,7 +485,7 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_berufsgenossenschaft)
 
-        # Daten aus importierter Excel-Tabelle '10 Berufsgenossenschaft.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '2 insert Sozialversicherungsdaten/10 Berufsgenossenschaft.xlsx' pruefen
         berufsgenossenschaft = self._existenz_str_daten_feststellen(daten[0], 'Berufsgenossenschaft', 128, True)
         abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Berufsgenossenschaftskuerzel', 16, False)
 
@@ -497,10 +495,10 @@ class Nutzer:
     def insert_unfallversicherungsbeitrag(self, neuanlage_unfallversicherungsbeitrag):
         """
         Diese Methode verknuepft eine Berufsgenossenschaft mit einem Unternehmen und traegt den Jahresbeitrag der
-        Gesellschaft in die Datenbank ein (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei), in dem die
-        Stored Procedure 'insert_unfallversicherungsbeitrag' aufgerufen wird.
+        Gesellschaft in die Datenbank ein, in dem die Stored Procedure 'insert_unfallversicherungsbeitrag' aufgerufen
+        wird.
         :param neuanlage_unfallversicherungsbeitrag: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen
-        werden sollen.
+                                                     werden sollen.
         """
         if not self.neues_passwort_geaendert:
             raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
@@ -508,7 +506,8 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_unfallversicherungsbeitrag)
 
-        # Daten aus importierter Excel-Tabelle '11 Unfallversicherungsbeitrag.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '2 insert Sozialversicherungsdaten/11 Unfallversicherungsbeitrag.xlsx'
+        # pruefen
         unternehmen = self._existenz_str_daten_feststellen(daten[0], 'Unternehmen', 128, True)
         unternehmenskuerzel = self._existenz_str_daten_feststellen(daten[1], 'Unternehmenskuerzel', 16, False)
         berufsgenossenschaft = self._existenz_str_daten_feststellen(daten[2], 'Berufsgenossenschaft', 128, True)
@@ -533,8 +532,8 @@ class Nutzer:
 
     def insert_gewerkschaft(self, neuanlage_gewerkschaft):
         """
-        Diese Methode uebertraegt den Namen der Gewerkschaft (im Rahmen der Bachelorarbeit dargestellt durch eine
-        Excel-Datei) in die Datenbank, in dem der Stored Procedure 'insert_gewerkschaft' aufgerufen wird.
+        Diese Methode uebertraegt den Namen der Gewerkschaft in die Datenbank, in dem der Stored Procedure
+        'insert_gewerkschaft' aufgerufen wird.
         :param neuanlage_gewerkschaft: Name der Excel-Datei, dessen Daten in die Datenbank
         """
         if not self.neues_passwort_geaendert:
@@ -543,7 +542,7 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_gewerkschaft)
 
-        # Daten aus importierter Excel-Tabelle '2 Tarif.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '3 insert Entgeltdaten/1 Gewerkschaft.xlsx' pruefen
         gewerkschaft = self._existenz_str_daten_feststellen(daten[0], 'Gewerkschaft', 64, True)
 
         export_daten = [self.mandant_id, gewerkschaft]
@@ -551,9 +550,8 @@ class Nutzer:
 
     def insert_tarif(self, neuanlage_tarif):
         """
-        Diese Methode uebertraegt den Namen eines Tarifs und verknuepft diese mit der Gewerkschaft (im Rahmen der
-        Bachelorarbeit dargestellt durch eine Excel-Datei), die fuer diese zustaendig ist, in die Datenbank, in dem der
-        Stored Procedure 'insert_tarif' aufgerufen wird.
+        Diese Methode uebertraegt den Namen eines Tarifs und verknuepft diese mit der Gewerkschaft, die fuer diese
+        zustaendig ist, in die Datenbank, in dem der Stored Procedure 'insert_tarif' aufgerufen wird.
         :param neuanlage_tarif: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
@@ -562,7 +560,7 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_tarif)
 
-        # Daten aus importierter Excel-Tabelle '2 Tarif.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '3 insert Entgeltdaten/2 Tarif.xlsx' pruefen
         tarifbezeichnung = self._existenz_str_daten_feststellen(daten[0], 'Tarifbezeichnung', 16, True)
         gewerkschaft = self._existenz_str_daten_feststellen(daten[1], 'Gewerkschaft', 64, True)
 
@@ -573,7 +571,7 @@ class Nutzer:
         """
         Methode schreibt ein neues Verguetungsbestandteil und dessen Auszahlungsmonat in die Datenbank ein.
         :param neuanalage_verguetungsbestandteil: Name der Excel-Datei, dessen Daten in die Datenbank
-        eingetragen werden sollen.
+                                                  eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
             raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
@@ -581,7 +579,7 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanalage_verguetungsbestandteil)
 
-        # Daten aus importierter Excel-Tabelle '3 Verguetungsbestandteil.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '3 insert Entgeltdaten/3 Verguetungsbestandteil.xlsx' pruefen
         verguetungsbestandteil = self._existenz_str_daten_feststellen(daten[0], 'Verguetungsbestandteil', 64, True)
         auszahlungsmonat = self._existenz_str_daten_feststellen(daten[1], 'Auszahlungsmonat', 16, True)
 
@@ -591,10 +589,10 @@ class Nutzer:
     def insert_tarifliches_verguetungsbestandteil(self, neuanlage_tarifliches_verguetungsbestandteil):
         """
         Diese Methode uebertraegt einen Verguetungsbestandteil wie bspw. Grundgehalt, Urlaubsgeld etc. und verknuepft
-        sie mit dem entsprechenden Tarif (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei), in die
-        Datenbank, in dem die Stored Procedure 'insert_tarifliches_verguetungsbestandteil' aufgerufen wird.
+        sie mit dem entsprechenden Tarif, in die Datenbank, in dem die Stored Procedure
+        'insert_tarifliches_verguetungsbestandteil' aufgerufen wird.
         :param neuanlage_tarifliches_verguetungsbestandteil: Name der Excel-Datei, dessen Daten in die Datenbank
-        eingetragen werden sollen.
+                                                             eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
             raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
@@ -602,7 +600,7 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_tarifliches_verguetungsbestandteil)
 
-        # Daten aus importierter Excel-Tabelle '4 Verguetungsbestandteil.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '3 insert Entgeltdaten/4 tariflicher Verguetungsbestandteil.xlsx' pruefen
         verguetungsbestandteil = self._existenz_str_daten_feststellen(daten[0], 'Verguetungsbestandteil', 64, True)
         tarifbezeichnung = self._existenz_str_daten_feststellen(daten[1], 'Tarifbezeichnung', 16, True)
         betrag = self._existenz_zahlen_daten_feststellen(daten[2], 99999999, 'Betrag', True)
@@ -613,8 +611,8 @@ class Nutzer:
 
     def insert_geschlecht(self, neuanlage_geschlecht):
         """
-        Diese Methode uebertraegt ein Geschlecht (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in
-        die Datenbank, in dem die Stored Procedure 'insert_geschlecht' aufgerufen wird.
+        Diese Methode uebertraegt ein Geschlecht in die Datenbank, in dem die Stored Procedure 'insert_geschlecht'
+        aufgerufen wird.
         :param neuanlage_geschlecht: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
@@ -623,7 +621,7 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_geschlecht)
 
-        # Daten aus importierter Excel-Tabelle '1 Geschlecht.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '1 insert personenbezogene Daten/1 Geschlecht.xlsx' pruefen
         geschlecht = self._existenz_str_daten_feststellen(daten[0], 'Geschlecht', 32, True)
 
         export_daten = [self.mandant_id, geschlecht]
@@ -631,15 +629,14 @@ class Nutzer:
 
     def insert_mitarbeitertyp(self, neuanlage_mitarbeitertyp):
         """
-        Diese Methode uebertraegt ein Mitarbeitertyp wie bspw. 'Angestellter' oder 'Praktikant' (im Rahmen der
-        Bachelorarbeit dargestellt durch eine Excel-Datei) in die Datenbank, in dem die Stored Procedure
-        'insert_mitarbeitertyp' aufgerufen wird.
+        Diese Methode uebertraegt ein Mitarbeitertyp wie bspw. 'Angestellter' oder 'Praktikant' in die Datenbank, in
+        dem die Stored Procedure 'insert_mitarbeitertyp' aufgerufen wird.
         :param neuanlage_mitarbeitertyp: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         """
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_mitarbeitertyp)
 
-        # Daten aus importierter Excel-Tabelle '2 Mitarbeitertyp.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '1 insert personenbezogene Daten/2 Mitarbeitertyp.xlsx' pruefen
         mitarbeitertyp = self._existenz_str_daten_feststellen(daten[0], 'Geschlecht', 32, True)
 
         export_daten = [self.mandant_id, mitarbeitertyp]
@@ -647,8 +644,8 @@ class Nutzer:
 
     def insert_steuerklasse(self, neuanlage_steuerklasse):
         """
-        Diese Methode uebertraegt Steuerklasse (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei) in die
-        Datenbank, in dem die Stored Procedure 'insert_steuerklasse' aufgerufen wird.
+        Diese Methode uebertraegt Steuerklasse in die Datenbank, in dem die Stored Procedure 'insert_steuerklasse'
+        aufgerufen wird.
         :param neuanlage_steuerklasse: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
@@ -657,7 +654,7 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_steuerklasse)
 
-        # Daten aus importierter Excel-Tabelle '3 Steuerklasse.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '1 insert personenbezogene Daten/3 Steuerklasse.xlsx' pruefen
         steuerklasse = self._existenz_str_daten_feststellen(daten[0], 'Steuerklasse', 1, True)
 
         export_daten = [self.mandant_id, steuerklasse]
@@ -665,8 +662,8 @@ class Nutzer:
 
     def insert_abteilung(self, neuanlage_abteilung):
         """
-        Diese Methode uebertraegt eine Abteilung und deren Abkuerzung in die Datenbank (im Rahmen der Bachelorarbeit
-        dargestellt durch eine Excel-Datei), in dem die Stored Procedure 'insert_abteilung' aufgerufen wird.
+        Diese Methode uebertraegt eine Abteilung und deren Abkuerzung in die Datenbank , in dem die Stored Procedure
+        'insert_abteilung' aufgerufen wird.
         :param neuanlage_abteilung: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
@@ -675,7 +672,7 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_abteilung)
 
-        # Daten aus importierter Excel-Tabelle '4 Abteilung.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '1 insert personenbezogene Daten/4 Abteilung.xlsx' pruefen
         abteilung = self._existenz_str_daten_feststellen(daten[0], 'Abteilung', 64, True)
         abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Abteilungskuerzel', 16, False)
 
@@ -684,8 +681,7 @@ class Nutzer:
 
     def insert_jobtitel(self, neuanlage_jobtitel):
         """
-        Diese Methode uebertraegt einen Jobtitel (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei),
-        in dem die Stored Procedure 'insert_jobtitel' aufgerufen wird.
+        Diese Methode uebertraegt einen Jobtitel, in dem die Stored Procedure 'insert_jobtitel' aufgerufen wird.
         :param neuanlage_jobtitel: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
@@ -694,7 +690,7 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_jobtitel)
 
-        # Daten aus importierter Excel-Tabelle '5 Jobtitel.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '1 insert personenbezogene Daten/5 Jobtitel.xlsx' pruefen
         jobtitel = self._existenz_str_daten_feststellen(daten[0], 'Jobtitel', 32, True)
 
         export_daten = [self.mandant_id, jobtitel]
@@ -702,8 +698,8 @@ class Nutzer:
 
     def insert_erfahrungsstufe(self, neuanlage_erfahrungsstufe):
         """
-        Diese Methode uebertraegt eine Erfahrungsstufe wie bspw. 'Junior', 'Senior' etc. (im Rahmen der Bachelorarbeit
-        dargestellt durch eine Excel-Datei), in dem die Stored Procedure 'insert_erfahrungsstufe' aufgerufen wird.
+        Diese Methode uebertraegt eine Erfahrungsstufe wie bspw. 'Junior', 'Senior' etc., in dem die Stored Procedure
+        'insert_erfahrungsstufe' aufgerufen wird.
         :param neuanlage_erfahrungsstufe: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
@@ -712,7 +708,7 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_erfahrungsstufe)
 
-        # Daten aus importierter Excel-Tabelle '6 Erfahrungsstufe.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '1 insert personenbezogene Daten/6 Erfahrungsstufe.xlsx' pruefen
         erfahrungsstufe = self._existenz_str_daten_feststellen(daten[0], 'Erfahrungsstufe', 32, True)
 
         export_daten = [self.mandant_id, erfahrungsstufe]
@@ -720,9 +716,8 @@ class Nutzer:
 
     def insert_unternehmen(self, neuanlage_unternehmen):
         """
-        Diese Methode uebertraegt eine Unternehmensgesellschaft und deren Abkuerzung in die Datenbank (im Rahmen der
-        Bachelorarbeit dargestellt durch eine Excel-Datei), in dem die Stored Procedure 'insert_unternehmen' aufgerufen
-        wird.
+        Diese Methode uebertraegt ein Unternehmen und evtl. deren Abkuerzung in die Datenbank, in dem die Stored
+        Procedure 'insert_unternehmen' aufgerufen wird.
         :param neuanlage_unternehmen: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
@@ -731,7 +726,7 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_unternehmen)
 
-        # Daten aus importierter Excel-Tabelle '7 Gesellschaft.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '1 insert personenbezogene Daten/7 Gesellschaft.xlsx' pruefen
         unternehmen = self._existenz_str_daten_feststellen(daten[0], 'Unternehmen', 128, True)
         abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Gesellschaftskuerzel', 16, False)
 
@@ -740,9 +735,8 @@ class Nutzer:
 
     def insert_austrittsgrundkategorie(self, neuanlage_austrittsgrundkategorie):
         """
-        Diese Methode uebertraegt eine Austrittsgrundkategorie wie bspw. 'betriebsbedingt' in die Datenbank (im Rahmen
-        der Bachelorarbeit dargestellt durch eine Excel-Datei), in dem die Stored Procedure
-        'insert_kategorien_austrittsgruende' aufgerufen wird.
+        Diese Methode uebertraegt eine Austrittsgrundkategorie wie bspw. 'betriebsbedingt' in die Datenbank, in dem die
+        Stored Procedure 'insert_austrittsgrundkategorie' aufgerufen wird.
         :param neuanlage_austrittsgrundkategorie: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden
                                                   sollen.
         """
@@ -752,7 +746,7 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_austrittsgrundkategorie)
 
-        # Daten aus importierter Excel-Tabelle '8 Austrittsgrundkategorie.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '1 insert personenbezogene Daten/8 Austrittsgrundkategorie.xlsx' pruefen
         austrittsgrundkategorie = self._existenz_str_daten_feststellen(daten[0], 'Austrittsgrundkategorie', 16, True)
 
         export_daten = [self.mandant_id, austrittsgrundkategorie]
@@ -760,9 +754,8 @@ class Nutzer:
 
     def insert_austrittsgrund(self, neuanlage_austrittsgrund):
         """
-        Diese Methode uebertraegt eine Austrittsgrund wie bspw. 'Umsatzrueckgang' in die Datenbank (im Rahmen
-        der Bachelorarbeit dargestellt durch eine Excel-Datei), in dem die Stored Procedure 'insert_austrittsgruende'
-        aufgerufen wird.
+        Diese Methode uebertraegt eine Austrittsgrund wie bspw. 'Umsatzrueckgang' in die Datenbank, in dem die Stored
+        Procedure 'insert_austrittsgruende' aufgerufen wird.
         :param neuanlage_austrittsgrund: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
@@ -771,7 +764,7 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_austrittsgrund)
 
-        # Daten aus importierter Excel-Tabelle '9 Austrittsgrund.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '1 insert personenbezogene Daten/9 Austrittsgrund.xlsx' pruefen
         austrittsgrund = self._existenz_str_daten_feststellen(daten[0], 'Austrittsgrund', 16, True)
         austrittsgrundkategorie = self._existenz_str_daten_feststellen(daten[1], 'Austrittsgrundkategorie', 16, True)
 
@@ -780,11 +773,10 @@ class Nutzer:
 
     def insert_neuer_mitarbeiter(self, mitarbeiterdaten):
         """
-        Diese Methode uebertraegt die eingetragenen Mitarbeiterdaten (im Rahmen der Bachelorarbeit
-        dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
+        Diese Methode uebertraegt die eingetragenen Mitarbeiterdaten in die Datenbank, in dem der Stored Procedure
         'insert_neuer_mitarbeiter' aufgerufen wird.
         :param mitarbeiterdaten: Name der Excel-Datei, dessen Mitarbeiterdaten in die Datenbank
-        eingetragen werden sollen.
+                                 eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
             raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
@@ -792,7 +784,7 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(mitarbeiterdaten)
 
-        # Daten aus importierter Excel-Tabelle '10 Mitarbeiter.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '4 neuen Mitarbeiter anlegen/1 Mitarbeiter.xlsx' pruefen
         personalnummer = self._existenz_str_daten_feststellen(daten[0], 'Personalnummer', 32, True)
         vorname = self._existenz_str_daten_feststellen(daten[1], 'Vorname', 64, True)
         zweitname = self._existenz_str_daten_feststellen(daten[2], 'Zweitname', 128, False)
@@ -884,8 +876,8 @@ class Nutzer:
         rentenversichert = self._existenz_boolean_daten_feststellen(daten[46], 'rentenversichert?', False)
 
         # Ein Mitarbeiter darf nur entweder gesetzlich krankenversichert ODER privat versichert mit Anspruch auf
-        # Arbeitgeberzuschuss ODER Minijobber ODER anderweitig versichert (z.B. kruzfristig Beschaeftigte, Werkstudenten
-        # etc.) Es darf also nur genau eines der vier boolean-Variablen 'True' sein
+        # Arbeitgeberzuschuss ODER Minijobber ODER anderweitig versichert (z.B. kufzfristig Beschaeftigte, Werkstudenten
+        # etc.) sein. Es darf also nur genau eines der vier boolean-Variablen 'True' sein
         true_zaehler = 0
 
         # Anzahl der 'True'-Werte zaehlen
@@ -966,7 +958,7 @@ class Nutzer:
                         anderweitig_versichert,
                         arbeitslosenversichert,
                         rentenversichert]
-        self._export_zu_db('insert_mitarbeiterdaten('
+        self._export_zu_db('insert_neuer_mitarbeiter('
                            '%s,%s,%s,%s,%s,%s,%s,%s,'
                            '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'
                            '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'
@@ -976,11 +968,10 @@ class Nutzer:
     def insert_aussertarifliches_verguetungsbestandteil(self, neuanlage_aussertariflicher_verguetungsbestandteil):
         """
         Diese Methode uebertraegt einen Verguetungsbestandteil wie bspw. Grundgehalt, Urlaubsgeld etc. und verknuepft
-        sie mit dem entsprechenden aussertariflich angestellten Mitarbeiter (im Rahmen der Bachelorarbeit dargestellt
-        durch eine Excel-Datei), in die Datenbank, in dem die Stored Procedure
-        'insert_aussertarifliche_verguetungsbestandteil' aufgerufen wird.
+        sie mit dem entsprechenden aussertariflich angestellten Mitarbeiter, in die Datenbank, in dem die Stored
+        Procedure 'insert_aussertarifliches_verguetungsbestandteil' aufgerufen wird.
         :param neuanlage_aussertariflicher_verguetungsbestandteil: Name der Excel-Datei, dessen Daten in die Datenbank
-        eingetragen werden sollen.
+                                                                   eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
             raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
@@ -988,7 +979,8 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(neuanlage_aussertariflicher_verguetungsbestandteil)
 
-        # Daten aus importierter Excel-Tabelle '3 Verguetungsbestandteil.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle '4 neuen Mitarbeiter anlegen/2 aussertariflicher
+        # Verguetungsbestandteil.xlsx' pruefen
         personalnummer = self._existenz_str_daten_feststellen(daten[0], 'Personalnummer', 32, True)
         verguetungsbestandteil = self._existenz_str_daten_feststellen(daten[1], 'Verguetungsbestandteil', 64, True)
         betrag = self._existenz_zahlen_daten_feststellen(daten[2], 99999999, 'Betrag', True)
@@ -999,11 +991,10 @@ class Nutzer:
 
     def update_adresse(self, update_adressdaten):
         """
-        Diese Methode uebertraegt die neue Adresse eines Mitarbeiters (im Rahmen der Bachelorarbeit
-        dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
+        Diese Methode uebertraegt die neue Adresse eines Mitarbeiters in die Datenbank, in dem der Stored Procedure
         'update_adresse' aufgerufen wird.
         :param update_adressdaten: Name der Excel-Datei, dessen Adressdaten in die Datenbank
-        eingetragen werden sollen.
+                                   eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
             raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
@@ -1011,7 +1002,7 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(update_adressdaten)
 
-        # Daten aus importierter Excel-Tabelle '1 Update Adresse.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle 'update personenbezogene Daten/1 Update Adresse.xlsx' pruefen
         personalnummer = self._existenz_str_daten_feststellen(daten[0], 'Personalnummer', 32, True)
         neuer_eintrag_gueltig_ab = self._existenz_date_daten_feststellen(daten[1], 'Gueltig ab', True)
         alter_eintrag_gueltig_bis = self._vorherigen_tag_berechnen(neuer_eintrag_gueltig_ab)
@@ -1038,11 +1029,10 @@ class Nutzer:
 
     def update_mitarbeiterentlassung(self, update_mitarbeiterentlassung):
         """
-        Diese Methode traegt die Entlassung und dessen Grund in die Datenbank (im Rahmen der Bachelorarbeit
-        dargestellt durch eine Excel-Datei) in die Datenbank, in dem der Stored Procedure
-        'update_adresse' aufgerufen wird.
+        Diese Methode traegt die Entlassung und dessen Grund in die Datenbank in die Datenbank, in dem der Stored
+        Procedure 'update_mitarbeiterentlassung' aufgerufen wird.
         :param update_mitarbeiterentlassung: Name der Excel-Datei, dessen Daten in die Datenbank
-        eingetragen werden sollen.
+                                             eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
             raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
@@ -1050,7 +1040,8 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(update_mitarbeiterentlassung)
 
-        # Daten aus importierter Excel-Tabelle '2 Update Mitarbeiterentlassung.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle 'update personenbezogene Daten/2 Update Mitarbeiterentlassung.xlsx'
+        # pruefen
         personalnummer = self._existenz_str_daten_feststellen(daten[0], 'Personalnummer', 32, True)
         letzter_arbeitstag = self._existenz_date_daten_feststellen(daten[1], 'letzter Arbeitstag', True)
         austrittsgrund = self._existenz_str_daten_feststellen(daten[2], 'Austrittsgrund', 16, True)
@@ -1060,9 +1051,8 @@ class Nutzer:
 
     def update_krankenversicherungsbeitraege(self, update_krankenversicherungsbeitraege):
         """
-        Diese Methode ordnet in der Datenbanke eine Abteilung einer anderen unter (im Rahmen der Bachelorarbeit
-        dargestellt durch eine Excel-Datei), in dem der Stored Procedure
-        'update_erstelle_abteilungshierarchie' aufgerufen wird.
+        Diese Methode ordnet in der Datenbanke eine Abteilung einer anderen unter, in dem der Stored Procedure
+        'update_krankenversicherungsbeitraege' aufgerufen wird.
         :param update_krankenversicherungsbeitraege: Name der Excel-Datei, dessen Daten in die Datenbank
         eingetragen werden sollen.
         """
@@ -1072,7 +1062,8 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(update_krankenversicherungsbeitraege)
 
-        # Daten aus importierter Excel-Tabelle '1 Krankenversicherungsbeitraege.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle 'update Sozialversicherungsdaten/1 Krankenversicherungsbeitraege.xlsx'
+        # pruefen
         ermaessigter_beitragssatz = self._existenz_boolean_daten_feststellen(daten[0],
                                                                              'ermaessigter Beitragssatz',
                                                                              True)
@@ -1107,11 +1098,10 @@ class Nutzer:
 
     def update_erstelle_abteilungshierarchie(self, update_abteilungshierarchie):
         """
-        Diese Methode ordnet in der Datenbanke eine Abteilung einer anderen unter (im Rahmen der Bachelorarbeit
-        dargestellt durch eine Excel-Datei), in dem der Stored Procedure
+        Diese Methode ordnet in der Datenbanke eine Abteilung einer anderen unter, in dem der Stored Procedure
         'update_erstelle_abteilungshierarchie' aufgerufen wird.
         :param update_abteilungshierarchie: Name der Excel-Datei, dessen Daten in die Datenbank
-        eingetragen werden sollen.
+                                            eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
             raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
@@ -1119,7 +1109,8 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(update_abteilungshierarchie)
 
-        # Daten aus importierter Excel-Tabelle '3 Update Abteilungshierarchie.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle 'update personenbezogene Daten/3 Update Abteilungshierarchie.xlsx'
+        # pruefen
         abteilung_unter = self._existenz_str_daten_feststellen(daten[0], 'untergeordnete Abteilung', 64, True)
         abteilung_ueber = self._existenz_str_daten_feststellen(daten[1], 'uebergeordnete Abteilung', 64, True)
 
@@ -1129,8 +1120,8 @@ class Nutzer:
     def delete_mitarbeiterdaten(self, mitarbeiter):
         """
         Methode ruft die Stored Procedure 'delete_mitarbeiterdaten' auf, welche alle personenbezogenen Daten
-        eines Mitarbeiters aus den Assoziationstabellen, der Tabelle 'Privat_Krankenversicherte' und der
-        zentralen Tabelle entfernt
+        eines Mitarbeiters aus den Assoziationstabellen, der Tabelle 'Aussertarifliche' und der
+        Tabelle 'Mitarbeiter' entfernt
         :param mitarbeiter: Name der Excel-Datei, die die Personalnummer des Mitarbeiters enthaelt, der entfernt
                             werden soll
         """
@@ -1140,7 +1131,7 @@ class Nutzer:
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(mitarbeiter)
 
-        # Daten aus importierter Excel-Tabelle 'Personalnummer.xlsx' pruefen
+        # Daten aus importierter Excel-Tabelle 'delete personenbezogene Daten/Personalnummer.xlsx' pruefen
         personalnummer = self._existenz_str_daten_feststellen(daten[0], 'Personalnummer', 32, True)
 
         export_daten = [self.mandant_id, personalnummer]
@@ -1179,7 +1170,6 @@ class Nutzer:
         aufgerufen wird.
         :param stored_procedure: datenbankseitige Methode, welche die uebergebenen Daten in die Datenbank schreibt
         :param export_daten: Daten, welche in die Personalstammdatenbank eingetragen werden sollen
-        :param schema: enthaelt das Schema, welches angesprochen werden soll
         """
         conn = self._datenbankbverbindung_aufbauen()
         cur = conn.cursor()
@@ -1219,8 +1209,8 @@ class Nutzer:
     def _existenz_date_daten_feststellen(self, date_daten, art, pflicht):
         """
         Methode stellt fest, ob optionale Daten vorliegen oder nicht und wenn ja, so sollen diese auf jeden Fall
-        als Date-Datentyp zurueckgegeben werden. So soll sichergestellt werden, dass dem Datenbanksystem die Daten in dem
-        Datentyp uebergeben werden, in der sie in der Personalstammdatenbank gespeichert werden koennen.
+        als Date-Datentyp zurueckgegeben werden. So soll sichergestellt werden, dass dem Datenbanksystem die Daten in
+        dem Datentyp uebergeben werden, in der sie in der Personalstammdatenbank gespeichert werden koennen.
         :param date_daten: wird untersucht, ob Daten darin enthalten sind
         :param art: gibt an, um was fuer Daten es sich handeln soll
         :param pflicht: boolean, der bei 'True' angibt, dass 'date_daten' kein leerer String sein darf
@@ -1246,9 +1236,8 @@ class Nutzer:
     def _existenz_zahlen_daten_feststellen(self, zahlen_daten, hoechstbetrag, art, pflicht):
         """
         Methode stellt fest, ob optionale Daten vorliegen oder nicht und wenn ja, so sollen diese auf jeden Fall
-        als Decimal-Datentyp mit zwei Nachkommastellen zurueckgegeben werden. So soll sichergestellt werden, dass dem
-        Datenbanksystem die Daten in dem Datentyp uebergeben werden, in der sie in der Personalstammdatenbank gespeichert
-        werden koennen.
+        als Decimal-Datentyp zurueckgegeben werden. So soll sichergestellt werden, dass dem Datenbanksystem die Daten
+        in dem Datentyp uebergeben werden, in der sie in der Personalstammdatenbank gespeichert werden koennen.
         :param zahlen_daten: wird untersucht, ob Daten darin enthalten sind
         :param hoechstbetrag: der Wert der Variablen 'zahlen_daten' darf nicht hoeher sein
         :param art: gibt an, um was fuer Daten es sich handeln soll
@@ -1276,8 +1265,9 @@ class Nutzer:
     def _existenz_boolean_daten_feststellen(self, boolean_daten, art, pflicht):
         """
             Methode stellt fest, ob optionale Daten vorliegen oder nicht und wenn ja, so sollen diese auf jeden Fall
-            als boolean-Datentyp zurueckgegeben werden. So soll sichergestellt werden, dass dem Datenbanksystem die Daten
-            in dem Datentyp uebergeben werden, in der sie in der Personalstammdatenbank gespeichert werden koennen.
+            als boolean-Datentyp zurueckgegeben werden. So soll sichergestellt werden, dass dem Datenbanksystem die
+            Daten in dem Datentyp uebergeben werden, in der sie in der Personalstammdatenbank gespeichert werden
+            koennen.
             :param boolean_daten: wird untersucht, ob Daten darin enthalten sind
             :param art: gibt an, um was fuer Daten es sich handeln soll
             :param pflicht: boolean, der bei 'True' angibt, dass 'boolean_daten' kein leerer String sein darf

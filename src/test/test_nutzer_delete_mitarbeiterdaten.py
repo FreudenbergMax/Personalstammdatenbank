@@ -217,7 +217,7 @@ class TestNutzerDeleteMitarbeiterdaten(unittest.TestCase):
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM ist_minijobber")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
-        # Nun Entfernung des Mitarbeiters. Tabelle 'hat_Minijobber muss von diesem Mitarbeiter nun wieder leer sein
+        # Nun Entfernung des Mitarbeiters. Tabelle 'hat_Minijobber' muss von diesem Mitarbeiter nun wieder frei sein
         self.nutzer.delete_mitarbeiterdaten("testdaten_delete_Mitarbeiterdaten/delete Personalnummer.xlsx")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM ist_minijobber")
@@ -237,7 +237,8 @@ class TestNutzerDeleteMitarbeiterdaten(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, 1, Decimal('300.23'), Decimal('300.23'), datetime.date(2024, 1, 1), "
                                         "datetime.date(9999, 12, 31))]")
 
-        # Nun Entfernung des Mitarbeiters. Tabelle 'hat_Minijobber muss von diesem Mitarbeiter nun wieder leer sein
+        # Nun Entfernung des Mitarbeiters. Tabelle 'hat_Privatkrankenkasse' muss von diesem Mitarbeiter nun wieder
+        # frei sein
         self.nutzer.delete_mitarbeiterdaten("testdaten_delete_Mitarbeiterdaten/delete Personalnummer.xlsx")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_privatkrankenkasse")
@@ -245,7 +246,7 @@ class TestNutzerDeleteMitarbeiterdaten(unittest.TestCase):
 
     def test_erfolgreiche_entfernung_anderweitig_versicherter_mitarbeiter(self):
         """
-        Test prueft, ob Daten eines Minijob-Mitarbeiters aus Tabellen 'ist_Minijobber' und entfernt wird.
+        Test prueft, ob Daten eines anderweitig versicherten Mitarbeiters aus Tabelle 'ist_anderweitig_versichert' wird.
         Auf die restlichen Tabellen kann verzichtet werden, da bereits im Test
         'test_erfolgreiche_entfernung_gesetzlicher_sv_mitarbeiter' erfolgreich geprueft wurde, dass die Methode
         'delete_mitarbeiterdaten' die Daten aus den anderen Assoziationstabellen und der Tabelle 'Mitarbeiter'
@@ -265,7 +266,7 @@ class TestNutzerDeleteMitarbeiterdaten(unittest.TestCase):
 
     def test_mitarbeiter_existiert_nicht(self):
         """
-        Test prueft, ob eine Exception geworfen wird, wenn die Daten einer Personalnummer entfernt werden sollen,
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn die Daten einer Personalnummer entfernt werden sollen,
         die nicht existiert.
         """
         with self.assertRaises(Exception) as context:

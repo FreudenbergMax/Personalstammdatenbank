@@ -34,8 +34,7 @@ class TestExistenzBooleanDatenFeststellen(unittest.TestCase):
 
     def test_pflicht_zahlenwert_ist_leer(self):
         """
-        Test prueft, ob die Methode '_existenz_boolean_daten_feststellen' ein ValueError-Exception wirft, wenn die
-        uebergegebene Variable ein leerer Pflicht-String ist.
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn die uebergegebene Variable leer ist.
         """
         boolean = ''
 
@@ -47,8 +46,7 @@ class TestExistenzBooleanDatenFeststellen(unittest.TestCase):
 
     def test_nein_zu_false(self):
         """
-        Test prueft, ob die Methode '_existenz_boolean_daten_feststellen' 'False' zurueckgibt, wenn die
-        uebergegebene Variable ein String 'nein' ist.
+        Test prueft, ein 'nein'-String zu einem boolean mit Wert 'False' umgewandelt wird.
         """
         boolean = 'nein'
 
@@ -91,7 +89,7 @@ class TestExistenzBooleanDatenFeststellen(unittest.TestCase):
 
     def test_inkompatibler_wert(self):
         """
-        Test prueft, ob eine TypeError-Exeption geworfen wird, weil der Methode '_existenz_boolean_daten_feststellen'
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, weil der Methode '_existenz_boolean_daten_feststellen'
         ein String uebergeben wird, der nicht in einen Wahrheitswert konvertiert werden kann
         """
         boolean = 'hallo welt'

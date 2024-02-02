@@ -62,7 +62,7 @@ class TestNeuerMandant(unittest.TestCase):
 
     def test_zu_langer_name_exception(self):
         """
-        Test prueft, ob die Raise-Funktion aufgerufen wird, wenn versucht wird, einen Mandantennamen zu
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn versucht wird, einen Mandantennamen zu
         waehlen, der laenger als 128 Zeichen lang ist.
         """
         name_129_zeichen = "a" * 129
@@ -80,7 +80,7 @@ class TestNeuerMandant(unittest.TestCase):
 
     def test_falsches_schema_exception(self):
         """
-        Test prueft, ob die ValueError-Exception geworfen wird, wenn die uebergebene Schema-Bezeichnung nicht 'public'
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn die uebergebene Schema-Bezeichnung nicht 'public'
         oder 'temp_test_schema' lautet
         """
         falsches_schema = 'hallo_welt_schema'
@@ -92,7 +92,7 @@ class TestNeuerMandant(unittest.TestCase):
 
     def test_zu_langes_passwort_exception(self):
         """
-        Test prueft, ob die Raise-Funktion aufgerufen wird, wenn versucht wird, ein Passwort zu
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn versucht wird, ein Passwort zu
         waehlen, das laenger als 128 Zeichen lang ist.
         """
         pw_129_zeichen = "a" * 129
@@ -107,7 +107,7 @@ class TestNeuerMandant(unittest.TestCase):
 
     def test_wiederholtes_passwort_falsch_exception(self):
         """
-        Test prueft, ob die Raise-Funktion aufgerufen wird, wenn bei der zweiten Passworteingabe ein anderer String
+        Test prueft, ob eine Fehlemeldung ausgegeben wird, wenn bei der zweiten Passworteingabe ein anderer String
         enthalten ist, als in der ersten Eingabe.
         """
         erste_pw_eingabe = 'mandantenpasswort'

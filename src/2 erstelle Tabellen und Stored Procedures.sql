@@ -3128,7 +3128,7 @@ language plpgsql;
 /*
  * Mit dieser Funktion sollen die Daten eines neuen Mitarbeiters in die Tabelle eingetragen werden
  */
-create or replace procedure insert_mitarbeiterdaten(
+create or replace procedure insert_neuer_mitarbeiter(
 	p_mandant_id integer,
 	-- Tabelle Mitarbeiterdaten
 	p_personalnummer varchar(32),
