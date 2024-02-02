@@ -29,7 +29,7 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
         self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx')
         self.nutzer.insert_jobtitel('testdaten_insert_jobtitel/Jobtitel.xlsx')
         self.nutzer.insert_erfahrungsstufe('testdaten_insert_erfahrungsstufe/Erfahrungsstufe.xlsx')
-        self.nutzer.insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft.xlsx')
+        self.nutzer.insert_unternehmen('testdaten_insert_unternehmen/Unternehmen.xlsx')
         self.nutzer.insert_austrittsgrundkategorie(
             'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx')
         self.nutzer.insert_austrittsgrund('testdaten_insert_austrittsgrund/Austrittsgrund.xlsx')
@@ -106,7 +106,7 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM ist_minijobber")
         self.assertEqual(str(ergebnis), "[]")
 
-        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM in_gesellschaft")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM in_unternehmen")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM ist_mitarbeitertyp")
@@ -326,7 +326,7 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
         und Geschlecht.
 
         Zudem sind fuer gewoehnlich bereits Mitarbeitertyp, Wochenarbeitsstunden, Abteilung, ob Mitarbeiter
-        Fuehrungskraft ist, Jobtitel, Erfahrungsstufe, die Gesellschaft die Frage und ob Mitarbeiter tarifbeschaeftigt
+        Fuehrungskraft ist, Jobtitel, Erfahrungsstufe, das Unternehmen die Frage und ob Mitarbeiter tarifbeschaeftigt
         ist, da dies bereits in der Stellenausschreibung bzw. im Laufe der Vertragsverhandlungen bekannt ist.
 
         Speziell Sozialversicherungs- und Steuerdaten aber auch die IBAN werden fuer gewoehnlich erst nachgereicht. Es
@@ -385,7 +385,7 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
                                         "datetime.date(2024, 1, 1), None, None, None, '0175 1234567', "
                                         "'maxmustermann@web.de', None, None, None, None, None)]")
 
-        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM in_gesellschaft")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM in_unternehmen")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM ist_mitarbeitertyp")

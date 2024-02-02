@@ -22,15 +22,26 @@ class TestNutzerInsertBerufsgenossenschaft(unittest.TestCase):
         self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
         self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
-    def test_erfolgreicher_eintrag(self):
+    def test_erfolgreicher_eintrag_mit_abkuerzung(self):
         """
-        Test prueft, ob eine Berufsgenossenschaft eingetragen wird.
+        Test prueft, ob eine Berufsgenossenschaft mit ihrer Abkuerzung eingetragen wird.
         """
         self.nutzer.insert_berufsgenossenschaft('testdaten_insert_berufsgenossenschaft/Berufsgenossenschaft.xlsx')
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM berufsgenossenschaften")
         self.assertEqual(str(ergebnis), "[(1, 1, 'Berufsgenossenschaft Nahrungsmittel', 'BGN')]")
+
+    def test_erfolgreicher_eintrag_ohne_abkuerzung(self):
+        """
+        Test prueft, ob eine Berufsgenossenschaft ohne ihrer Abkuerzung eingetragen wird.
+        """
+        self.nutzer.insert_berufsgenossenschaft(
+            'testdaten_insert_berufsgenossenschaft/Berufsgenossenschaft - ohne Abkuerzung.xlsx')
+
+        # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM berufsgenossenschaften")
+        self.assertEqual(str(ergebnis), "[(1, 1, 'Berufsgenossenschaft Nahrungsmittel', None)]")
 
     def test_kein_doppelter_eintrag_Abteilung_und_abkuerzung_identisch(self):
         """

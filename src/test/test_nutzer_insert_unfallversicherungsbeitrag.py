@@ -23,7 +23,7 @@ class TestNutzerInsertUnfallversicherungsbeitraege(unittest.TestCase):
         self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
         self.nutzer.insert_berufsgenossenschaft('testdaten_insert_berufsgenossenschaft/Berufsgenossenschaft.xlsx')
-        self.nutzer.insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft.xlsx')
+        self.nutzer.insert_unternehmen('testdaten_insert_unternehmen/Unternehmen.xlsx')
 
     def test_erfolgreicher_eintrag(self):
         """

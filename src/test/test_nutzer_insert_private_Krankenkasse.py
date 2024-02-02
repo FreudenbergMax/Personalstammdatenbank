@@ -22,15 +22,32 @@ class TestNutzerInsertPrivateKrankenkasse(unittest.TestCase):
         self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
         self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
-    def test_erfolgreicher_eintrag(self):
+    def test_erfolgreicher_eintrag_mit_abkuerzung(self):
         """
-        Test prueft, ob private Krankenkasse mit ihrem Umlagebeitraegen eingetragen werden.
+        Test prueft, ob private Krankenkasse mit Abkuerzung und mit ihren Umlagebeitraegen eingetragen werden.
         """
         self.nutzer.insert_private_krankenkasse('testdaten_insert_privatkrankenkasse/private Krankenkasse.xlsx')
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Privatkrankenkassen")
         self.assertEqual(str(ergebnis), "[(1, 1, 'BARMER', 'BAR')]")
+
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM umlagen")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.600'), Decimal('0.440'), Decimal('0.060'), 'privat')]")
+
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_umlagen_privat")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+
+    def test_erfolgreicher_eintrag_ohne_abkuerzung(self):
+        """
+        Test prueft, ob private Krankenkasse ohne Abkuerzung und mit ihren Umlagebeitraegen eingetragen werden.
+        """
+        self.nutzer.insert_private_krankenkasse(
+            'testdaten_insert_privatkrankenkasse/private Krankenkasse - ohne Abkuerzung.xlsx')
+
+        # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Privatkrankenkassen")
+        self.assertEqual(str(ergebnis), "[(1, 1, 'BARMER', None)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM umlagen")
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.600'), Decimal('0.440'), Decimal('0.060'), 'privat')]")

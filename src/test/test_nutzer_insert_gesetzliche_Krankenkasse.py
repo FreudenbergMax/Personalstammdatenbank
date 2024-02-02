@@ -22,9 +22,10 @@ class TestNutzerInsertGesetzlicheKrankenkasse(unittest.TestCase):
         self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
         self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
-    def test_erfolgreicher_eintrag(self):
+    def test_erfolgreicher_eintrag_mit_abkuerzung(self):
         """
-        Test prueft, ob gesetzliche Krankenkasse mit ihrem Zusatzbeitrag und Umlagebeitraegen eingetragen werden.
+        Test prueft, ob gesetzliche Krankenkasse mit dessen Abkuerzung und mit ihrem Zusatzbeitrag und Umlagebeitraegen
+        eingetragen werden.
         """
         self.nutzer.insert_gesetzliche_krankenkasse('testdaten_insert_gesetzliche_krankenkasse/'
                                                     'gesetzliche Krankenkasse.xlsx')
@@ -32,6 +33,30 @@ class TestNutzerInsertGesetzlicheKrankenkasse(unittest.TestCase):
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gesetzliche_Krankenkassen")
         self.assertEqual(str(ergebnis), "[(1, 1, 'Kaufmaennische Krankenkasse', 'KKH')]")
+
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gkv_zusatzbeitraege")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.500'))]")
+
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gkv_zusatzbeitrag")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM umlagen")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.600'), Decimal('0.440'), Decimal('0.060'), 'gesetzlich')]")
+
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_umlagen_gesetzlich")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+
+    def test_erfolgreicher_eintrag_ohne_abkuerzung(self):
+        """
+        Test prueft, ob gesetzliche Krankenkasse ohne dessen Abkuerzung und mit ihrem Zusatzbeitrag und Umlagebeitraegen
+        eingetragen werden.
+        """
+        self.nutzer.insert_gesetzliche_krankenkasse(
+            'testdaten_insert_gesetzliche_krankenkasse/gesetzliche Krankenkasse - ohne Abkuerzung.xlsx')
+
+        # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gesetzliche_Krankenkassen")
+        self.assertEqual(str(ergebnis), "[(1, 1, 'Kaufmaennische Krankenkasse', None)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gkv_zusatzbeitraege")
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.500'))]")

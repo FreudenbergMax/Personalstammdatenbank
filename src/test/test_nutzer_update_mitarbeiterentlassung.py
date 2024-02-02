@@ -29,7 +29,7 @@ class TestNutzerUpdateMitarbeiterentlassung(unittest.TestCase):
         self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx')
         self.nutzer.insert_jobtitel('testdaten_insert_jobtitel/Jobtitel.xlsx')
         self.nutzer.insert_erfahrungsstufe('testdaten_insert_erfahrungsstufe/Erfahrungsstufe.xlsx')
-        self.nutzer.insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft.xlsx')
+        self.nutzer.insert_unternehmen('testdaten_insert_unternehmen/Unternehmen.xlsx')
         self.nutzer.insert_austrittsgrundkategorie(
             'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx')
         self.nutzer.insert_austrittsgrund('testdaten_insert_austrittsgrund/Austrittsgrund.xlsx')
@@ -108,7 +108,7 @@ class TestNutzerUpdateMitarbeiterentlassung(unittest.TestCase):
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM ist_minijobber")
         self.assertEqual(str(ergebnis), "[]")
 
-        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM in_gesellschaft")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM in_unternehmen")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(2030, 12, 31))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM ist_mitarbeitertyp")
@@ -229,7 +229,7 @@ class TestNutzerUpdateMitarbeiterentlassung(unittest.TestCase):
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM ist_minijobber")
         self.assertEqual(str(ergebnis), "[]")
 
-        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM in_gesellschaft")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM in_unternehmen")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(2030, 12, 31))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM ist_mitarbeitertyp")

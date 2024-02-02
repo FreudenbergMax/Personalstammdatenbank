@@ -22,15 +22,32 @@ class TestNutzerInsertGemeldeteKrankenkasse(unittest.TestCase):
         self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
         self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
-    def test_erfolgreicher_eintrag(self):
+    def test_erfolgreicher_eintrag_mit_abkuerzung(self):
         """
-        Test prueft, ob gemeldete Krankenkasse mit ihrem Umlagebeitraegen eingetragen werden.
+        Test prueft, ob gemeldete Krankenkasse mit dessen Abkuerzung und mit ihrem Umlagebeitraegen eingetragen werden.
         """
         self.nutzer.insert_gemeldete_krankenkasse('testdaten_insert_gemeldete_krankenkasse/gemeldete Krankenkasse.xlsx')
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gemeldete_krankenkassen")
         self.assertEqual(str(ergebnis), "[(1, 1, 'Techniker Krankenkasse', 'TK')]")
+
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM umlagen")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.600'), Decimal('0.440'), Decimal('0.060'), 'anders')]")
+
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_umlagen_anderweitig")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+
+    def test_erfolgreicher_eintrag_ohne_abkuerzung(self):
+        """
+        Test prueft, ob gemeldete Krankenkasse ohne dessen Abkuerzung und mit ihrem Umlagebeitraegen eingetragen werden.
+        """
+        self.nutzer.insert_gemeldete_krankenkasse(
+            'testdaten_insert_gemeldete_krankenkasse/gemeldete Krankenkasse - ohne Abkuerzung.xlsx')
+
+        # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gemeldete_krankenkassen")
+        self.assertEqual(str(ergebnis), "[(1, 1, 'Techniker Krankenkasse', None)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM umlagen")
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.600'), Decimal('0.440'), Decimal('0.060'), 'anders')]")

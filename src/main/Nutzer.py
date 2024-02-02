@@ -206,7 +206,7 @@ class Nutzer:
 
         # Daten aus importierter Excel-Tabelle '2 gesetzliche Krankenkasse.xlsx' pruefen
         krankenkasse_voller_name = self._existenz_str_daten_feststellen(daten[0], 'Krankenkasse voller Name', 128, True)
-        krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Krankenkasse Abkuerzung', 16, True)
+        krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Krankenkasse Abkuerzung', 16, False)
         zusatzbeitrag = self._existenz_zahlen_daten_feststellen(daten[2], 99, 'Zusatzbeitrag Krankenkasse', True)
         u1_umlage = self._existenz_zahlen_daten_feststellen(daten[3], 99, 'U1-Umlage', True)
         u2_umlage = self._existenz_zahlen_daten_feststellen(daten[4], 99, 'U2-Umlage', True)
@@ -241,7 +241,7 @@ class Nutzer:
 
         # Daten aus importierter Excel-Tabelle '3 private Krankenkasse.xlsx' pruefen
         krankenkasse_voller_name = self._existenz_str_daten_feststellen(daten[0], 'Krankenkasse voller Name', 128, True)
-        krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Krankenkasse Abkuerzung', 16, True)
+        krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Krankenkasse Abkuerzung', 16, False)
         u1_umlage = self._existenz_zahlen_daten_feststellen(daten[2], 99, 'U1-Umlage', True)
         u2_umlage = self._existenz_zahlen_daten_feststellen(daten[3], 99, 'U2-Umlage', True)
         insolvenzgeldumlage = self._existenz_zahlen_daten_feststellen(daten[4], 99, 'Insolvenzgeldumlage', True)
@@ -276,7 +276,7 @@ class Nutzer:
 
         # Daten aus importierter Excel-Tabelle '4 gemeldete Krankenkasse.xlsx' pruefen
         krankenkasse_voller_name = self._existenz_str_daten_feststellen(daten[0], 'Krankenkasse voller Name', 128, True)
-        krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Krankenkasse Abkuerzung', 16, True)
+        krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Krankenkasse Abkuerzung', 16, False)
         u1_umlage = self._existenz_zahlen_daten_feststellen(daten[2], 99, 'U1-Umlage', True)
         u2_umlage = self._existenz_zahlen_daten_feststellen(daten[3], 99, 'U2-Umlage', True)
         insolvenzgeldumlage = self._existenz_zahlen_daten_feststellen(daten[4], 99, 'Insolvenzgeldumlage', True)
@@ -489,14 +489,14 @@ class Nutzer:
 
         # Daten aus importierter Excel-Tabelle '10 Berufsgenossenschaft.xlsx' pruefen
         berufsgenossenschaft = self._existenz_str_daten_feststellen(daten[0], 'Berufsgenossenschaft', 128, True)
-        abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Berufsgenossenschaftskuerzel', 16, True)
+        abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Berufsgenossenschaftskuerzel', 16, False)
 
         export_daten = [self.mandant_id, berufsgenossenschaft, abkuerzung]
         self._export_zu_db('insert_berufsgenossenschaft(%s,%s,%s)', export_daten)
 
     def insert_unfallversicherungsbeitrag(self, neuanlage_unfallversicherungsbeitrag):
         """
-        Diese Methode verknuepft eine Berufsgenossenschaft mit einer Gesellschaft und traegt den Jahresbeitrag der
+        Diese Methode verknuepft eine Berufsgenossenschaft mit einem Unternehmen und traegt den Jahresbeitrag der
         Gesellschaft in die Datenbank ein (im Rahmen der Bachelorarbeit dargestellt durch eine Excel-Datei), in dem die
         Stored Procedure 'insert_unfallversicherungsbeitrag' aufgerufen wird.
         :param neuanlage_unfallversicherungsbeitrag: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen
@@ -509,13 +509,13 @@ class Nutzer:
         daten = self._import_excel_daten(neuanlage_unfallversicherungsbeitrag)
 
         # Daten aus importierter Excel-Tabelle '11 Unfallversicherungsbeitrag.xlsx' pruefen
-        gesellschaft = self._existenz_str_daten_feststellen(daten[0], 'Gesellschaft', 128, True)
-        gesellschaftskuerzel = self._existenz_str_daten_feststellen(daten[1], 'Gesellschaftskuerzel', 16, True)
+        unternehmen = self._existenz_str_daten_feststellen(daten[0], 'Unternehmen', 128, True)
+        unternehmenskuerzel = self._existenz_str_daten_feststellen(daten[1], 'Unternehmenskuerzel', 16, False)
         berufsgenossenschaft = self._existenz_str_daten_feststellen(daten[2], 'Berufsgenossenschaft', 128, True)
         berufsgenossenschaftskuerzel = self._existenz_str_daten_feststellen(daten[3],
                                                                             'Berufsgenossenschaftskuerzel',
                                                                             16,
-                                                                            True)
+                                                                            False)
         jahresbeitrag_unfallversicherung = self._existenz_zahlen_daten_feststellen(daten[4], 9999999999, 'Betrag', True)
         beitragsjahr_uv = self._existenz_zahlen_daten_feststellen(daten[5],
                                                                   9999,
@@ -523,8 +523,8 @@ class Nutzer:
                                                                   True)
 
         export_daten = [self.mandant_id,
-                        gesellschaft,
-                        gesellschaftskuerzel,
+                        unternehmen,
+                        unternehmenskuerzel,
                         berufsgenossenschaft,
                         berufsgenossenschaftskuerzel,
                         jahresbeitrag_unfallversicherung,
@@ -677,7 +677,7 @@ class Nutzer:
 
         # Daten aus importierter Excel-Tabelle '4 Abteilung.xlsx' pruefen
         abteilung = self._existenz_str_daten_feststellen(daten[0], 'Abteilung', 64, True)
-        abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Abteilungskuerzel', 16, True)
+        abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Abteilungskuerzel', 16, False)
 
         export_daten = [self.mandant_id, abteilung, abkuerzung]
         self._export_zu_db('insert_abteilung(%s,%s,%s)', export_daten)
@@ -718,25 +718,25 @@ class Nutzer:
         export_daten = [self.mandant_id, erfahrungsstufe]
         self._export_zu_db('insert_erfahrungsstufe(%s,%s)', export_daten)
 
-    def insert_gesellschaft(self, neuanlage_gesellschaft):
+    def insert_unternehmen(self, neuanlage_unternehmen):
         """
         Diese Methode uebertraegt eine Unternehmensgesellschaft und deren Abkuerzung in die Datenbank (im Rahmen der
-        Bachelorarbeit dargestellt durch eine Excel-Datei), in dem die Stored Procedure 'insert_gesellschaft' aufgerufen
+        Bachelorarbeit dargestellt durch eine Excel-Datei), in dem die Stored Procedure 'insert_unternehmen' aufgerufen
         wird.
-        :param neuanlage_gesellschaft: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
+        :param neuanlage_unternehmen: Name der Excel-Datei, dessen Daten in die Datenbank eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
             raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
 
         # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
-        daten = self._import_excel_daten(neuanlage_gesellschaft)
+        daten = self._import_excel_daten(neuanlage_unternehmen)
 
         # Daten aus importierter Excel-Tabelle '7 Gesellschaft.xlsx' pruefen
-        gesellschaft = self._existenz_str_daten_feststellen(daten[0], 'Gesellschaft', 128, True)
-        abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Gesellschaftskuerzel', 16, True)
+        unternehmen = self._existenz_str_daten_feststellen(daten[0], 'Unternehmen', 128, True)
+        abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Gesellschaftskuerzel', 16, False)
 
-        export_daten = [self.mandant_id, gesellschaft, abkuerzung]
-        self._export_zu_db('insert_gesellschaft(%s,%s,%s)', export_daten)
+        export_daten = [self.mandant_id, unternehmen, abkuerzung]
+        self._export_zu_db('insert_unternehmen(%s,%s,%s)', export_daten)
 
     def insert_austrittsgrundkategorie(self, neuanlage_austrittsgrundkategorie):
         """
@@ -836,7 +836,7 @@ class Nutzer:
         jobtitel = self._existenz_str_daten_feststellen(daten[28], 'Jobtitel', 32, True)
         erfahrungsstufe = self._existenz_str_daten_feststellen(daten[29], 'Erfahrungsstufe', 32, True)
 
-        gesellschaft = self._existenz_str_daten_feststellen(daten[30], 'Gesellschaft', 128, True)
+        unternehmen = self._existenz_str_daten_feststellen(daten[30], 'Unternehmen', 128, True)
 
         tarifbeschaeftigt = self._existenz_boolean_daten_feststellen(daten[31], 'tarifbeschaeftigt', True)
         if tarifbeschaeftigt:
@@ -949,7 +949,7 @@ class Nutzer:
                         fuehrungskraft,
                         jobtitel,
                         erfahrungsstufe,
-                        gesellschaft,
+                        unternehmen,
                         tarifbeschaeftigt,
                         tarif,
                         kurzfristig_beschaeftigt,

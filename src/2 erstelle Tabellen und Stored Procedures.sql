@@ -398,7 +398,6 @@ create table Abteilungen (
 	Abkuerzung varchar(16),
 	untersteht_Abteilung integer,
 	unique (Mandant_ID, Abteilung),
-	unique (Mandant_ID, Abkuerzung),
 	constraint fk_abteilungen_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID),
@@ -495,49 +494,49 @@ create policy FilterMandant_hat_jobtitel
     on hat_Jobtitel
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- Tabellen, die den Bereich "Gesellschaft" behandeln, erstellen
-create table Gesellschaften (
-	Gesellschaft_ID serial primary key,
+-- Tabellen, die den Bereich "Unternehmen" behandeln, erstellen
+create table Unternehmen (
+	Unternehmen_ID serial primary key,
 	Mandant_ID integer not null,
-	Gesellschaft varchar(128) not null,
+	Unternehmen varchar(128) not null,
 	Abkuerzung varchar(16),
-	untersteht_Gesellschaft integer,
-	unique (Mandant_ID, Gesellschaft),
-	constraint fk_gesellschaften_mandanten
+	untersteht_Unternehmen integer,
+	unique (Mandant_ID, Unternehmen),
+	constraint fk_unternehmen_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID),
-	constraint fk_gesellschaften_gesellschaften
-		foreign key (untersteht_Gesellschaft)
-			references Gesellschaften(Gesellschaft_ID)
+	constraint fk_unternehmen_unternehmen
+		foreign key (untersteht_Unternehmen)
+			references Unternehmen(Unternehmen_ID)
 );
-create unique index gesellschaft_idx on Gesellschaften(lower(Gesellschaft));
-create unique index abk_gesellschaft_idx on Gesellschaften(lower(Abkuerzung));
-alter table Gesellschaften enable row level security;
-create policy FilterMandant_gesellschaften
-    on Gesellschaften
+create unique index unternehmen_idx on Unternehmen(lower(Unternehmen));
+create unique index abk_unternehmen_idx on Unternehmen(lower(Abkuerzung));
+alter table Unternehmen enable row level security;
+create policy FilterMandant_unternehmen
+    on Unternehmen
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- Assoziationstabelle zwischen Mitarbeiter und Gesellschaft
-create table in_Gesellschaft (
+-- Assoziationstabelle zwischen Mitarbeiter und Unternehmen
+create table in_Unternehmen (
 	Mitarbeiter_ID integer not null,
-	Gesellschaft_ID integer not null,
+	Unternehmen_ID integer not null,
 	Mandant_ID integer not null,
 	Datum_Von date not null,
     Datum_Bis date not null,
-    primary key (Mitarbeiter_ID, Gesellschaft_ID, Datum_Bis),
-    constraint fk_ingesellschaft_mitarbeiter
+    primary key (Mitarbeiter_ID, Unternehmen_ID, Datum_Bis),
+    constraint fk_inunternehmen_mitarbeiter
     	foreign key (Mitarbeiter_ID) 
     		references Mitarbeiter(Mitarbeiter_ID),
-    constraint fk_ingesellschaft_gesellschaften
-    	foreign key (Gesellschaft_ID) 
-    		references Gesellschaften(Gesellschaft_ID),
-	constraint fk_ingesellschaft_mandanten
+    constraint fk_inunternehmen_unternehmen
+    	foreign key (Unternehmen_ID) 
+    		references Unternehmen(Unternehmen_ID),
+	constraint fk_inunternehmen_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 ); 
-alter table in_Gesellschaft enable row level security;
-create policy FilterMandant_in_gesellschaft
-    on in_Gesellschaft
+alter table in_Unternehmen enable row level security;
+create policy FilterMandant_in_unternehmen
+    on in_Unternehmen
     using (Mandant_ID = current_setting('app.current_tenant')::int); 
 
 create table Berufsgenossenschaften(
@@ -546,7 +545,6 @@ create table Berufsgenossenschaften(
 	Berufsgenossenschaft varchar(128) not null,
 	Abkuerzung varchar(16),
 	unique(Mandant_ID, Berufsgenossenschaft),
-	unique(Mandant_ID, Abkuerzung),
 	constraint fk_berufsgenossenschaften_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
@@ -559,15 +557,15 @@ create policy FilterMandant_berufsgenossenschaften
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
 create table Unfallversicherungsbeitraege(
-	Gesellschaft_ID integer not null,
+	Unternehmen_ID integer not null,
 	Berufsgenossenschaft_ID integer not null,
 	Mandant_ID integer not null,
 	Beitrag decimal(12,2) not null,
 	Beitragsjahr integer not null,
-	primary key(Gesellschaft_ID, Berufsgenossenschaft_ID, Beitragsjahr),
-	constraint fk_unfallversicherungsbeitraege_gesellschaften
-    	foreign key (Gesellschaft_ID) 
-    		references Gesellschaften(Gesellschaft_ID),
+	primary key(Unternehmen_ID, Berufsgenossenschaft_ID, Beitragsjahr),
+	constraint fk_unfallversicherungsbeitraege_unternehmen
+    	foreign key (Unternehmen_ID) 
+    		references Unternehmen(Unternehmen_ID),
     constraint fk_unfallversicherungsbeitraege_berufsgenossenschaften
     	foreign key (Berufsgenossenschaft_ID) 
     		references Berufsgenossenschaften(Berufsgenossenschaft_ID),
@@ -724,9 +722,8 @@ create table gemeldete_Krankenkassen(
 	gemeldete_Krankenkasse_ID serial primary key,
 	Mandant_ID integer not null,
 	gemeldete_Krankenkasse varchar(128) not null,
-	Krankenkassenkuerzel varchar(16) not null,
+	Krankenkassenkuerzel varchar(16),
 	unique(Mandant_ID, gemeldete_Krankenkasse),
-	unique(Mandant_ID, Krankenkassenkuerzel),
 	constraint fk_gemeldetekrankenkassen_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
@@ -764,9 +761,8 @@ create table Privatkrankenkassen(
 	Privatkrankenkasse_ID serial primary key,
 	Mandant_ID integer not null,
 	Privatkrankenkasse varchar(128) not null,
-	Privatkrankenkassenkuerzel varchar(16) not null,
+	Privatkrankenkassenkuerzel varchar(16),
 	unique (Mandant_ID, Privatkrankenkasse),
-	unique (Mandant_ID, Privatkrankenkassenkuerzel),
 	constraint fk_privatkrankenkassen_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
@@ -883,9 +879,8 @@ create table gesetzliche_Krankenkassen (
 	gesetzliche_Krankenkasse_ID serial primary key,
 	Mandant_ID integer not null,
 	Krankenkasse_gesetzlich varchar(128) not null,
-	Krankenkassenkuerzel varchar(16) not null,
+	Krankenkassenkuerzel varchar(16),
 	unique(Mandant_ID, Krankenkasse_gesetzlich),
-	unique(Mandant_ID, Krankenkassenkuerzel),
 	constraint fk_krankenkassen_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
@@ -2626,8 +2621,8 @@ language plpgsql;
  */
 create or replace procedure insert_unfallversicherungsbeitrag(
 	p_mandant_id integer,
-	p_gesellschaft varchar(128),
-	p_abkuerzung_gesellschaft varchar(16),
+	p_unternehmen varchar(128),
+	p_abkuerzung_unternehmen varchar(16),
 	p_berufsgenossenschaft varchar(128),
 	p_abkuerzung_berufsgenossenschaft varchar(16),
 	p_beitrag decimal(12, 2),
@@ -2635,20 +2630,20 @@ create or replace procedure insert_unfallversicherungsbeitrag(
 ) as
 $$
 declare
-	v_gesellschaft_id integer;
+	v_unternehmen_id integer;
 	v_berufsgenossenschaft_id integer;
 begin
 	
 	set session role tenant_user;
 	execute 'SET app.current_tenant=' || p_mandant_id;
 
-	-- Pruefen, ob Gesellschaft bereits in Tabelle 'Gesellschaften' hinterlegt ist...
-	execute 'SELECT gesellschaft_id FROM gesellschaften WHERE lower(gesellschaft) = $1 AND lower(abkuerzung) = $2' 
-		into v_gesellschaft_id using lower(p_gesellschaft), lower(p_abkuerzung_gesellschaft);
+	-- Pruefen, ob Unternehmen bereits in Tabelle 'Unternehmen' hinterlegt ist...
+	execute 'SELECT unternehmen_id FROM unternehmen WHERE lower(unternehmen) = $1 AND lower(abkuerzung) = $2' 
+		into v_unternehmen_id using lower(p_unternehmen), lower(p_abkuerzung_unternehmen);
 
-	-- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Gesellschaft hinterlegt werden muss!
-    if v_gesellschaft_id is null then
-		raise exception 'Gesellschaft ''%'' mit Abkuerzung ''%'' nicht vorhanden!', p_gesellschaft, p_abkuerzung_gesellschaft;   
+	-- ... und falls sie nicht existiert, Meldung ausgeben, dass erst das Unternehmen hinterlegt werden muss!
+    if v_unternehmen_id is null then
+		raise exception 'Unternehmen ''%'' mit Abkuerzung ''%'' nicht vorhanden!', p_unternehmen, p_abkuerzung_unternehen;   
     end if;
    
    	-- Pruefen, ob Berufsgenossenschaft bereits in Tabelle 'Berufsgenossenschaften' hinterlegt ist...
@@ -2660,8 +2655,8 @@ begin
 		raise exception 'Berufsgenossenschaft ''%'' mit Abkuerzung ''%'' nicht vorhanden!', p_berufsgenossenschaft, p_abkuerzung_berufsgenossenschaft;   
     end if;
     
-    insert into Unfallversicherungsbeitraege(Gesellschaft_ID, Berufsgenossenschaft_ID, Mandant_ID, Beitrag, Beitragsjahr) 
-   		values (v_gesellschaft_id, v_berufsgenossenschaft_id, p_mandant_id, p_beitrag, p_beitragsjahr);
+    insert into Unfallversicherungsbeitraege(Unternehmen_ID, Berufsgenossenschaft_ID, Mandant_ID, Beitrag, Beitragsjahr) 
+   		values (v_unternehmen_id, v_berufsgenossenschaft_id, p_mandant_id, p_beitrag, p_beitragsjahr);
 
 exception
     when unique_violation then
@@ -3023,13 +3018,13 @@ language plpgsql;
 
 
 ----------------------------------------------------------------------------------------------------------------
---Stored Procedure fuer Use Case "Eintrag neue Gesellschaft" 
+--Stored Procedure fuer Use Case "Eintrag neues Unternehmen" 
 /*
- * Funktion traegt neue Daten in Tabelle 'Gesellschaften' ein.
+ * Funktion traegt neue Daten in Tabelle 'Unternehmen' ein.
  */
-create or replace procedure insert_gesellschaft(
+create or replace procedure insert_unternehmen(
 	p_mandant_id integer,
-	p_gesellschaft varchar(128),
+	p_unternehmen varchar(128),
 	p_abkuerzung varchar (16)
 ) as
 $$
@@ -3039,13 +3034,13 @@ begin
     execute 'SET app.current_tenant=' || p_mandant_id;
 
     insert into 
-   		Gesellschaften(Mandant_ID, Gesellschaft, Abkuerzung, untersteht_Gesellschaft)
+   		Unternehmen(Mandant_ID, Unternehmen, Abkuerzung, untersteht_Unternehmen)
    	values 
-   		(p_mandant_id, p_gesellschaft, p_abkuerzung, null);
+   		(p_mandant_id, p_unternehmen, p_abkuerzung, null);
    
 exception
     when unique_violation then
-        raise exception 'Gesellschaft ''%'' oder ''%'' bereits vorhanden!', p_gesellschaft, p_abkuerzung;
+        raise exception 'Unternehmen ''%'' oder ''%'' bereits vorhanden!', p_unternehmen, p_abkuerzung;
            
 end;
 $$
@@ -3173,8 +3168,8 @@ create or replace procedure insert_mitarbeiterdaten(
 	-- Bereich 'Jobtitel'
 	p_jobtitel varchar(32),
 	p_erfahrungsstufe varchar(32),
-	-- Bereich 'Gesellschaft'
-	p_gesellschaft varchar(128),
+	-- Bereich 'Unternehmen'
+	p_unternehmen varchar(128),
 	-- Bereich 'Entgelt'
 	p_tarifbeschaeftigt boolean,
 	p_tarifbezeichnung varchar(16),
@@ -3256,9 +3251,9 @@ begin
 	-- diese Daten vorliegen, wird die entsprechende Funktion sicher aufgerufen.
 	call insert_tbl_hat_jobtitel(p_mandant_id, p_personalnummer, p_jobtitel, p_erfahrungsstufe, p_eintrittsdatum);
 
-	-- Gesellschaft, zu der der neue Mitarbeiter gehoert, erfassen. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn 
+	-- Unternehmen, zu der der neue Mitarbeiter gehoert, erfassen. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn 
 	-- diese Daten vorliegen, wird die entsprechende Funktion sicher aufgerufen.
-	call insert_tbl_in_gesellschaft(p_mandant_id, p_personalnummer, p_gesellschaft, p_eintrittsdatum);
+	call insert_tbl_in_unternehmen(p_mandant_id, p_personalnummer, p_unternehmen, p_eintrittsdatum);
 	
 	-- Tarif erfassen, sofern fuer Mitarbeiter Tarif vorgesehen ist. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn 
 	-- diese Daten vorliegen, wird die entsprechende Funktion sicher aufgerufen.
@@ -3839,40 +3834,40 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Assoziation "in_Gesellschaft" ein
+ * Funktion traegt die Daten in die Assoziation "in_Unternehmen" ein
  */
-create or replace procedure insert_tbl_in_gesellschaft(
+create or replace procedure insert_tbl_in_unternehmen(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
-	p_gesellschaft varchar(128),
+	p_unternehmen varchar(128),
 	p_eintrittsdatum date
 ) as
 $$
 declare
 	v_mitarbeiter_id integer;
-	v_gesellschaft_id integer;
+	v_unternehmen_id integer;
 begin
 	
 	set session role tenant_user;
 	execute 'SET app.current_tenant=' || p_mandant_id;
 
-	-- Pruefen, ob Jobtitel bereits in Tabelle 'Jobtitel' hinterlegt ist...
-	execute 'SELECT gesellschaft_ID FROM gesellschaften WHERE gesellschaft = $1' into v_gesellschaft_id using p_gesellschaft;
+	-- Pruefen, ob Unternehmen bereits in Tabelle 'Unternehmen' hinterlegt ist...
+	execute 'SELECT unternehmen_id FROM unternehmen WHERE unternehmen = $1' into v_unternehmen_id using p_unternehmen;
 	
-	-- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Gesellschaft hinterlegt werden muss!
-    if v_gesellschaft_id is null then
-		raise exception 'Sie muessen erst die Gesellschaft ''%'' anlegen!', p_gesellschaft;   
+	-- ... und falls sie nicht existiert, Meldung ausgeben, dass erst das Unternehmen hinterlegt werden muss!
+    if v_unternehmen_id is null then
+		raise exception 'Sie muessen erst das Unternehmen ''%'' anlegen!', p_unternehmen;   
     end if;
 
-	-- Mitarbeiter_ID ziehen, da diese benoetigt wird, um einen Datensatz in der Assoziation 'in_Gesellschaft' anzulegen
+	-- Mitarbeiter_ID ziehen, da diese benoetigt wird, um einen Datensatz in der Assoziation 'in_Unternehmen' anzulegen
 	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
 	
-    insert into in_Gesellschaft (Mitarbeiter_ID, Gesellschaft_ID, Mandant_ID, Datum_Von, Datum_Bis)
-   		values (v_mitarbeiter_ID, v_gesellschaft_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
+    insert into in_Unternehmen(Mitarbeiter_ID, Unternehmen_ID, Mandant_ID, Datum_Von, Datum_Bis)
+   		values (v_mitarbeiter_ID, v_unternehmen_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
 
 exception
     when unique_violation then
-        raise notice 'Mitarbeiter ist bereits in dieser Gesellschaft!';
+        raise notice 'Mitarbeiter ist bereits in diesem Unternehmen!';
    	
 end;
 $$
@@ -3904,7 +3899,7 @@ begin
    	
    	exception
         when unique_violation then
-            raise notice 'Mitarbeiter ist bereits in dieser Gesellschaft!';
+            raise notice 'Mitarbeiter ist bereits in diesem Tarif!';
    	
 end;
 $$
@@ -4478,7 +4473,7 @@ begin
 	execute 'UPDATE wohnt_in SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE hat_geschlecht SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE ist_mitarbeitertyp SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
-	execute 'UPDATE in_gesellschaft SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
+	execute 'UPDATE in_unternehmen SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE in_steuerklasse SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE arbeitet_x_wochenstunden SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
 	execute 'UPDATE arbeitet_x_wochenstunden SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
@@ -4702,8 +4697,8 @@ begin
 	-- personenbezogene Mitarbeiterdaten aus Bereich 'Mitarbeiteryp' entfernen
 	execute 'DELETE FROM ist_mitarbeitertyp WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 
-	-- personenbezogene Mitarbeiterdaten aus Bereich 'Gesellschaften' entfernen
-	execute 'DELETE FROM in_gesellschaft WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
+	-- personenbezogene Mitarbeiterdaten aus Bereich 'Unternehmen' entfernen
+	execute 'DELETE FROM in_unternehmen WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 
 	-- personenbezogene Mitarbeiterdaten aus Bereich 'Kranken- und Pflegeversicherung' entfernen
 	execute 'DELETE FROM ist_minijobber WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
@@ -4782,10 +4777,10 @@ begin
 	execute 'DELETE FROM ist_mitarbeitertyp WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM mitarbeitertypen WHERE mandant_id = $1' using p_mandant_id;
 
-	-- Daten aus Bereich 'Gesellschaften' entfernen
-	execute 'DELETE FROM in_gesellschaft WHERE mandant_id = $1' using p_mandant_id;
+	-- Daten aus Bereich 'Unternehmen' entfernen
+	execute 'DELETE FROM in_unternehmen WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM unfallversicherungsbeitraege WHERE mandant_id = $1' using p_mandant_id;
-	execute 'DELETE FROM gesellschaften WHERE mandant_id = $1' using p_mandant_id;
+	execute 'DELETE FROM unternehmen WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM berufsgenossenschaften WHERE mandant_id = $1' using p_mandant_id;
 
 	-- Daten aus Bereich 'Kranken- und Pflegeversicherung' entfernen

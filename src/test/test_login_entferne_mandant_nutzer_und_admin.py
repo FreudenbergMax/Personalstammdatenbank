@@ -29,7 +29,7 @@ class TestNutzerDeleteMandantendaten(unittest.TestCase):
         self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx')
         self.nutzer.insert_jobtitel('testdaten_insert_jobtitel/Jobtitel.xlsx')
         self.nutzer.insert_erfahrungsstufe('testdaten_insert_erfahrungsstufe/Erfahrungsstufe.xlsx')
-        self.nutzer.insert_gesellschaft('testdaten_insert_gesellschaft/Gesellschaft.xlsx')
+        self.nutzer.insert_unternehmen('testdaten_insert_unternehmen/Unternehmen.xlsx')
         self.nutzer.insert_austrittsgrundkategorie(
             'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx')
         self.nutzer.insert_austrittsgrund('testdaten_insert_austrittsgrund/Austrittsgrund.xlsx')
@@ -192,10 +192,10 @@ class TestNutzerDeleteMandantendaten(unittest.TestCase):
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM pauschalabgaben")
         self.assertEqual(str(ergebnis), "[(1,)]")
 
-        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM in_gesellschaft")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM in_unternehmen")
         self.assertEqual(str(ergebnis), "[(4,)]")
 
-        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM gesellschaften")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM unternehmen")
         self.assertEqual(str(ergebnis), "[(1,)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM unfallversicherungsbeitraege")
@@ -412,10 +412,10 @@ class TestNutzerDeleteMandantendaten(unittest.TestCase):
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM pauschalabgaben")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM in_gesellschaft")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM in_unternehmen")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
-        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM gesellschaften")
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM unternehmen")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT count(*) FROM unfallversicherungsbeitraege")

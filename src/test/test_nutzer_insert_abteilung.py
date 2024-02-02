@@ -22,9 +22,9 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
         self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
         self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
-    def test_erfolgreicher_eintrag(self):
+    def test_erfolgreicher_eintrag_mit_abkuerzung(self):
         """
-        Test prueft, ob eine Abteilung eingetragen wird.
+        Test prueft, ob eine Abteilung mit ihrer Abkuerzung eingetragen wird.
         """
         self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx')
 
@@ -32,6 +32,17 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM abteilungen")
 
         self.assertEqual(str(ergebnis), "[(1, 1, 'Human Resources Personalcontrolling', 'HR PC', None)]")
+
+    def test_erfolgreicher_eintrag_ohne_abkuerzung(self):
+        """
+        Test prueft, ob eine Abteilung ohne Abkuerzung eingetragen wird.
+        """
+        self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung - ohne Abkuerzung.xlsx')
+
+        # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
+        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM abteilungen")
+
+        self.assertEqual(str(ergebnis), "[(1, 1, 'Human Resources Personalcontrolling', None, None)]")
 
     def test_kein_doppelter_eintrag_Abteilung_und_abkuerzung_identisch(self):
         """
