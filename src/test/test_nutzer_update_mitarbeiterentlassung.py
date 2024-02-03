@@ -141,7 +141,7 @@ class TestNutzerUpdateMitarbeiterentlassung(unittest.TestCase):
 
     def test_mitarbeiter_existiert_nicht(self):
         """
-        Test prueft, ob eine Exception geworfen wird, wenn der Mitarbeiter-Update fuer eine Personalnummer vorgenommen
+        Test prueft, ob eine Fehlermeldung erscheint, wenn der Mitarbeiter-Update fuer eine Personalnummer vorgenommen
         wird, die in der Datenbank nicht existiert
         """
         with self.assertRaises(Exception) as context:

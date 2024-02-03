@@ -35,8 +35,7 @@ class TestNutzerInsertErfahrungsstufe(unittest.TestCase):
     def test_kein_doppelter_eintrag(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_erfahrungsstufe' mit derselben Erfahrungsstufe
-        dieser nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden. Ausloeser ist
-        der unique-constraint, welcher in der Stored Procedure 'insert_erfahrungsstufe' implementiert ist.
+        dieser nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss Fehlermeldung erscheinen.
         """
         self.nutzer.insert_erfahrungsstufe('testdaten_insert_erfahrungsstufe/Erfahrungsstufe.xlsx')
 
@@ -55,9 +54,8 @@ class TestNutzerInsertErfahrungsstufe(unittest.TestCase):
     def test_kein_doppelter_eintrag_case_insensitive(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_erfahrungsstufe' mit derselben Erfahrungsstufe aber
-        mit Kleinschreibung dieser dennoch nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception
-        geworfen werden. Ausloeser ist der unique-constraint, welcher in der Stored Procedure 'insert_erfahrungsstufe'
-        implementiert ist, in Kombination mit dem unique-Index 'erfahrungsstufe_idx'.
+        mit Kleinschreibung dieser dennoch nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung
+        erscheinen.
         """
         self.nutzer.insert_erfahrungsstufe('testdaten_insert_erfahrungsstufe/Erfahrungsstufe.xlsx')
 

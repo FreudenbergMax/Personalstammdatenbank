@@ -42,10 +42,9 @@ class TestNutzerInsertMinijobbeitraege(unittest.TestCase):
     def test_kein_doppelter_eintrag(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_minijobbeitraege' mit denselben Angaben nicht erneut
-        eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden. Massgeblich ist hier lediglich der
-        boolesche Wert "kurzfristig_beschaeftigt" in Tabelle "Minijobs". Die Exception wird auch dann
-        geworfen, wenn die Beitragssaetze anders sind. Sollen nur die Beitragssaetze geaendert werden, muss hierfuer
-        eine update-Methode verwendet werden (welche im Rahmen dieser Bachelorarbeit nicht implementiert wird).
+        eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung erscheinen. Massgeblich ist hier lediglich der
+        boolesche Wert "kurzfristig_beschaeftigt" in Tabelle "Minijobs". Die Fehlermeldung soll auch dann erscheinen,
+        wenn die Beitragssaetze anders sind.
         """
         self.nutzer.insert_minijobbeitraege('testdaten_insert_minijobbeitraege/Minijobbeitraege.xlsx')
 
@@ -53,8 +52,7 @@ class TestNutzerInsertMinijobbeitraege(unittest.TestCase):
             self.nutzer.insert_minijobbeitraege('testdaten_insert_minijobbeitraege/Minijobbeitraege.xlsx')
 
         erwartete_fehlermeldung = "FEHLER:  Kurzfristige Beschaeftigung = 'f' ist bereits vorhanden! Uebergebene " \
-                                  "Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, " \
-                                  "nutzen Sie bitte die 'update_Minijob'-Funktion!"
+                                  "Daten werden nicht eingetragen!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
@@ -73,10 +71,10 @@ class TestNutzerInsertMinijobbeitraege(unittest.TestCase):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_minijobbeitraege' mit demselben
         booleschen Wahrheitswert (= false), aber mit anderem Beitragssaetzen, dennoch nicht eingetragen wird. Beim
-        zweiten Eintrag muss eine Exception geworfen werden. Massgeblich ist hier lediglich der boolesche Wert
-        "kurzfristig_beschaeftigt" in Tabelle "Minijobs". Die Exception wird auch dann geworfen, wenn die Beitragssaetze
-        anders sind. Sollen nur die Beitragssaetze geaendert werden, muss hierfuer eine update-Methode verwendet werden
-        (welche im Rahmen dieser Bachelorarbeit nicht implementiert wird).
+        zweiten Eintrag muss eine Fehlermeldung erscheinen. Massgeblich ist hier lediglich der boolesche Wert
+        "kurzfristig_beschaeftigt" in Tabelle "Minijobs". Die Fehlermeldung soll auch erscheinen, wenn die
+        Beitragssaetze anders sind. Sollen nur die Beitragssaetze geaendert werden, muss hierfuer eine update-Methode
+        verwendet werden (welche im Rahmen dieser Bachelorarbeit nicht implementiert wird).
         """
         self.nutzer.insert_minijobbeitraege('testdaten_insert_minijobbeitraege/Minijobbeitraege.xlsx')
 
@@ -84,8 +82,7 @@ class TestNutzerInsertMinijobbeitraege(unittest.TestCase):
             self.nutzer.insert_minijobbeitraege('testdaten_insert_minijobbeitraege/Minijobbeitraege.xlsx')
 
         erwartete_fehlermeldung = "FEHLER:  Kurzfristige Beschaeftigung = 'f' ist bereits vorhanden! Uebergebene " \
-                                  "Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, " \
-                                  "nutzen Sie bitte die 'update_Minijob'-Funktion!"
+                                  "Daten werden nicht eingetragen!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 

@@ -4,7 +4,7 @@ from src.main.Login import Login
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
 
-class TestNutzerInsertUnfallversicherungsbeitraege(unittest.TestCase):
+class TestNutzerInsertUnfallversicherungsbeitrag(unittest.TestCase):
 
     def setUp(self):
         """
@@ -40,8 +40,8 @@ class TestNutzerInsertUnfallversicherungsbeitraege(unittest.TestCase):
     def test_kein_doppelter_eintrag(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_unfallversicherungsbeitrag' mit derselben
-        Berufsgenossenschaft und Abkuerzung dieser nicht erneut eingetragen wird. Beim zweiten Eintrag muss eine
-        Exception geworfen werden, da der unique-constraint missachtet wurde.
+        Berufsgenossenschaft dieser nicht erneut eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung
+        erscheinen.
         """
         self.nutzer.insert_unfallversicherungsbeitrag(
             'testdaten_insert_unfallversicherungsbeitrag/Unfallversicherungsbeitrag.xlsx')
@@ -63,9 +63,7 @@ class TestNutzerInsertUnfallversicherungsbeitraege(unittest.TestCase):
     def test_Eintrag_Folgejahr_moeglich(self):
         """
         Test prueft, ob fuer das Folgejahr der Eintrag der Unfallversicheurngsbeitraege fuer dieselbe Gesellschaft mit
-        derselben Berufsgenossenschaft moeglich ist. Der Eintrag muss erfolgen koennen, da der unique-constraint nur
-        greift, wenn die Spalten 'Gesellschaft_ID', 'Berufsgenossenschaft_ID' und 'Beitragsjahr' in Kombination
-        identisch sind.
+        derselben Berufsgenossenschaft moeglich ist.
         """
         self.nutzer.insert_unfallversicherungsbeitrag(
             'testdaten_insert_unfallversicherungsbeitrag/Unfallversicherungsbeitrag.xlsx')

@@ -35,11 +35,9 @@ class TestNutzerInsertVerguetungsbestandteil(unittest.TestCase):
     def test_kein_doppelter_eintrag(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_verguetungsbestandteil' mit demselben Verguetungs-
-        bestandteil dieser nicht erneut eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden.
-        Ausloeser ist der unique-constraint der Tabelle "Verguetungsbestandteile" der fuer jeden Mandanten die
-        mehrmalige identische Eintragung desselben Verguetungsbestandteile und Auszahlungsmonats verbietet. Falls ein
-        Verguetungsbestandteil aktualisiert werden soll, so muss eine update-Funktion ausgefuehrt werden (welche im
-        Rahmen dieser Bachelorarbeit nicht implementiert wurde).
+        bestandteil dieser nicht erneut eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung erscheinen.
+        Falls ein Verguetungsbestandteil aktualisiert werden soll, so muss eine update-Funktion ausgefuehrt werden
+        (welche im Rahmen dieser Bachelorarbeit nicht implementiert wurde).
         """
         self.nutzer.insert_verguetungsbestandteil('testdaten_insert_verguetungsbestandteil/Verguetungsbestandteil.xlsx')
 
@@ -60,8 +58,7 @@ class TestNutzerInsertVerguetungsbestandteil(unittest.TestCase):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_verguetungsbestandteil' mit demselben Verguetungs-
         bestandteil aber mit Kleinschreibung dieser dennoch nicht erneut eingetragen wird. Beim zweiten Eintrag muss
-        eine Exception geworfen werden. Ausloeser ist der unique-constraint in Kombination mit dem unique-Index
-        'verguetungsbestandteil_idx'. Falls ein Verguetungsbestandteil aktualisiert werden soll, so muss eine
+        eine Fehlermeldung erscheinen. Falls ein Verguetungsbestandteil aktualisiert werden soll, so muss eine
         update-Funktion ausgefuehrt werden (welche im Rahmen dieser Bachelorarbeit nicht implementiert wurde).
         """
         self.nutzer.insert_verguetungsbestandteil('testdaten_insert_verguetungsbestandteil/Verguetungsbestandteil.xlsx')
@@ -82,9 +79,8 @@ class TestNutzerInsertVerguetungsbestandteil(unittest.TestCase):
 
     def test_falscher_eintrag(self):
         """
-        Test prueft, ob eine Exception geworfen wird, wenn die geforderte Rechtschreibung fuer den Auszahlungsmonat
-        nicht eingehalten wird. Ausloeser der Exception ist der check-constraint, welcher in der Stored Procedure
-        'insert_verguetungsbestandteil' implementiert ist bzw. in der Tabelle 'Verguetungsbestandteile'.
+        Test prueft, ob eine Fehlermeldung erscheint, wenn die geforderte Rechtschreibung fuer den Auszahlungsmonat
+        nicht eingehalten wird.
         Hinweis: die Excel-Datei ist fuer gewoehnlich so praepariert, dass man nur die richtige Rechtschreibung
         eintragen kann. Dennoch soll getestet werden, ob im Ernstfall der constraint greift. Hierfuer wurde die Excel-
         Datei so umgestaltet, dass man auch falsch geschriebene Auszahlungamonate eintragen kann.

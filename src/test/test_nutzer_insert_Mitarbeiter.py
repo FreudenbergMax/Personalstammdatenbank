@@ -139,7 +139,7 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
 
     def test_kein_eintrag_gleicher_mitarbeiter(self):
         """
-        Test prueft, ob eine Exception geworfen wird, wenn versucht wird, denselben Mitarbeiter mit derselben
+        Test prueft, ob eine Fehlermeldung erscheint, wenn versucht wird, denselben Mitarbeiter mit derselben
         Personalnummer, zweimal einzutragen
         """
         self.nutzer.insert_neuer_mitarbeiter('testdaten_insert_mitarbeiter/Mitarbeiter.xlsx')
@@ -161,7 +161,7 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
 
     def test_kein_eintrag_gleicher_mitarbeiter_personalnummer_klein_geschrieben(self):
         """
-        Test prueft, ob eine Exception geworfen wird, wenn versucht wird, einen anderen Mitarbeiter mit einer bereits
+        Test prueft, ob eine Fehlermeldung erscheint, wenn versucht wird, einen anderen Mitarbeiter mit einer bereits
         vorhandenen Personalnummer (aber klein geschrieben) anzulegen
         """
         self.nutzer.insert_neuer_mitarbeiter('testdaten_insert_mitarbeiter/Mitarbeiter.xlsx')
@@ -228,7 +228,7 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
 
     def test_mitarbeiter_zweifach_versichert(self):
         """
-        Test prueft, ob eine Exception geworfen wird, wenn fehlerhafterweise angegeben wird, dass ein neuer Mitarbeiter
+        Test prueft, ob eine Fehlermeldung erscheint, wenn fehlerhafterweise angegeben wird, dass ein neuer Mitarbeiter
         gleichzeitig gesetzlich als auch privat versichert ist. Mitarbeiter kann nur gesetzlich ODER privat oder
         anderweitig versichert oder Minijobber sein.
         """
@@ -242,7 +242,7 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
 
     def test_minijobber_und_arbeitslosenversichert(self):
         """
-        Test prueft, ob eine Exception geworfen wird, wenn fehlerhafterweise angegeben wird, dass ein neuer Mitarbeiter
+        Test prueft, ob eine Fehlermeldung erscheint, wenn fehlerhafterweise angegeben wird, dass ein neuer Mitarbeiter
         Minijobber und gleichzeitig ueber den Arbeitgeber arbeitslosenversichert ist. Das ist rechtlich nicht moeglich.
         """
         with self.assertRaises(Exception) as context:
@@ -254,7 +254,7 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
 
     def test_minijobber_und_rentenversichert(self):
         """
-        Test prueft, ob eine Exception geworfen wird, wenn fehlerhafterweise angegeben wird, dass ein neuer Mitarbeiter
+        Test prueft, ob eine Fehlermeldung erscheint, wenn fehlerhafterweise angegeben wird, dass ein neuer Mitarbeiter
         Minijobber und gleichzeitig ueber den Arbeitgeber rentenversichert ist. Das ist rechtlich nicht moeglich.
         """
         with self.assertRaises(Exception) as context:
@@ -266,7 +266,7 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
 
     def test_kurzfristig_beschaeftigter_und_arbeitslosenversichert(self):
         """
-        Test prueft, ob eine Exception geworfen wird, wenn fehlerhafterweise angegeben wird, dass ein neuer Mitarbeiter
+        Test prueft, ob eine Fehlermeldung erscheint, wenn fehlerhafterweise angegeben wird, dass ein neuer Mitarbeiter
         Minijobber und gleichzeitig ueber den Arbeitgeber arbeitslosenversichert ist. Das ist rechtlich nicht moeglich.
         """
         with self.assertRaises(Exception) as context:
@@ -278,7 +278,7 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
 
     def test_kurzfristig_beschaeftigter_und_rentenversichert(self):
         """
-        Test prueft, ob eine Exception geworfen wird, wenn fehlerhafterweise angegeben wird, dass ein neuer Mitarbeiter
+        Test prueft, ob eine Fehlermeldung erscheint, wenn fehlerhafterweise angegeben wird, dass ein neuer Mitarbeiter
         kurzfristig Beschaeftigter und gleichzeitig ueber den Arbeitgeber rentenversichert ist. Das ist rechtlich nicht
         moeglich.
         """
@@ -291,7 +291,7 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
 
     def test_kurzfristig_beschaeftigter_gesetzlich_versichert(self):
         """
-        Test prueft, ob eine Exception geworfen wird, wenn fehlerhafterweise angegeben wird, dass ein neuer Mitarbeiter
+        Test prueft, ob eine Fehlermeldung erscheint, wenn fehlerhafterweise angegeben wird, dass ein neuer Mitarbeiter
         kurzfristig beschaeftigt und gleichzeitig ueber den Arbeitgeber gesetzlich versichert ist. Das ist rechtlich
         nicht moeglich.
         """
@@ -306,7 +306,7 @@ class TestNutzerInsertMitarbeiter(unittest.TestCase):
     def test_kurzfristig_beschaeftigter_privat_versichert(self):
         """
         Test prueft, ob eine Exception geworfen wird, wenn fehlerhafterweise angegeben wird, dass ein neuer Mitarbeiter
-        kurzfristig beschaeftigt und gleichzeitig ueber den Arbeitgeber gesetzlich versichert ist. Das ist rechtlich
+        kurzfristig beschaeftigt und gleichzeitig ueber den Arbeitgeber privat versichert ist. Das ist rechtlich
         nicht moeglich.
         """
         with self.assertRaises(Exception) as context:

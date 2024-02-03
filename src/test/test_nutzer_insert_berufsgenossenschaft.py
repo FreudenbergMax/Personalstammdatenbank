@@ -47,8 +47,7 @@ class TestNutzerInsertBerufsgenossenschaft(unittest.TestCase):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_berufsgenossenschaft' mit derselben
         Berufsgenossenschaft und Abkuerzung dieser nicht erneut eingetragen wird. Beim zweiten Eintrag muss eine
-        Exception geworfen werden. Ausloeser ist der unique-constraint, welcher in der Stored Procedure
-        'insert_berufsgenossenschaft' implementiert ist.
+        Fehlermeldung erscheinen.
         """
         self.nutzer.insert_berufsgenossenschaft('testdaten_insert_berufsgenossenschaft/Berufsgenossenschaft.xlsx')
 
@@ -56,8 +55,8 @@ class TestNutzerInsertBerufsgenossenschaft(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             self.nutzer.insert_berufsgenossenschaft('testdaten_insert_berufsgenossenschaft/Berufsgenossenschaft.xlsx')
 
-        erwartete_fehlermeldung = "FEHLER:  Berufsgenossenschaft 'Berufsgenossenschaft Nahrungsmittel' oder " \
-                                  "Abkuerzung 'BGN' bereits vorhanden!"
+        erwartete_fehlermeldung = "FEHLER:  Berufsgenossenschaft 'Berufsgenossenschaft Nahrungsmittel' bereits " \
+                                  "vorhanden!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
@@ -69,8 +68,7 @@ class TestNutzerInsertBerufsgenossenschaft(unittest.TestCase):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_berufsgenossenschaft' mit derselben Gesellschaft
         aber anderer Abkuerzung ("BG N" statt "BGN") dieser nicht eingetragen wird. Beim zweiten Eintrag muss eine
-        Exception geworfen werden. Ausloeser ist  der unique-constraint, welcher in der Stored Procedure
-        'insert_berufsgenossenschaft' implementiert ist.
+        Fehlermeldung erscheinen.
         """
         self.nutzer.insert_berufsgenossenschaft('testdaten_insert_berufsgenossenschaft/Berufsgenossenschaft.xlsx')
 
@@ -79,30 +77,8 @@ class TestNutzerInsertBerufsgenossenschaft(unittest.TestCase):
             self.nutzer.insert_berufsgenossenschaft('testdaten_insert_berufsgenossenschaft/'
                                                     'Berufsgenossenschaft - Berufsgenossenschaft identisch.xlsx')
 
-        erwartete_fehlermeldung = "FEHLER:  Berufsgenossenschaft 'Berufsgenossenschaft Nahrungsmittel' oder " \
-                                  "Abkuerzung 'BG N' bereits vorhanden!"
-        tatsaechliche_fehlermeldung = str(context.exception)
-        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
-
-        # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM berufsgenossenschaften")
-        self.assertEqual(str(ergebnis), "[(1, 1, 'Berufsgenossenschaft Nahrungsmittel', 'BGN')]")
-
-    def test_kein_doppelter_eintrag_Abkuerzung_identisch(self):
-        """
-        Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_berufsgenossenschaft' mit anderer Berufsgenossen-
-        schaft ('Berufsgenossenschaft Nahrung' statt 'Berufsgenossenschaft Nahrungsmittel') aber identischer Abkuerzung
-        dieser nicht eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden. Ausloeser ist
-        der unique-constraint, welcher in der Stored Procedure 'insert_berufsgenossenschaft' implementiert ist.
-        """
-        self.nutzer.insert_berufsgenossenschaft('testdaten_insert_berufsgenossenschaft/Berufsgenossenschaft.xlsx')
-
-        with self.assertRaises(Exception) as context:
-            self.nutzer.insert_berufsgenossenschaft('testdaten_insert_berufsgenossenschaft/'
-                                                    'Berufsgenossenschaft - Abkuerzung identisch.xlsx')
-
-        erwartete_fehlermeldung = "FEHLER:  Berufsgenossenschaft 'Berufsgenossenschaft Nahrung' oder " \
-                                  "Abkuerzung 'BGN' bereits vorhanden!"
+        erwartete_fehlermeldung = "FEHLER:  Berufsgenossenschaft 'Berufsgenossenschaft Nahrungsmittel' bereits " \
+                                  "vorhanden!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
@@ -114,8 +90,7 @@ class TestNutzerInsertBerufsgenossenschaft(unittest.TestCase):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_berufsgenossenschaft' mit derselben Berufs-
         genossenschaft aber mit Kleinschreibung dieser dennoch nicht erneut eingetragen wird. Beim zweiten Eintrag muss
-        eine Exception geworfen werden. Ausloeser ist der unique-constraint, welcher in der Stored Procedure
-        'insert_berufsgenossenschaft' implementiert ist, in Kombination mit dem unique-Index 'berufsgenossenschaft_idx.
+        eine Fehlermeldung erscheinen.
         """
         self.nutzer.insert_berufsgenossenschaft('testdaten_insert_berufsgenossenschaft/Berufsgenossenschaft.xlsx')
 
@@ -124,32 +99,8 @@ class TestNutzerInsertBerufsgenossenschaft(unittest.TestCase):
             self.nutzer.insert_berufsgenossenschaft('testdaten_insert_berufsgenossenschaft/Berufsgenossenschaft - '
                                                     'Berufsgenossenschaft klein geschrieben.xlsx')
 
-        erwartete_fehlermeldung = "FEHLER:  Berufsgenossenschaft 'berufsgenossenschaft nahrungsmittel' " \
-                                  "oder Abkuerzung 'BGN' bereits vorhanden!"
-        tatsaechliche_fehlermeldung = str(context.exception)
-        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
-
-        # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM berufsgenossenschaften")
-        self.assertEqual(str(ergebnis), "[(1, 1, 'Berufsgenossenschaft Nahrungsmittel', 'BGN')]")
-
-    def test_kein_doppelter_eintrag_abkuerzung_case_insensitive(self):
-        """
-        Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_berufsgenossenschaft' mit derselben Abkuerzung aber
-        mit Kleinschreibung dieser dennoch nicht erneut eingetragen wird. Beim zweiten Eintrag muss eine Exception
-        geworfen werden. Ausloeser ist der unique-constraint, welcher in der Stored Procedure
-        'insert_berufsgenossenschaft' implementiert ist, in Kombination mit dem unique-Index
-        'Berufsgenossenschaft_abk_idx'.
-        """
-        self.nutzer.insert_berufsgenossenschaft('testdaten_insert_berufsgenossenschaft/Berufsgenossenschaft.xlsx')
-
-        # Versuch, denselben Wert noch einmal einzutragen (diesmal aber in Kleinschreibung)
-        with self.assertRaises(Exception) as context:
-            self.nutzer.insert_berufsgenossenschaft(
-                'testdaten_insert_berufsgenossenschaft/Berufsgenossenschaft - Abkuerzung klein geschrieben.xlsx')
-
-        erwartete_fehlermeldung = "FEHLER:  Berufsgenossenschaft 'Berufsgenossenschaft Nahrungsmittel' " \
-                                  "oder Abkuerzung 'bgn' bereits vorhanden!"
+        erwartete_fehlermeldung = "FEHLER:  Berufsgenossenschaft 'berufsgenossenschaft nahrungsmittel' bereits " \
+                                  "vorhanden!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 

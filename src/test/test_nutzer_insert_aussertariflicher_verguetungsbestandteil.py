@@ -78,10 +78,8 @@ class TestNutzerInsertAussertariflicherVerguetungsbestandteil(unittest.TestCase)
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_aussertarifliches_verguetungsbestandteil' mit
         demselben Verguetungsbestandteil fuer einen aussertariflichen Mitarbeiter dieser nicht erneut eingetragen wird.
-        Beim zweiten Eintrag muss eine Exception geworfen werden. Ausloeser ist der unique-constraint der Tabelle
-        "hat_Verguetungsbestandteil_AT" der fuer jeden Mandanten die mehrmalige identische Eintragung desselben
-        Verguetungsbestandteils fuer einen aussertariflichen Mitarbeiter verbietet. Falls der Verguetungsbestandteil
-        fuer einen aussertariflichen Mitarbeiter aktualisiert werden soll, so muss eine update-Funktion ausgefuehrt
+        Beim zweiten Eintrag muss eine Fehlermeldung erscheinen. Falls der Verguetungsbestandteil fuer einen
+        aussertariflichen Mitarbeiter aktualisiert werden soll, so muss eine update-Funktion ausgefuehrt
         werden (welche im Rahmen dieser Bachelorarbeit nicht implementiert wurde).
         """
         self.nutzer.insert_aussertarifliches_verguetungsbestandteil(

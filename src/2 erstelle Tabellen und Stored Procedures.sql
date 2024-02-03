@@ -1856,7 +1856,7 @@ begin
     
     -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden muessen, ...
     if v_krankenkasse_id is not null then
-		raise exception 'Gesetzliche Krankenkasse ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_gesetzliche_krankenkasse''-Funktion!', p_krankenkasse;   
+		raise exception 'Gesetzliche Krankenkasse ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen!', p_krankenkasse;   
     
 	--... ansonsten neue gesetzliche Krankenkasse eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_GKV_Zusatzbeitrag' benoetigt
 	else
@@ -1911,7 +1911,7 @@ begin
 
 exception
     when unique_violation then
-        raise exception 'Gesetzliche Krankenkasse ''%'' oder dessen Kuerzel ''%'' bereits vorhanden!', p_krankenkasse, p_krankenkassenkuerzel;
+        raise exception 'Gesetzliche Krankenkasse ''%'' bereits vorhanden!', p_krankenkasse;
 
 end;
 $$
@@ -1985,7 +1985,7 @@ begin
 
 exception
     when unique_violation then
-        raise exception 'Private Krankenkasse ''%'' oder dessen Kuerzel ''%'' bereits vorhanden!', p_krankenkasse, p_krankenkassenkuerzel;
+        raise exception 'Private Krankenkasse ''%'' bereits vorhanden!', p_krankenkasse;
 
 end;
 $$
@@ -2025,7 +2025,7 @@ begin
     
     -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden muessen, ...
     if v_krankenkasse_id is not null then
-		raise exception 'Gemeldete Krankenkasse ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_gemeldete_Krankenkasse''-Funktion!', p_krankenkasse;   
+		raise exception 'Gemeldete Krankenkasse ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen!', p_krankenkasse;   
     
 	--... ansonsten neue Krankenkasse eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_Umlagen_anderweitig' benoetigt
 	else
@@ -2059,7 +2059,7 @@ begin
 
 exception
     when unique_violation then
-        raise exception 'Gemeldete Krankenkasse ''%'' oder dessen Kuerzel ''%'' bereits vorhanden!', p_krankenkasse, p_krankenkassenkuerzel;
+        raise exception 'Gemeldete Krankenkasse ''%'' bereits vorhanden!', p_krankenkasse;
 
 end;
 $$
@@ -2098,7 +2098,7 @@ begin
     
     -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden muessen
     if v_anzahl_kinder_unter_25_id is not null then
-		raise exception 'Kinderanzahl ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_anzahl_kinder''-Funktion!', p_anzahl_kinder; 
+		raise exception 'Kinderanzahl ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen!', p_anzahl_kinder; 
 	
 	--... ansonsten neue Kinderanzahl eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_gesetzlichen_AN_PV_Beitragssatz' benoetigt
 	else
@@ -2194,7 +2194,7 @@ begin
     
     -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden muessen
     if v_arbeitsort_sachsen_id is not null then
-		raise exception 'arbeitsort_sachsen = ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_arbeitsort_sachsen''-Funktion!', p_in_sachsen;   
+		raise exception 'arbeitsort_sachsen = ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen!', p_in_sachsen;   
 	
 	--... ansonsten eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_gesetzlichen_AG_PV_Beitragssatz' benoetigt
 	else
@@ -2264,7 +2264,7 @@ begin
     
     -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden muessen
     if v_arbeitslosenversicherung_id is not null then
-		raise exception 'Arbeitslosenversicherung ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_arbeitslosenversicherung''-Funktion!';   
+		raise exception 'Arbeitslosenversicherung ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen!';   
 	
 	--... ansonsten eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_AV_Beitraege' benoetigt
 	else
@@ -2373,7 +2373,7 @@ begin
     
     -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden muessen
     if v_rentenversicherung_id is not null then
-		raise exception 'Rentenversicherung ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_rentenversicherung''-Funktion!';   
+		raise exception 'Rentenversicherung ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen!';   
 	
 	--... ansonsten eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_RV_Beitraege' benoetigt
 	else
@@ -2484,7 +2484,7 @@ begin
     
     -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden muessen
     if v_minijob_id is not null then
-		raise exception 'Kurzfristige Beschaeftigung = ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_Minijob''-Funktion!', p_kurzfristig_beschaeftigt;   
+		raise exception 'Kurzfristige Beschaeftigung = ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen!', p_kurzfristig_beschaeftigt;   
 	
 	--... ansonsten eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_Pauschalabgaben' benoetigt
 	else
@@ -2604,7 +2604,7 @@ begin
    
 exception
     when unique_violation then
-        raise exception 'Berufsgenossenschaft ''%'' oder Abkuerzung ''%'' bereits vorhanden!', p_berufsgenossenschaft, p_abkuerzung;
+        raise exception 'Berufsgenossenschaft ''%'' bereits vorhanden!', p_berufsgenossenschaft;
            
 end;
 $$
@@ -2729,7 +2729,7 @@ begin
     
     -- ... und falls sie bereits existiert, Meldung ausgeben
     if v_tarif_id is not null then
-		raise exception 'Tarif ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die ''update_Tarif''-Funktion!';   
+		raise exception 'Tarif ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen!';   
 	
     end if; 
    
@@ -2739,7 +2739,7 @@ begin
 
 exception
     when unique_violation then
-        raise exception 'Tarif ''%'' bereits vorhanden!', p_gewerkschaft;
+        raise exception 'Tarif ''%'' bereits vorhanden!', p_tarifbezeichnung;
 
 end;
 $$
@@ -2944,7 +2944,7 @@ begin
 
 exception
     when unique_violation then
-        raise exception 'Abteilung ''%'' oder Abteilungskuerzel ''%'' bereits vorhanden!', p_abteilung, p_abkuerzung;
+        raise exception 'Abteilung ''%'' bereits vorhanden!', p_abteilung;
 end;
 $$
 language plpgsql;
@@ -3040,7 +3040,7 @@ begin
    
 exception
     when unique_violation then
-        raise exception 'Unternehmen ''%'' oder ''%'' bereits vorhanden!', p_unternehmen, p_abkuerzung;
+        raise exception 'Unternehmen ''%'' bereits vorhanden!', p_unternehmen;
            
 end;
 $$

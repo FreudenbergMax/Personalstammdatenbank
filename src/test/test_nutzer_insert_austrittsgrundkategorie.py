@@ -36,9 +36,7 @@ class TestNutzerInsertAustrittsgrundkategorie(unittest.TestCase):
     def test_kein_doppelter_eintrag(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_austrittsgrundkategorie' mit derselben Austritts-
-        grundkategorie dieser nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden.
-        Ausloeser ist der unique-constraint, welcher in der Stored Procedure 'insert_kategorien_austrittsgruende'
-        implementiert ist.
+        grundkategorie dieser nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung erscheinen.
         """
         self.nutzer.insert_austrittsgrundkategorie(
             'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx')
@@ -58,10 +56,8 @@ class TestNutzerInsertAustrittsgrundkategorie(unittest.TestCase):
 
     def test_falscher_eintrag(self):
         """
-        Test prueft, ob eine Exception geworfen wird, wenn die geforderte Rechtschreibung fuer die drei Austrittsgrund-
+        Test prueft, ob eine Fehlermeldung erscheint, wenn die geforderte Rechtschreibung fuer die drei Austrittsgrund-
         kategorie-moeglichkeiten ('verhaltensbedingt', 'personenbedingt', 'betriebsbedingt') nicht eingehalten wird.
-        Ausloeser der Exception ist der check-constraint, welcher in der Stored Procedure
-        'insert_kategorien_austrittsgruende' implementiert ist.
         Hinweis: die Excel-Datei ist fuer gewoehnlich so praepariert, dass man nur die richtige Rechtschreibung
         eintragen kann. Dennoch soll getestet werden, ob im Ernstfall der constraint greift. Hierfuer wurde die Excel-
         Datei so umgestaltet, dass man auch falsch geschriebene Austrittsgrundkategorien eintragen kann.

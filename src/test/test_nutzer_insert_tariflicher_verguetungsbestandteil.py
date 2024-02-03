@@ -47,10 +47,8 @@ class TestNutzerInsertTariflicherVerguetungsbestandteil(unittest.TestCase):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_tariflicher_verguetungsbestandteil' mit demselben
         Verguetungsbestandteil fuer einen Tarif dieser nicht erneut eingetragen wird. Beim zweiten Eintrag muss eine
-        Exception geworfen werden. Ausloeser ist der unique-constraint der Tabelle "hat_Verguetungsbestandteil_Tarif"
-        der fuer jeden Mandanten die mehrmalige identische Eintragung desselben Verguetungsbestandteils fuer einen Tarif
-        verbietet. Falls der Verguetungsbestandteil fuer einen Tarif aktualisiert werden soll, so muss eine
-        update-Funktion ausgefuehrt werden (welche im Rahmen dieser Bachelorarbeit nicht implementiert wurde).
+        Fehlermeldung erscheinten. Falls der Verguetungsbestandteil fuer einen Tarif aktualisiert werden soll, so muss
+        eine update-Funktion ausgefuehrt werden (welche im Rahmen dieser Bachelorarbeit nicht implementiert wurde).
         """
         self.nutzer.insert_tarifliches_verguetungsbestandteil(
             'testdaten_insert_tariflicher_verguetungsbestandteil/tariflicher Verguetungsbestandteil.xlsx')
@@ -89,7 +87,7 @@ class TestNutzerInsertTariflicherVerguetungsbestandteil(unittest.TestCase):
 
     def test_kein_eintrag_nicht_existenter_tarif(self):
         """
-        Test prueft, ob eine Exception geworfen wird, wenn der Verguetungsbestandteil zu einem Tarif zugeordnet wird,
+        Test prueft, ob eine Fehlermeldung erscheint, wenn der Verguetungsbestandteil zu einem Tarif zugeordnet wird,
         die bisher nicht in der Datenbank eingetragen wurde.
         """
         with self.assertRaises(Exception) as context:
@@ -107,7 +105,7 @@ class TestNutzerInsertTariflicherVerguetungsbestandteil(unittest.TestCase):
 
     def test_kein_eintrag_nicht_existenter_verguetungsbestandteil(self):
         """
-        Test prueft, ob eine Exception geworfen wird, wenn ein Tarif zu einem Verguetungsbestandteil zugeordnet wird,
+        Test prueft, ob eine Fehlermeldung erscheint, wenn ein Tarif zu einem Verguetungsbestandteil zugeordnet wird,
         die bisher nicht in der Datenbank eingetragen wurde.
         """
         with self.assertRaises(Exception) as context:

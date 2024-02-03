@@ -4,7 +4,7 @@ from src.main.Login import Login
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
 
-class TestNutzerUpdateAbteilungshierarchie(unittest.TestCase):
+class TestNutzerErstelleAbteilungshierarchie(unittest.TestCase):
 
     def setUp(self):
         """
@@ -53,7 +53,7 @@ class TestNutzerUpdateAbteilungshierarchie(unittest.TestCase):
 
     def test_unterabteilung_existiert_nicht(self):
         """
-        Test prueft, ob eine Exception geworfen wird, wenn Unterabteilung nicht existiert. Beispiel: "Human Resources
+        Test prueft, ob eine Fehlermeldung erscheint, wenn Unterabteilung nicht existiert. Beispiel: "Human Resources
         Personal Controlling" statt "Human Resources Personalcontrolling" (fehlerhafterweise Leerzeichen zwischen
         "Personal" und "Controlling")
         """
@@ -69,7 +69,7 @@ class TestNutzerUpdateAbteilungshierarchie(unittest.TestCase):
 
     def test_oberabteilung_existiert_nicht(self):
         """
-        Test prueft, ob eine Exception geworfen wird, wenn Oberabteilung nicht existiert. Beispiel: "HumanResources"
+        Test prueft, ob eine Fehlermeldung erscheint, wenn Oberabteilung nicht existiert. Beispiel: "HumanResources"
         statt "Human Resources " (fehlerhafterweise kein Leerzeichen zwischen "Human" und "Resources")
         """
         with self.assertRaises(Exception) as context:

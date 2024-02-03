@@ -36,8 +36,7 @@ class TestNutzerInsertJobtitel(unittest.TestCase):
     def test_kein_doppelter_eintrag(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_jobtitel' mit demselben Jobtitel
-        dieser nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden. Ausloeser ist
-        der unique-constraint, welcher in der Stored Procedure 'insert_jobtitel' implementiert ist.
+        dieser nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung erscheinen.
         """
         self.nutzer.insert_jobtitel('testdaten_insert_jobtitel/Jobtitel.xlsx')
 
@@ -57,9 +56,8 @@ class TestNutzerInsertJobtitel(unittest.TestCase):
     def test_kein_doppelter_eintrag_case_insensitive(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_jobtitel' mit demselben Jobtitel aber mit Klein-
-        schreibung dieser dennoch nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen
-        werden. Ausloeser ist der unique-constraint, welcher in der Stored Procedure 'insert_jobtitel'
-        implementiert ist, in Kombination mit dem unique-Index 'jobtitel_idx'.
+        schreibung dieser dennoch nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung
+        erscheinen.
         """
         self.nutzer.insert_jobtitel('testdaten_insert_jobtitel/Jobtitel.xlsx')
 

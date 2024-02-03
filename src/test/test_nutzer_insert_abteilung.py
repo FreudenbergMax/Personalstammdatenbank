@@ -47,8 +47,7 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
     def test_kein_doppelter_eintrag_Abteilung_und_abkuerzung_identisch(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_abteilung' mit derselben Abteilung und Abkuerzung
-        dieser nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden. Ausloeser ist
-        der unique-constraint, welcher in der Stored Procedure 'insert_abteilung' implementiert ist.
+        dieser nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung ausgegeben werden.
         """
         self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx')
 
@@ -56,8 +55,7 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx')
 
-        erwartete_fehlermeldung = "FEHLER:  Abteilung 'Human Resources Personalcontrolling' oder Abteilungskuerzel " \
-                                  "'HR PC' bereits vorhanden!"
+        erwartete_fehlermeldung = "FEHLER:  Abteilung 'Human Resources Personalcontrolling' bereits vorhanden!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
@@ -68,9 +66,7 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
     def test_kein_doppelter_eintrag_Abteilung_identisch(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_abteilung' mit derselben Abteilung aber anderer
-        Abkuerzung dieser nicht eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden.
-        Ausloeser ist die unique violation, welcher in der Stored Procedure 'insert_abteilung' implementiert ist und
-        auf unique-constraints der Tabelle "Abteilungen" verweist.
+        Abkuerzung dieser nicht eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung ausgegeben werden.
         """
         self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx')
 
@@ -78,30 +74,7 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung - Abteilung identisch.xlsx')
 
-        erwartete_fehlermeldung = "FEHLER:  Abteilung 'Human Resources Personalcontrolling' oder " \
-                                  "Abteilungskuerzel 'HRPC' bereits vorhanden!"
-        tatsaechliche_fehlermeldung = str(context.exception)
-        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
-
-        # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM abteilungen")
-        self.assertEqual(str(ergebnis), "[(1, 1, 'Human Resources Personalcontrolling', 'HR PC', None)]")
-
-    def test_kein_doppelter_eintrag_Abkuerzung_identisch(self):
-        """
-        Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_abteilung' mit anderer Abteilung aber identischer
-        Abkuerzung dieser nicht eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden.
-        Ausloeser ist die unique violation, welcher in der Stored Procedure 'insert_abteilung' implementiert ist und
-        auf unique-constraints der Tabelle "Abteilungen" verweist.
-        """
-        self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx')
-
-        # Versuch, denselben Wert noch einmal einzutragen
-        with self.assertRaises(Exception) as context:
-            self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung - Abkuerzung identisch.xlsx')
-
-        erwartete_fehlermeldung = "FEHLER:  Abteilung 'HumanResources Personalcontrolling' oder Abteilungskuerzel " \
-                                  "'HR PC' bereits vorhanden!"
+        erwartete_fehlermeldung = "FEHLER:  Abteilung 'Human Resources Personalcontrolling' bereits vorhanden!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
@@ -112,9 +85,8 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
     def test_kein_doppelter_eintrag_abteilung_case_insensitive(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_abteilung' mit derselben Abteilung aber mit Klein-
-        schreibung dieser dennoch nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen
-        werden. Ausloeser ist der unique-constraint, welcher in der Stored Procedure 'insert_abteilung'
-        implementiert ist, in Kombination mit dem unique-Index 'abteilung_idx'.
+        schreibung dieser dennoch nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung
+        ausgegeben werden.
         """
         self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx')
 
@@ -122,30 +94,7 @@ class TestNutzerInsertAbteilung(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung - Abteilung klein geschrieben.xlsx')
 
-        erwartete_fehlermeldung = "FEHLER:  Abteilung 'human resources personalcontrolling' oder Abteilungskuerzel " \
-                                  "'HR PC' bereits vorhanden!"
-        tatsaechliche_fehlermeldung = str(context.exception)
-        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
-
-        # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM abteilungen")
-        self.assertEqual(str(ergebnis), "[(1, 1, 'Human Resources Personalcontrolling', 'HR PC', None)]")
-
-    def test_kein_doppelter_eintrag_abkuerzung_case_insensitive(self):
-        """
-        Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_abteilung' mit derselben Abkuerzung aber mit Klein-
-        schreibung dieser dennoch nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen
-        werden. Ausloeser ist der unique-constraint, welcher in der Stored Procedure 'insert_abteilung'
-        implementiert ist, in Kombination mit dem unique-Index 'abk_abteilung_idx'.
-        """
-        self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung.xlsx')
-
-        # Versuch, denselben Wert noch einmal einzutragen (diesmal aber in Kleinschreibung)
-        with self.assertRaises(Exception) as context:
-            self.nutzer.insert_abteilung('testdaten_insert_abteilung/Abteilung - Abkuerzung klein geschrieben.xlsx')
-
-        erwartete_fehlermeldung = "FEHLER:  Abteilung 'Human Resources Personalcontrolling' oder Abteilungskuerzel " \
-                                  "'hr pc' bereits vorhanden!"
+        erwartete_fehlermeldung = "FEHLER:  Abteilung 'human resources personalcontrolling' bereits vorhanden!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 

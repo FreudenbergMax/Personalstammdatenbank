@@ -46,9 +46,8 @@ class TestNutzerInsertUnternehmen(unittest.TestCase):
 
     def test_kein_doppelter_eintrag_unternehmen_und_abkuerzung_identisch(self):
         """
-        Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_unternehmen' mit demselben Unternehmen und
-        Abkuerzung dieser nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden.
-        Ausloeser ist der unique-constraint, welcher in der Stored Procedure 'insert_unternehmen' implementiert ist.
+        Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_unternehmen' mit demselben Unternehmen dieser nicht
+        mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung erscheinen.
         """
         self.nutzer.insert_unternehmen('testdaten_insert_unternehmen/Unternehmen.xlsx')
 
@@ -56,28 +55,7 @@ class TestNutzerInsertUnternehmen(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             self.nutzer.insert_unternehmen('testdaten_insert_unternehmen/Unternehmen.xlsx')
 
-        erwartete_fehlermeldung = "FEHLER:  Unternehmen 'Beispielfirma GmbH' oder 'Bf GmbH' bereits vorhanden!"
-        tatsaechliche_fehlermeldung = str(context.exception)
-        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
-
-        # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz auch nur einmal angelegt wurde
-        ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM unternehmen")
-
-        self.assertEqual(str(ergebnis), "[(1, 1, 'Beispielfirma GmbH', 'Bf GmbH', None)]")
-
-    def test_kein_doppelter_eintrag_unternehmen_identisch(self):
-        """
-        Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_unternehmen' mit dermselben Unternehmen aber
-        anderer Abkuerzung dieser nicht eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden.
-        Ausloeser ist  der unique-constraint, welcher in der Stored Procedure 'insert_unternehmen' implementiert ist.
-        """
-        self.nutzer.insert_unternehmen('testdaten_insert_unternehmen/Unternehmen.xlsx')
-
-        # Versuch, denselben Wert noch einmal einzutragen
-        with self.assertRaises(Exception) as context:
-            self.nutzer.insert_unternehmen('testdaten_insert_unternehmen/Unternehmen - Unternehmen identisch.xlsx')
-
-        erwartete_fehlermeldung = "FEHLER:  Unternehmen 'Beispielfirma GmbH' oder 'BfGmbH' bereits vorhanden!"
+        erwartete_fehlermeldung = "FEHLER:  Unternehmen 'Beispielfirma GmbH' bereits vorhanden!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
@@ -89,18 +67,17 @@ class TestNutzerInsertUnternehmen(unittest.TestCase):
     def test_kein_doppelter_eintrag_unternehmen_case_insensitive(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_unternehmen' mit demselben Unternehmen aber mit
-        Kleinschreibung dieser dennoch nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception
-        geworfen werden. Ausloeser ist der unique-constraint, welcher in der Stored Procedure 'insert_unternehmen'
-        implementiert ist, in Kombination mit dem unique-Index 'unternehmen_idx'.
+        Kleinschreibung dieser dennoch nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung
+        erscheinen.
         """
         self.nutzer.insert_unternehmen('testdaten_insert_unternehmen/Unternehmen.xlsx')
 
         # Versuch, denselben Wert noch einmal einzutragen (diesmal aber in Kleinschreibung)
         with self.assertRaises(Exception) as context:
             self.nutzer.insert_unternehmen('testdaten_insert_unternehmen/Unternehmen - '
-                                            'Unternehmen klein geschrieben.xlsx')
+                                           'Unternehmen klein geschrieben.xlsx')
 
-        erwartete_fehlermeldung = "FEHLER:  Unternehmen 'beispielfirma gmbh' oder 'Bf GmbH' bereits vorhanden!"
+        erwartete_fehlermeldung = "FEHLER:  Unternehmen 'beispielfirma gmbh' bereits vorhanden!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 

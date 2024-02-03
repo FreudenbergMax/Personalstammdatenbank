@@ -36,8 +36,7 @@ class TestNutzerInsertSteuerklasse(unittest.TestCase):
     def test_kein_doppelter_eintrag(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_steuerklasse' mit derselben Steuerklasse dieser
-        nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden. Ausloeser ist der
-        unique-constraint, welcher in der Stored Procedure 'insert_steuerklasse' implementiert ist.
+        nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung erscheinen.
         """
         self.nutzer.insert_steuerklasse('testdaten_insert_steuerklasse/Steuerklasse.xlsx')
 
@@ -56,9 +55,8 @@ class TestNutzerInsertSteuerklasse(unittest.TestCase):
 
     def test_falscher_eintrag(self):
         """
-        Test prueft, ob eine Exception geworfen wird, wenn eine nicht gueltige Steuerklasse (z.B. '7', welche nicht
-        existiert) nicht eingehalten wird. Ausloeser der Exception ist der check-constraint, welcher in der Stored
-        Procedure 'insert_steuerklasse' implementiert ist.
+        Test prueft, ob eine Fehlermeldung erscheint, wenn eine nicht gueltige Steuerklasse (z.B. '7', welche nicht
+        existiert) nicht eingehalten wird.
         Hinweis: die Excel-Datei ist fuer gewoehnlich so praepariert, dass man nur gueltige Steuerklassen
         eintragen kann. Dennoch soll getestet werden, ob im Ernstfall der constraint greift. Hierfuer wurde die Excel-
         Datei so umgestaltet, dass man nicht existente Steuerklassen eintragen kann.

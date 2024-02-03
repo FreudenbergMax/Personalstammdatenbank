@@ -36,8 +36,7 @@ class TestNutzerInsertMitarbeitertyp(unittest.TestCase):
     def test_kein_doppelter_eintrag(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_mitarbeitertyp' mit demselben Mitarbeitertypen
-        dieser nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden. Ausloeser ist
-        der unique-constraint, welcher in der Stored Procedure 'insert_mitarbeitertyp' implementiert ist.
+        dieser nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung erscheinen.
         """
         self.nutzer.insert_mitarbeitertyp('testdaten_insert_mitarbeitertyp/Mitarbeitertyp.xlsx')
 
@@ -57,9 +56,8 @@ class TestNutzerInsertMitarbeitertyp(unittest.TestCase):
     def test_kein_doppelter_eintrag_case_insensitive(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_mitarbeitertyp' mit demselben Mitarbeitertypen aber
-        mit Kleinschreibung dieser dennoch nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception
-        geworfen werden. Ausloeser ist der unique-constraint, welcher in der Stored Procedure 'insert_mitarbeitertyp'
-        implementiert ist, in Kombination mit dem unique-Index 'mitarbeitertyp_idx'.
+        mit Kleinschreibung dieser dennoch nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung
+        erscheinen.
         """
         self.nutzer.insert_mitarbeitertyp('testdaten_insert_mitarbeitertyp/Mitarbeitertyp.xlsx')
 

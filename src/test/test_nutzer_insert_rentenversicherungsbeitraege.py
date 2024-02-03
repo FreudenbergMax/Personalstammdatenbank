@@ -4,7 +4,7 @@ from src.main.Login import Login
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
 
-class TestNutzerInsertArbeitslosenversicherungsbeitraege(unittest.TestCase):
+class TestNutzerInsertRentenversicherungsbeitraege(unittest.TestCase):
 
     def setUp(self):
         """
@@ -43,9 +43,9 @@ class TestNutzerInsertArbeitslosenversicherungsbeitraege(unittest.TestCase):
     def test_kein_doppelter_eintrag(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_rentenversicherungsbeitraege' mit denselben
-        Angaben nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden. Massgeblich
+        Angaben nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung erscheinen. Massgeblich
         ist hier lediglich die Mandant_ID in Tabelle "Rentenversicherungen" (denn jeder Arbeitgeber bezahlt fuer alle
-        Mitarbeiter dieselben Saetze). Die Exception wird auch dann geworfen, wenn die Beitragssaetze anders sind.
+        Mitarbeiter dieselben Saetze). Die Fehlermeldung soll auch erscheinen, wenn die Beitragssaetze anders sind.
         Sollen nur die Beitragssaetze geaendert werden, muss hierfuer eine update-Methode verwendet werden (welche im
         Rahmen dieser Bachelorarbeit nicht implementiert wird).
         """
@@ -58,8 +58,7 @@ class TestNutzerInsertArbeitslosenversicherungsbeitraege(unittest.TestCase):
                 'testdaten_insert_rentenversicherungsbeitraege/Rentenversicherungsbeitraege.xlsx')
 
         erwartete_fehlermeldung = "FEHLER:  Rentenversicherung ist bereits vorhanden! Uebergebene Daten werden " \
-                                  "nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte " \
-                                  "die 'update_rentenversicherung'-Funktion!"
+                                  "nicht eingetragen!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
@@ -77,11 +76,11 @@ class TestNutzerInsertArbeitslosenversicherungsbeitraege(unittest.TestCase):
     def test_kein_doppelter_eintrag_andere_werte(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_rentenversicherungsbeitraege' mit anderen
-        Beitragssaetzen dennoch nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen
-        werden. Massgeblich ist hier lediglich die Mandant_ID in Tabelle "Rentenversicherungen" (denn jeder Arbeitgeber
-        bezahlt fuer alle Mitarbeiter dieselben Saetze). Die Exception wird auch dann geworfen, wenn die Beitragssaetze
-        anders sind. Sollen nur die Beitragssaetze geaendert werden, muss hierfuer eine update-Methode verwendet werden
-        (welche im Rahmen dieser Bachelorarbeit nicht implementiert wird).
+        Beitragssaetzen dennoch nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung
+        erscheinen. Massgeblich ist hier lediglich die Mandant_ID in Tabelle "Rentenversicherungen" (denn jeder
+        Arbeitgeber bezahlt fuer alle Mitarbeiter dieselben Saetze). Die Fehlermeldung soll auch erscheinen, wenn die
+        Beitragssaetze anders sind. Sollen nur die Beitragssaetze geaendert werden, muss hierfuer eine update-Methode
+        verwendet werden (welche im Rahmen dieser Bachelorarbeit nicht implementiert wird).
         """
         self.nutzer.insert_rentenversicherungsbeitraege(
             'testdaten_insert_rentenversicherungsbeitraege/Rentenversicherungsbeitraege.xlsx')
@@ -93,8 +92,7 @@ class TestNutzerInsertArbeitslosenversicherungsbeitraege(unittest.TestCase):
                 'Rentenversicherungsbeitraege - andere Beitragssaetze.xlsx')
 
         erwartete_fehlermeldung = "FEHLER:  Rentenversicherung ist bereits vorhanden! Uebergebene Daten werden " \
-                                  "nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte " \
-                                  "die 'update_rentenversicherung'-Funktion!"
+                                  "nicht eingetragen!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 

@@ -24,7 +24,7 @@ class TestNutzerInsertAnzahlKinder(unittest.TestCase):
 
     def test_erfolgreicher_eintrag(self):
         """
-        Test prueft, ob die Kindernazahl mit dessen Arbeitnehmerbeitrag und Beitragsbemessungsgrenzen eingetragen
+        Test prueft, ob die Kinderanzahl mit dessen Arbeitnehmerbeitrag und Beitragsbemessungsgrenzen eingetragen
         werden.
         """
         self.nutzer.insert_anzahl_kinder_an_pv_beitrag('testdaten_insert_anzahl_kinder/'
@@ -43,8 +43,8 @@ class TestNutzerInsertAnzahlKinder(unittest.TestCase):
     def test_kein_doppelter_eintrag(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_anzahl_kinder_an_pv_beitrag' mit derselben Kinder-
-        anzahl nicht eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden. Massgeblich ist hier
-        die Kinderanzahl. Sollen nur die Beitragsbemessungsgrenzen oder der AN-Beitragssatz geaendert werden, muss
+        anzahl nicht eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung ausgegeben werden. Massgeblich ist
+        hier die Kinderanzahl. Sollen nur die Beitragsbemessungsgrenzen oder der AN-Beitragssatz geaendert werden, muss
         hierfuer die update-Methode verwendet werden (welche im Zuge der Arbeit nicht implementiert wird).
         """
         self.nutzer.insert_anzahl_kinder_an_pv_beitrag('testdaten_insert_anzahl_kinder/'
@@ -56,8 +56,7 @@ class TestNutzerInsertAnzahlKinder(unittest.TestCase):
                                                            'Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx')
 
         erwartete_fehlermeldung = "FEHLER:  Kinderanzahl '1' ist bereits vorhanden! Uebergebene Daten werden " \
-                                  "nicht eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie " \
-                                  "bitte die 'update_anzahl_kinder'-Funktion!"
+                                  "nicht eingetragen!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
@@ -74,10 +73,10 @@ class TestNutzerInsertAnzahlKinder(unittest.TestCase):
     def test_kein_doppelter_eintrag_selbe_kinderanzahl_andere_werte(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_anzahl_kinder_an_pv_beitrag' mit derselben Kinder-
-        anzahl, aber mit anderen Werten, dennoch nicht eingetragen wird. Beim zweiten Eintrag muss eine Exception
-        geworfen werden. Massgeblich ist hier die Kinderanzahl. Die Exception wird auch dann geworfen, wenn die
-        Beitragssaetze anders sind. Sollen nur die Beitragsbemessungsgrenzen oder der AN-Beitragssatz geaendert werden,
-        muss hierfuer die update-Methode verwendet werden (welche im Zuge der Arbeit nicht implementiert wird).
+        anzahl, aber mit anderen Werten, dennoch nicht eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung
+        ausgegeben werden. Massgeblich ist hier die Kinderanzahl. Die Exception wird auch dann geworfen, wenn die
+        Beitragssaetze anders sind. Sollen nur die Beitragssaetze geaendert werden, muss hierfuer eine update-Methode
+        verwendet werden (welche im Rahmen dieser Bachelorarbeit nicht implementiert wird).
         """
         self.nutzer.insert_anzahl_kinder_an_pv_beitrag('testdaten_insert_anzahl_kinder/'
                                                        'Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx')
@@ -88,8 +87,7 @@ class TestNutzerInsertAnzahlKinder(unittest.TestCase):
                                                            'PV-Beitrag - selbe Kinderanzahl, andere Werte.xlsx')
 
         erwartete_fehlermeldung = "FEHLER:  Kinderanzahl '1' ist bereits vorhanden! Uebergebene Daten werden nicht " \
-                                  "eingetragen! Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die " \
-                                  "'update_anzahl_kinder'-Funktion!"
+                                  "eingetragen!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 

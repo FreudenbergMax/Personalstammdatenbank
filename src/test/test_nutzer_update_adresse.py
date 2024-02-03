@@ -53,7 +53,7 @@ class TestNutzerUpdateAdresse(unittest.TestCase):
         self.nutzer.insert_minijobbeitraege('testdaten_insert_minijobbeitraege/Minijobbeitraege.xlsx')
         self.nutzer.insert_berufsgenossenschaft('testdaten_insert_berufsgenossenschaft/Berufsgenossenschaft.xlsx')
         self.nutzer.insert_unfallversicherungsbeitrag('testdaten_insert_unfallversicherungsbeitrag/'
-                                              'Unfallversicherungsbeitrag.xlsx')
+                                                      'Unfallversicherungsbeitrag.xlsx')
 
         # Entgeltdaten eingeben
         self.nutzer.insert_gewerkschaft('testdaten_insert_gewerkschaft/Gewerkschaft.xlsx')
@@ -95,8 +95,7 @@ class TestNutzerUpdateAdresse(unittest.TestCase):
     def test_kein_doppelter_eintrag(self):
         """
         Test prueft, ob bei einem wiederholtem Adress-Update mit exakt denselben Daten fuer denselben Mitarbeiter
-        eine exception geworfen wird. Ausloeser ist der unique-constraint der Tabelle 'wohnt_in' der verhindern soll,
-        dass ein Mitarbeiter gleichzeitig zwei Wohnsitze hat.
+        eine Fehlermeldung erscheint.
         """
         self.nutzer.update_adresse('testdaten_update_adresse/Update Adresse.xlsx')
 
@@ -115,9 +114,9 @@ class TestNutzerUpdateAdresse(unittest.TestCase):
 
     def test_kein_doppelter_eintrag_adresse_case_insensitive(self):
         """
-        Test prueft, ob neue Eintraege fuer Land, Region, Stadt, Strasse, Hausnummer und Personalnummer in
-        Kleinschreibung angelegt werden, wenn diese bereits in Grossschreibung vorhanden ist. In dem Fall soll kein
-        neuer Eintrag durchgefuehrt werden.
+        Test prueft, ob eine Fehlermeldung erscheint, wenn neue Eintraege fuer Land, Region, Stadt, Strasse, Hausnummer
+        und Personalnummer in Kleinschreibung angelegt werden, wenn diese bereits in Grossschreibung vorhanden ist. In
+        dem Fall soll kein neuer Eintrag durchgefuehrt werden.
         """
         self.nutzer.update_adresse('testdaten_update_adresse/Update Adresse - alles klein geschrieben.xlsx')
 
@@ -137,13 +136,15 @@ class TestNutzerUpdateAdresse(unittest.TestCase):
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM strassenbezeichnungen")
         self.assertEqual(str(ergebnis), "[(1, 1, 'Musterstrasse', '1', 1)]")
 
+        # in 'wohnt_in' wird dennoch ein zweiter Datensatz eingetragen. Allerdings verweisen beide Einträge auf
+        # dieselbe Adresse.
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM wohnt_in")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(2026, 12, 31)), "
                                         "(1, 1, 1, datetime.date(2027, 1, 1), datetime.date(9999, 12, 31))]")
 
     def test_mitarbeiter_existiert_nicht(self):
         """
-        Test prueft, ob eine Exception geworfen wird, wenn der Adress-Update fuer eine Person vorgenommen wird,
+        Test prueft, ob eine Fehlermeldung erscheint, wenn der Adress-Update fuer eine Person vorgenommen wird,
         die in der Datenbank nicht existiert
         """
         with self.assertRaises(Exception) as context:

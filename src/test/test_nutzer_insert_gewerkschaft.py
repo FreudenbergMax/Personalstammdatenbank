@@ -36,9 +36,7 @@ class TestNutzerInsertGewerkschaft(unittest.TestCase):
     def test_kein_doppelter_eintrag(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_gewerkschaft' mit derselben Gewerkschaft
-        dieser nicht erneut eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden.
-        Ausloeser ist der unique-constraint der Tabelle "Gewerkschaften" der fuer jeden Mandanten die mehrmalige
-        identische Eintragung derselben Gewerkschaft verbietet.
+        dieser nicht erneut eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung erscheinen.
         """
         self.nutzer.insert_gewerkschaft('testdaten_insert_gewerkschaft/Gewerkschaft.xlsx')
 
@@ -58,8 +56,8 @@ class TestNutzerInsertGewerkschaft(unittest.TestCase):
     def test_kein_doppelter_eintrag_case_insensitive(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_gewerkschaft' mit derselben Gewerkschaft aber mit
-        Kleinschreibung dieser dennoch nicht erneut eingetragen wird. Beim zweiten Eintrag muss eine Exception
-        geworfen werden. Ausloeser ist der unique-constraint in Kombination mit dem unique-Index 'gewerkschaft_idx'.
+        Kleinschreibung dieser dennoch nicht erneut eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung
+        erscheinen.
         """
         self.nutzer.insert_gewerkschaft('testdaten_insert_gewerkschaft/Gewerkschaft.xlsx')
 

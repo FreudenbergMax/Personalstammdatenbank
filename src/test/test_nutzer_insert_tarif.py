@@ -37,11 +37,10 @@ class TestNutzerInsertTarif(unittest.TestCase):
 
     def test_kein_doppelter_eintrag(self):
         """
-        Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_tarife' mit demselben Tarif
-        dieser nicht erneut eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden.
-        Ausloeser ist der unique-constraint der Tabelle "Tarife" der fuer jeden Mandanten die mehrmalige
-        identische Eintragung desselben Tarifs verbietet. Falls eine Tarifbezeichnung aktualisiert werden soll, so muss
-        eine update-Funktion ausgefuehrt werden (welche im Rahmen dieser Bachelorarbeit nicht implementiert wurde).
+        Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_tarif' mit demselben Tarif dieser nicht erneut
+        eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung erscheinen. Falls eine Tarifbezeichnung
+        aktualisiert werden soll, so muss eine update-Funktion ausgefuehrt werden (welche im Rahmen dieser
+        Bachelorarbeit nicht implementiert wurde).
         """
         self.nutzer.insert_tarif('testdaten_insert_tarif/Tarif.xlsx')
 
@@ -49,9 +48,7 @@ class TestNutzerInsertTarif(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             self.nutzer.insert_tarif('testdaten_insert_tarif/Tarif.xlsx')
 
-        erwartete_fehlermeldung = "FEHLER:  Tarif ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen! " \
-                                  "Wenn Sie diese Daten aktualisieren wollen, nutzen Sie bitte die " \
-                                  "'update_Tarif'-Funktion!"
+        erwartete_fehlermeldung = "FEHLER:  Tarif ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
@@ -63,10 +60,9 @@ class TestNutzerInsertTarif(unittest.TestCase):
     def test_kein_doppelter_eintrag_case_insensitive(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_tarif' mit demselben Tarif aber mit Kleinschreibung
-        dieser dennoch nicht erneut eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden.
-        Ausloeser ist der unique-constraint in Kombination mit dem unique-Index 'tarifbezeichnung_idx'. Falls eine
-        Tarifbezeichnung aktualisiert werden soll, so muss eine update-Funktion ausgefuehrt werden (welche im Rahmen
-        dieser Bachelorarbeit nicht implementiert wurde).
+        dieser dennoch nicht erneut eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung erscheinen. Falls
+        eine Tarifbezeichnung aktualisiert werden soll, so muss eine update-Funktion ausgefuehrt werden (welche im
+        Rahmen dieser Bachelorarbeit nicht implementiert wurde).
         """
         self.nutzer.insert_tarif('testdaten_insert_tarif/Tarif.xlsx')
 
@@ -74,7 +70,7 @@ class TestNutzerInsertTarif(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             self.nutzer.insert_tarif('testdaten_insert_tarif/Tarif - Tarif klein geschrieben.xlsx')
 
-        erwartete_fehlermeldung = "FEHLER:  Tarif 'Verdi' bereits vorhanden!"
+        erwartete_fehlermeldung = "FEHLER:  Tarif 'a5-1' bereits vorhanden!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 

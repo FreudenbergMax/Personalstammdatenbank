@@ -48,7 +48,7 @@ class TestNutzerUpdateKrankenversicherungsbeitraege(unittest.TestCase):
 
     def test_ermaessigter_beitragssatz_existiert_nicht(self):
         """
-        Test prueft, ob eine Exception geworfen wird, wenn noch kein Datensatz fuer ermaessigte Beitragssaetze vorhanden
+        Test prueft, ob eine Fehlermeldung erscheint, wenn noch kein Datensatz fuer ermaessigte Beitragssaetze vorhanden
         ist, dieser dann aber sofort geupdatet werden soll
         """
         with self.assertRaises(Exception) as context:

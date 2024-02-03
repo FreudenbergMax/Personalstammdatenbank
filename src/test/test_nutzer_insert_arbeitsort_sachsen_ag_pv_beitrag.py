@@ -43,9 +43,9 @@ class TestNutzerInsertArbeitsortSachsen(unittest.TestCase):
     def test_kein_doppelter_eintrag(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_arbeitsort_sachsen_ag_pv_beitrag' mit derselben
-        Angabe nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden. Massgeblich
-        ist hier lediglich der boolesche Wert "in_Sachsen" in Tabelle "Arbeitsort_Sachsen". Die Exception wird auch dann
-        geworfen, wenn der AG-Beitragssatz anders ist. Soll nur der Beitragssatz geaendert werden, muss hierfuer eine
+        Angabe nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung erscheinen. Massgeblich
+        ist hier lediglich der boolesche Wert "in_Sachsen" in Tabelle "Arbeitsort_Sachsen". Die Fehlermeldung soll auch
+        erscheinen, wenn der AG-Beitragssatz anders ist. Soll nur der Beitragssatz geaendert werden, muss hierfuer eine
         update-Methode verwendet werden (welche im Rahmen dieser Bachelorarbeit nicht implementiert wird).
         """
         self.nutzer.insert_arbeitsort_sachsen_ag_pv_beitrag('testdaten_insert_ag_pv_beitrag_sachsen/'
@@ -57,8 +57,7 @@ class TestNutzerInsertArbeitsortSachsen(unittest.TestCase):
                                                                 'Arbeitsort Sachsen Arbeitgeber PV-Beitrag.xlsx')
 
         erwartete_fehlermeldung = "FEHLER:  arbeitsort_sachsen = 't' ist bereits vorhanden! Uebergebene " \
-                                  "Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren " \
-                                  "wollen, nutzen Sie bitte die 'update_arbeitsort_sachsen'-Funktion!"
+                                  "Daten werden nicht eingetragen!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
@@ -76,8 +75,8 @@ class TestNutzerInsertArbeitsortSachsen(unittest.TestCase):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_anzahl_kinder_an_pv_beitrag' mit demselben
         booleschen Wahrheitswert (= true), aber mit anderem Beitragssatz, dennoch nicht eingetragen wird. Beim zweiten
-        Eintrag muss eine Exception geworfen werden. Massgeblich ist hier lediglich der boolesche Wert "in_Sachsen" in
-        Tabelle "Arbeitsort_Sachsen". Die Exception wird auch dann geworfen, wenn der AG-Beitragssatz anders ist. Soll
+        Eintrag muss eine Fehlermeldung erscheinen. Massgeblich ist hier lediglich der boolesche Wert "in_Sachsen" in
+        Tabelle "Arbeitsort_Sachsen". Die Fehlermeldung soll auch erscheinen, wenn der AG-Beitragssatz anders ist. Soll
         nur der Beitragssatz geaendert werden, muss hierfuer eine update-Methode verwendet werden (welche im Rahmen
         dieser Bachelorarbeit nicht implementiert wird).
         """
@@ -90,8 +89,7 @@ class TestNutzerInsertArbeitsortSachsen(unittest.TestCase):
                                                                 'anderer Beitragssatz.xlsx')
 
         erwartete_fehlermeldung = "FEHLER:  arbeitsort_sachsen = 't' ist bereits vorhanden! Uebergebene " \
-                                  "Daten werden nicht eingetragen! Wenn Sie diese Daten aktualisieren " \
-                                  "wollen, nutzen Sie bitte die 'update_arbeitsort_sachsen'-Funktion!"
+                                  "Daten werden nicht eingetragen!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 

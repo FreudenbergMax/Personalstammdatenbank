@@ -44,8 +44,8 @@ class TestNutzerInsertKrankenversicherungsbeitraege(unittest.TestCase):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_krankenversicherungsbeitraege' mit derselben Angabe,
         ob es der ermaessigte Beitrag ist, und denselben Beitragssaetzen dieser nicht erneut eingetragen wird. Beim
-        zweiten Eintrag muss eine Exception geworfen werden. Massgeblich sit hier lediglich der boolesche Wert
-        "ermaessigter_beitragssatz" in Tabelle "Krankenversicherungen". Die Exception wird auch dann geworfen, wenn die
+        zweiten Eintrag muss eine Fehlermeldung erscheinen. Massgeblich sit hier lediglich der boolesche Wert
+        "ermaessigter_beitragssatz" in Tabelle "Krankenversicherungen". Die Fehlermeldung soll auch erscheinen, wenn die
         Beitragssaetze anders sind. Sollen nur die Beitragssaetze geaendert werden, muss hierfuer die update-Methode
         'update_krankenversicherungsbeitraege' verwendet werden.
         """
@@ -78,8 +78,8 @@ class TestNutzerInsertKrankenversicherungsbeitraege(unittest.TestCase):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_krankenversicherungsbeitraege' mit derselben Angabe,
         ob es der ermaessigte Beitrag ist, aber anderen Beitragssaetzen dieser nicht erneut eingetragen wird. Beim
-        zweiten Eintrag muss eine Exception geworfen werden. Massgeblich sit hier lediglich der boolesche Wert
-        "ermaessigter_beitragssatz" in Tabelle "Krankenversicherungen". Die Exception wird auch dann geworfen, wenn die
+        zweiten Eintrag muss eine Fehlermeldung erscheinen. Massgeblich ist hier lediglich der boolesche Wert
+        "ermaessigter_beitragssatz" in Tabelle "Krankenversicherungen". Die Fehlermeldung soll auch erscheinen, wenn die
         Beitragssaetze anders sind. Sollen nur die Beitragssaetze geaendert werden, muss hierfuer die update-Methode
         'update_krankenversicherungsbeitraege' verwendet werden.
         """

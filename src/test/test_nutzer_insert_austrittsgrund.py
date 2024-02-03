@@ -61,8 +61,7 @@ class TestNutzerInsertAustrittsgrund(unittest.TestCase):
     def test_kein_doppelter_eintrag(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_austrittsgrund' mit demselben Austrittsgrund
-        dieser nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception geworfen werden. Ausloeser ist
-        der unique-constraint, welcher in der Stored Procedure 'insert_austrittsgruende' implementiert ist.
+        dieser nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung erscheinen.
         """
         # Zuerst muss die Austrittsgrundkategorie eingetragen werden, damit dann eine Verknupfung ueber Fremdschluessel
         # zwischen Austrittsgrund und dessen Kategorie vorgenommen werden kann
@@ -87,9 +86,8 @@ class TestNutzerInsertAustrittsgrund(unittest.TestCase):
     def test_kein_doppelter_eintrag_case_insensitive(self):
         """
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_austrittsgrund' mit demselben Austrittsgrund aber
-        mit Kleinschreibung dieser dennoch nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Exception
-        geworfen werden. Ausloeser ist der unique-constraint, welcher in der Stored Procedure 'insert_austrittsgruende'
-        implementiert ist, in Kombination mit dem unique-Index 'austrittsgrund_idx'.
+        mit Kleinschreibung dieser dennoch nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss Fehlermeldung
+        erscheinen.
         """
         # Zuerst muss die Austrittsgrundkategorie eingetragen werden, damit dann eine Verknupfung ueber Fremdschluessel
         # zwischen Austrittsgrund und dessen Kategorie vorgenommen werden kann

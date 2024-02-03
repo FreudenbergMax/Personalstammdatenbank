@@ -4,7 +4,7 @@ from src.main.Login import Login
 from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
 
 
-class TestNutzerDeleteMandantendaten(unittest.TestCase):
+class TestNutzerDeleteMandantNutzerAdmin(unittest.TestCase):
 
     def setUp(self):
         """
