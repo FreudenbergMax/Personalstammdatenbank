@@ -559,7 +559,7 @@ class TestNutzerDeleteMandantNutzerAdmin(unittest.TestCase):
 
         self.assertIsNotNone(admin)
 
-        # Administrator (und Admin) entfernen
+        # Administrator (und Mandant) entfernen
         self.login.entferne_mandant_nutzer_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'adminpw',
                                                      'adminpw')
 

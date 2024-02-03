@@ -13,6 +13,7 @@ class TestNutzerInsertAustrittsgrund(unittest.TestCase):
         """
         self.testschema = test_set_up()
 
+        # Notwendige Standardvorbereitungen
         login = Login(self.testschema)
         login.registriere_mandant_und_admin('Testfirma', 'mandantenpw', 'mandantenpw', 'M100000', 'Otto',
                                             'Normalverbraucher', 'adminpw', 'adminpw')
@@ -22,15 +23,14 @@ class TestNutzerInsertAustrittsgrund(unittest.TestCase):
         self.nutzer = login.login_nutzer('Testfirma', 'mandantenpw', 'M100001', 'nutzerpw')
         self.nutzer.passwort_aendern('neues passwort', 'neues passwort')
 
+        # Zusaetzliche testklassenspezifische Vorbereitungen
+        self.nutzer.insert_austrittsgrundkategorie(
+            'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx')
+
     def test_erfolgreicher_eintrag(self):
         """
         Test prueft, ob ein Austrittsgrund eingetragen wird.
         """
-        # Zuerst muss die Austrittsgrundkategorie eingetragen werden, damit dann eine Verknupfung ueber Fremdschluessel
-        # zwischen Austrittsgrund und dessen Kategorie vorgenommen werden kann
-        self.nutzer.insert_austrittsgrundkategorie(
-            'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx')
-
         self.nutzer.insert_austrittsgrund('testdaten_insert_austrittsgrund/Austrittsgrund.xlsx')
 
         # Inhalt aus Tabelle ziehen, um zu pruefen, ob der Datensatz angelegt wurde
@@ -46,10 +46,6 @@ class TestNutzerInsertAustrittsgrund(unittest.TestCase):
         Fremdschluesselverknuepfung erstellen kann. Hierfuer wurde die Excel-Datei so umgestaltet, dass man auch gross
         geschriebene Austrittsgrundkategorien eintragen kann.
         """
-        # Zuerst muss die Austrittsgrundkategorie eingetragen werden, damit dann eine Verknupfung ueber Fremdschluessel
-        # zwischen Austrittsgrund und dessen Kategorie vorgenommen werden kann
-        self.nutzer.insert_austrittsgrundkategorie(
-            'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx')
 
         self.nutzer.insert_austrittsgrund('testdaten_insert_austrittsgrund/Austrittsgrund - '
                                           'Kategorie gross geschrieben.xlsx')
@@ -63,10 +59,6 @@ class TestNutzerInsertAustrittsgrund(unittest.TestCase):
         Test prueft, ob bei wiederholtem Aufruf der Methode 'insert_austrittsgrund' mit demselben Austrittsgrund
         dieser nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss eine Fehlermeldung erscheinen.
         """
-        # Zuerst muss die Austrittsgrundkategorie eingetragen werden, damit dann eine Verknupfung ueber Fremdschluessel
-        # zwischen Austrittsgrund und dessen Kategorie vorgenommen werden kann
-        self.nutzer.insert_austrittsgrundkategorie(
-            'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx')
 
         self.nutzer.insert_austrittsgrund('testdaten_insert_austrittsgrund/Austrittsgrund.xlsx')
 
@@ -89,10 +81,6 @@ class TestNutzerInsertAustrittsgrund(unittest.TestCase):
         mit Kleinschreibung dieser dennoch nicht mehrfach eingetragen wird. Beim zweiten Eintrag muss Fehlermeldung
         erscheinen.
         """
-        # Zuerst muss die Austrittsgrundkategorie eingetragen werden, damit dann eine Verknupfung ueber Fremdschluessel
-        # zwischen Austrittsgrund und dessen Kategorie vorgenommen werden kann
-        self.nutzer.insert_austrittsgrundkategorie(
-            'testdaten_insert_austrittsgrundkategorie/Austrittsgrundkategorie.xlsx')
 
         self.nutzer.insert_austrittsgrund('testdaten_insert_austrittsgrund/Austrittsgrund.xlsx')
 
