@@ -1,9 +1,8 @@
 import unittest
 
-import psycopg2
-
 from src.main.Login import Login
 from src.test.test_SetUp_TearDown import test_set_up, test_tear_down
+from src.main.Datenbankverbindung import datenbankbverbindung_aufbauen
 
 
 class TestNutzerEntfernen(unittest.TestCase):
@@ -47,13 +46,7 @@ class TestNutzerEntfernen(unittest.TestCase):
         self.assertEqual(str(context.exception), "list index out of range")
 
         # Pruefen, ob der Nutzer auch aus der Datenbank entfernt wurde
-        conn = psycopg2.connect(
-            host="localhost",
-            database="Personalstammdatenbank",
-            user="postgres",
-            password="@Postgres123",
-            port=5432
-        )
+        conn = datenbankbverbindung_aufbauen()
 
         nutzer_query = f"set search_path to {self.testschema}; SELECT * FROM nutzer"
 
