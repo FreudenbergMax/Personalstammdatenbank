@@ -1,9 +1,8 @@
 import unittest
 
-import psycopg2
-
 from src.main.Login import Login
-from src.main.test_SetUp_TearDown import test_set_up, test_tear_down
+from src.test.test_SetUp_TearDown import test_set_up, test_tear_down
+from src.main.Datenbankverbindung import datenbankbverbindung_aufbauen
 
 
 class TestNutzerAnlegen(unittest.TestCase):
@@ -36,13 +35,7 @@ class TestNutzerAnlegen(unittest.TestCase):
         self.assertEqual(personalnummer, 'M100001')
 
         # Pruefung, ob Nutzer in Datenbank angelegt ist
-        conn = psycopg2.connect(
-            host="localhost",
-            database="Personalstammdatenbank",
-            user="postgres",
-            password="@Postgres123",
-            port=5432
-        )
+        conn = datenbankbverbindung_aufbauen()
 
         nutzer_query = f"set search_path to {self.testschema}; SELECT * FROM nutzer"
 

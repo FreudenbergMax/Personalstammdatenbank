@@ -1,4 +1,4 @@
-import psycopg2
+from src.main.Datenbankverbindung import datenbankbverbindung_aufbauen
 
 
 def test_set_up():
@@ -21,13 +21,7 @@ def test_set_up():
                                               f"alter default privileges in schema {testschema} grant usage on " \
                                               f"sequences to tenant_user;"
 
-    conn = psycopg2.connect(
-        host="localhost",
-        database="Personalstammdatenbank",
-        user="postgres",
-        password="@Postgres123",
-        port=5432
-    )
+    conn = datenbankbverbindung_aufbauen()
 
     cur = conn.cursor()
 
@@ -64,13 +58,7 @@ def test_tear_down():
     Datenbank. Diese soll nur fuer die Unit-Tests aufgebaut werden. In der Praxis wuerden die Nutzer auf dem Schema
     'public' arbeiten.
     """
-    conn = psycopg2.connect(
-        host="localhost",
-        database="Personalstammdatenbank",
-        user="postgres",
-        password="@Postgres123",
-        port=5432
-    )
+    conn = datenbankbverbindung_aufbauen()
 
     cur = conn.cursor()
     cur.execute(f"set role postgres;"

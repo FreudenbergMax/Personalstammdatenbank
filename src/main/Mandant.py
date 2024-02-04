@@ -1,4 +1,4 @@
-import psycopg2
+from src.main.Datenbankverbindung import datenbankbverbindung_aufbauen
 
 
 class Mandant:
@@ -32,28 +32,13 @@ class Mandant:
     def get_nutzerliste(self):
         return self.liste_nutzer
 
-    def _datenbankbverbindung_aufbauen(self):
-        """
-        Baut eine Connection zur Datenbank auf.
-        :return: conn-Variable, die die Verbindung zur Datenbank enthaelt
-        """
-        conn = psycopg2.connect(
-            host="localhost",
-            database="Personalstammdatenbank",
-            user="postgres",
-            password="@Postgres123",
-            port=5432
-        )
-
-        return conn
-
     def _in_datenbank_anlegen(self, passwort):
         """
         Methode ruft die Stored Procedure 'mandant_anlegen' auf, welche die Daten des Mandanten in der
         Personalstammdatenbank speichert.
         :param passwort: Passwort, welches fuer den Mandanten angelegt werden soll
         """
-        conn = self._datenbankbverbindung_aufbauen()
+        conn = datenbankbverbindung_aufbauen()
 
         mandant_insert_query = f"set search_path to {self.schema};SELECT mandant_anlegen('{self.mandantenname}', " \
                                f"'{passwort}')"

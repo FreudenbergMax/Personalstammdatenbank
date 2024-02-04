@@ -1,7 +1,6 @@
-import psycopg2
-
 from src.main.Mandant import Mandant
 from src.main.Administrator import Administrator
+from src.main.Datenbankverbindung import datenbankbverbindung_aufbauen
 
 
 class Login:
@@ -38,21 +37,6 @@ class Login:
         self.liste_mandanten.append(neuer_mandant)
         self.liste_admins.append(neuer_admin)
 
-    def _datenbankbverbindung_aufbauen(self):
-        """
-        Baut eine Connection zur Datenbank auf.
-        :return: conn-Variable, die die Verbindung zur Datenbank enthaelt
-        """
-        conn = psycopg2.connect(
-            host="localhost",
-            database="Personalstammdatenbank",
-            user="postgres",
-            password="@Postgres123",
-            port=5432
-        )
-
-        return conn
-
     def login_admin(self, mandantenname, mandantenpasswort, personalnummer, adminpasswort):
         """
         Ueber diese Funktion kann sich ein Admin einloggen und erhaelt Zugang zu seinem Administrator-Objekt
@@ -70,7 +54,7 @@ class Login:
                     self.liste_admins[i].get_mandant().get_mandantenname() == mandantenname:
 
                 # Passwoerter in Datenbank abgleichen
-                conn = self._datenbankbverbindung_aufbauen()
+                conn = datenbankbverbindung_aufbauen()
 
                 passwort_query = f"set search_path to {self.schema};" \
                                  f"SELECT adminpasswort_pruefen('" \
@@ -114,7 +98,7 @@ class Login:
             if self.liste_mandanten[i].get_mandantenname() == mandantenname:
 
                 # Passwoerter in Datenbank abgleichen
-                conn = self._datenbankbverbindung_aufbauen()
+                conn = datenbankbverbindung_aufbauen()
 
                 passwort_query = f"set search_path to {self.schema};" \
                                  f"SELECT nutzerpasswort_pruefen('" \
@@ -168,7 +152,7 @@ class Login:
         # Entfernung aller der Daten des Mandanten aus der Datenbank
         export_daten = [admin.get_mandant().get_mandant_id()]
 
-        conn = self._datenbankbverbindung_aufbauen()
+        conn = datenbankbverbindung_aufbauen()
         cur = conn.cursor()
 
         cur.execute(f"set search_path to {self.schema}; call delete_mandantendaten(%s)", export_daten)

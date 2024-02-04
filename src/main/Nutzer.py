@@ -2,6 +2,7 @@ import decimal
 import pandas as pd
 import re
 from datetime import datetime, timedelta
+from src.main.Datenbankverbindung import datenbankbverbindung_aufbauen
 
 import psycopg2
 
@@ -68,7 +69,7 @@ class Nutzer:
         :return: Nutzer_ID, welche als Objekt-Variable gespeichert wird
         """
 
-        conn = self._datenbankbverbindung_aufbauen()
+        conn = datenbankbverbindung_aufbauen()
 
         nutzer_insert_query = f"set search_path to {self.schema};" \
                               f"SELECT nutzer_anlegen('{self.mandant_id}', '{self.personalnummer}', " \
@@ -98,7 +99,7 @@ class Nutzer:
         if neues_passwort != neues_passwort_wiederholen:
             raise(ValueError("Zweite Passworteingabe ist anders als erste Passworteingabe!"))
 
-        conn = self._datenbankbverbindung_aufbauen()
+        conn = datenbankbverbindung_aufbauen()
 
         nutzer_insert_query = f"set search_path to {self.schema};" \
                               f"CALL nutzerpasswort_aendern('{self.mandant_id}', '{self.personalnummer}', " \
@@ -124,7 +125,7 @@ class Nutzer:
         if not self.neues_passwort_geaendert:
             raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
 
-        conn = self._datenbankbverbindung_aufbauen()
+        conn = datenbankbverbindung_aufbauen()
 
         with conn.cursor() as cur:
             cur.execute(f"set search_path to {self.schema};"
@@ -1148,22 +1149,6 @@ class Nutzer:
 
         return daten
 
-    def _datenbankbverbindung_aufbauen(self):
-        """
-        Baut eine Connection zur Datenbank auf. Diese Methode wird jedes Mal aufgerufen, bevor mit der Datenbank
-        interagiert werden soll.
-        :return: conn-Variable, die die Verbindung zur Datenbank enthaelt
-        """
-        conn = psycopg2.connect(
-            host="localhost",
-            database="Personalstammdatenbank",
-            user="postgres",
-            password="@Postgres123",
-            port=5432
-        )
-
-        return conn
-
     def _export_zu_db(self, stored_procedure, export_daten):
         """
         Methode uebergibt Liste mit Daten an die Personalstammdatenbank, indem die entsprechende Stored Procedure
@@ -1171,7 +1156,7 @@ class Nutzer:
         :param stored_procedure: datenbankseitige Methode, welche die uebergebenen Daten in die Datenbank schreibt
         :param export_daten: Daten, welche in die Personalstammdatenbank eingetragen werden sollen
         """
-        conn = self._datenbankbverbindung_aufbauen()
+        conn = datenbankbverbindung_aufbauen()
         cur = conn.cursor()
 
         cur.execute(f"set search_path to {self.schema}; call {stored_procedure}", export_daten)

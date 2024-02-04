@@ -26,6 +26,7 @@ create table Administratoren(
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
+-- Quelle: https://docs.aws.amazon.com/de_de/prescriptive-guidance/latest/saas-multitenant-managed-postgresql/rls.html
 alter table Administratoren enable row level security;
 create policy FilterMandant_Administrator
     on Administratoren
@@ -109,6 +110,7 @@ create table Mitarbeiter (
 		foreign key (Austrittsgrund_ID) 
 			references Austrittsgruende(Austrittsgrund_ID)
 );
+-- https://stackoverflow.com/questions/4124185/postgresql-unique-indexes-and-string-case
 create unique index personalnummer_idx on Mitarbeiter(lower(Personalnummer));
 alter table Mitarbeiter enable row level security;
 create policy FilterMandant_Mitarbeiter
@@ -1386,7 +1388,7 @@ create or replace function mandant_anlegen(
 	p_firma varchar(128),
 	p_passwort varchar(128)
 ) returns integer as
-$$
+$body$
 declare
 	v_mandant varchar(128);
 	v_mandant_id integer;
@@ -1407,7 +1409,7 @@ begin
 	return v_mandant_id;
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -1417,7 +1419,7 @@ create or replace function mandantenpasswort_pruefen(
 	p_mandant_id integer,
 	p_eingegebenes_passwort varchar(128)
 ) returns boolean as
-$$
+$body$
 declare
 	v_tatsaechliches_passwort varchar(128);
 begin
@@ -1441,7 +1443,7 @@ begin
     end if;
 	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -1454,7 +1456,7 @@ create or replace function administrator_anlegen(
 	p_nachname varchar(64),
 	p_passwort varchar(128)
 ) returns integer as
-$$
+$body$
 declare
 	v_administrator_id integer;
 begin
@@ -1475,7 +1477,7 @@ exception
         raise exception 'Personalnummer ''%'' wird bereits verwendet!', p_personalnummer;
 	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -1487,7 +1489,7 @@ create or replace function adminpasswort_pruefen(
 	p_eingegebenes_passwort varchar(128),
 	p_mandantenpasswort varchar(128)
 ) returns boolean as
-$$
+$body$
 declare
 	v_tatsaechliches_passwort varchar(128);
 	v_anmeldeversuche integer;
@@ -1525,7 +1527,7 @@ begin
     end if;
 	
 end;
-$$
+$body$
 language plpgsql;
 
 -- Stored Procedures fuer Use Case "Nutzer anlegen"
@@ -1539,7 +1541,7 @@ create or replace function nutzer_anlegen(
 	p_nachname varchar(64),
 	p_passwort varchar(128)
 ) returns integer as
-$$
+$body$
 declare
 	v_nutzer_id integer;
 begin
@@ -1560,7 +1562,7 @@ exception
         raise exception 'Personalnummer ''%'' wird bereits verwendet!', p_personalnummer;
 	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -1572,7 +1574,7 @@ create or replace function nutzerpasswort_pruefen(
 	p_eingegebenes_passwort varchar(128),
 	p_mandantenpasswort varchar(128)
 ) returns boolean as
-$$
+$body$
 declare
 	v_tatsaechliches_passwort varchar(128);
 	v_anmeldeversuche integer;
@@ -1610,7 +1612,7 @@ begin
     end if;
 	
 end;
-$$
+$body$
 language plpgsql;
 
 
@@ -1622,7 +1624,7 @@ create or replace procedure nutzer_entsperren(
 	p_personalnummer varchar(32),
 	p_neues_passwort varchar(128)
 ) as
-$$
+$body$
 begin
 	
 	set session role tenant_user;
@@ -1631,7 +1633,7 @@ begin
     execute 'UPDATE nutzer SET anmeldeversuche = $1, passwort = $2 WHERE personalnummer = $3' using 0, p_neues_passwort, p_personalnummer;
 	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -1642,7 +1644,7 @@ create or replace procedure nutzerpasswort_aendern(
 	p_personalnummer varchar(32),
 	p_neues_passwort varchar(128)
 ) as
-$$
+$body$
 begin
 	
 	set session role tenant_user;
@@ -1651,7 +1653,7 @@ begin
     execute 'UPDATE nutzer SET passwort = $1 WHERE personalnummer = $2' using p_neues_passwort, p_personalnummer;
 	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -1661,7 +1663,7 @@ create or replace procedure nutzer_entfernen(
 	p_mandant_id integer,
 	p_personalnummer varchar(32)
 ) as
-$$
+$body$
 begin
 	
 	set session role tenant_user;
@@ -1674,7 +1676,7 @@ begin
    		Mandant_ID = p_mandant_id;
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -1689,7 +1691,7 @@ create or replace procedure insert_krankenversicherungsbeitraege (
 	p_jahresarbeitsentgeltgrenze_gkv decimal(10, 2),
 	p_eintragungsdatum date
 ) as
-$$
+$body$
 declare
 	v_krankenversicherungsbeitrag_id integer;
 	v_krankenversicherung_id integer;
@@ -1776,7 +1778,7 @@ begin
     set role postgres;
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -1793,7 +1795,7 @@ create or replace procedure insert_gesetzliche_Krankenkasse (
 	p_gesetzlich varchar(16),
 	p_eintragungsdatum date
 ) as
-$$
+$body$
 declare
 	v_krankenkasse_id integer;
 	v_gkvzusatzbeitrag_id integer;
@@ -1866,7 +1868,7 @@ exception
         raise exception 'Gesetzliche Krankenkasse ''%'' bereits vorhanden!', p_krankenkasse;
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -1882,7 +1884,7 @@ create or replace procedure insert_private_Krankenkasse (
 	p_privat varchar(16),
 	p_eintragungsdatum date
 ) as
-$$
+$body$
 declare
 	v_krankenkasse_id integer;
 	v_umlage_id integer;
@@ -1933,7 +1935,7 @@ exception
         raise exception 'Private Krankenkasse ''%'' bereits vorhanden!', p_krankenkasse;
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -1949,7 +1951,7 @@ create or replace procedure insert_gemeldete_Krankenkasse(
 	p_anders varchar(16),
 	p_eintragungsdatum date
 ) as
-$$
+$body$
 declare
 	v_krankenkasse_id integer;
 	v_umlage_id integer;
@@ -2000,7 +2002,7 @@ exception
         raise exception 'Gemeldete Krankenkasse ''%'' bereits vorhanden!', p_krankenkasse;
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -2014,7 +2016,7 @@ create or replace procedure insert_anzahl_kinder_an_pv_beitrag (
 	p_jahresarbeitsentgeltgrenze_pv decimal(10, 2),
 	p_eintragungsdatum date
 ) as
-$$
+$body$
 declare
 	v_anzahl_kinder_unter_25_id integer;
 	v_an_pv_beitrag_id integer;
@@ -2092,7 +2094,7 @@ begin
    		values (v_anzahl_kinder_unter_25_id, v_an_pv_beitrag_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -2105,7 +2107,7 @@ create or replace procedure insert_arbeitsort_sachsen_ag_pv_beitrag(
 	p_ag_anteil_pv_beitrag_in_prozent decimal(5, 3),
 	p_eintragungsdatum date
 ) as
-$$
+$body$
 declare
 	v_arbeitsort_sachsen_id integer;
 	v_ag_pv_beitrag_id integer;
@@ -2153,7 +2155,7 @@ begin
    		values (v_arbeitsort_sachsen_id, v_ag_pv_beitrag_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -2168,7 +2170,7 @@ create or replace procedure insert_arbeitslosenversicherungsbeitraege (
 	p_beitragsbemessungsgrenze_av_west decimal(10, 2),
 	p_eintragungsdatum date
 ) as
-$$
+$body$
 declare
 	v_arbeitslosenversicherungsbeitrag_id integer;
 	v_arbeitslosenversicherung_id integer;
@@ -2254,7 +2256,7 @@ begin
    		values (v_arbeitslosenversicherung_id, v_arbeitslosenversicherungsbeitrag_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -2268,7 +2270,7 @@ create or replace procedure insert_rentenversicherungsbeitraege(
 	p_beitragsbemessungsgrenze_rv_west decimal(10, 2),
 	p_eintragungsdatum date
 ) as
-$$
+$body$
 declare
 	v_rentenversicherungsbeitrag_id integer;
 	v_rentenversicherung_id integer;
@@ -2356,7 +2358,7 @@ begin
    		values (v_rentenversicherung_id, v_rentenversicherungsbeitrag_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -2374,7 +2376,7 @@ create or replace procedure insert_minijobbeitraege(
 	p_pauschalsteuer_in_prozent decimal(5, 3),
 	p_eintragungsdatum date
 ) as
-$$
+$body$
 declare
 	v_minijob_id integer;
 	v_pauschalabgabe_id integer;
@@ -2478,7 +2480,7 @@ begin
    		values (v_minijob_id, v_pauschalabgabe_id, p_mandant_id, p_eintragungsdatum, '9999-12-31');
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -2489,7 +2491,7 @@ create or replace procedure insert_berufsgenossenschaft(
 	p_berufsgenossenschaft varchar(128),
 	p_abkuerzung varchar(16)
 ) as
-$$
+$body$
 begin
     
     set session role tenant_user;
@@ -2505,7 +2507,7 @@ exception
         raise exception 'Berufsgenossenschaft ''%'' bereits vorhanden!', p_berufsgenossenschaft;
            
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -2520,7 +2522,7 @@ create or replace procedure insert_unfallversicherungsbeitrag(
 	p_beitrag decimal(12, 2),
 	p_beitragsjahr integer
 ) as
-$$
+$body$
 declare
 	v_unternehmen_id integer;
 	v_berufsgenossenschaft_id integer;
@@ -2554,7 +2556,7 @@ exception
     when unique_violation then
         raise exception 'Unfallversicherungsbeitrag ist fuer das Jahr ''%'' bereits vermerkt!', p_beitragsjahr;
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -2564,7 +2566,7 @@ create or replace procedure insert_gewerkschaft(
 	p_mandant_id integer,
 	p_gewerkschaft varchar(64)
 ) as
-$$
+$body$
 begin
     
     set session role tenant_user;
@@ -2580,7 +2582,7 @@ exception
         raise exception 'Gewerkschaft ''%'' bereits vorhanden!', p_gewerkschaft;
            
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -2591,7 +2593,7 @@ create or replace procedure insert_tarif(
 	p_tarifbezeichnung varchar(16),
 	p_gewerkschaft varchar(64)
 ) as
-$$
+$body$
 declare
 	v_gewerkschaft_id integer;
 	v_tarif_id integer;
@@ -2627,7 +2629,7 @@ exception
         raise exception 'Tarif ''%'' bereits vorhanden!', p_tarifbezeichnung;
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -2638,7 +2640,7 @@ create or replace procedure insert_verguetungsbestandteil(
 	p_Verguetungsbestandteil varchar(64),
 	p_auszahlungsmonat varchar(16)
 ) as
-$$
+$body$
 begin
     
     set session role tenant_user;
@@ -2657,7 +2659,7 @@ exception
 
            
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -2671,7 +2673,7 @@ create or replace procedure insert_tarifliches_verguetungsbestandteil(
 	p_betrag decimal(10, 2),
 	p_gueltig_ab date
 ) as
-$$
+$body$
 declare
 	v_tarif_id integer;
 	v_verguetungsbestandteil_id integer;
@@ -2704,7 +2706,7 @@ exception
         raise exception 'Verguetungsbestandteil ''%'' fuer Tarif ''%'' bereits verknuepft!', p_Verguetungsbestandteil, p_tarifbezeichnung;
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -2714,7 +2716,7 @@ create or replace procedure insert_geschlecht(
     p_mandant_id integer,
     p_geschlecht varchar(32)
 ) as
-$$
+$body$
 begin
     
     set session role tenant_user;
@@ -2732,7 +2734,7 @@ exception
     	raise exception 'Fuer Geschlechter sind nur folgende Werte erlaubt: ''maennlich'', ''weiblich'', ''divers''!';
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -2742,7 +2744,7 @@ create or replace procedure insert_mitarbeitertyp(
     p_mandant_id integer,
     p_mitarbeitertyp varchar(32)
 ) as
-$$
+$body$
 begin
     
     set session role tenant_user;
@@ -2758,7 +2760,7 @@ exception
         raise exception 'Mitarbeitertyp ''%'' bereits vorhanden!', p_mitarbeitertyp;
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -2768,7 +2770,7 @@ create or replace procedure insert_steuerklasse(
     p_mandant_id integer,
     p_steuerklasse char(1)
 ) as
-$$
+$body$
 begin
     
     set session role tenant_user;
@@ -2786,7 +2788,7 @@ exception
     	raise exception 'Fuer Steuerklassen sind nur folgende Werte erlaubt: 1, 2, 3, 4, 5, 6!';
     
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -2797,7 +2799,7 @@ create or replace procedure insert_abteilung(
     p_abteilung varchar(64),
 	p_abkuerzung varchar(16)
 ) as
-$$
+$body$
 begin
     
     set session role tenant_user;
@@ -2812,7 +2814,7 @@ exception
     when unique_violation then
         raise exception 'Abteilung ''%'' bereits vorhanden!', p_abteilung;
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -2822,7 +2824,7 @@ create or replace procedure insert_jobtitel (
 	p_mandant_ID integer,
 	p_jobtitel varchar(32)
 ) as
-$$
+$body$
 begin
     
     set session role tenant_user;
@@ -2838,7 +2840,7 @@ exception
         raise exception 'Jobtitel ''%'' bereits vorhanden!', p_jobtitel;
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -2849,7 +2851,7 @@ create or replace procedure insert_erfahrungsstufe (
 	p_Mandant_ID integer,
 	p_erfahrungsstufe varchar(32) 
 ) as
-$$
+$body$
 begin
     
     set session role tenant_user;
@@ -2865,7 +2867,7 @@ exception
         raise exception 'Erfahrungsstufe ''%'' bereits vorhanden!', p_erfahrungsstufe;
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -2876,7 +2878,7 @@ create or replace procedure insert_unternehmen(
 	p_unternehmen varchar(128),
 	p_abkuerzung varchar (16)
 ) as
-$$
+$body$
 begin
     
     set session role tenant_user;
@@ -2892,7 +2894,7 @@ exception
         raise exception 'Unternehmen ''%'' bereits vorhanden!', p_unternehmen;
            
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -2902,7 +2904,7 @@ create or replace procedure insert_austrittsgrundkategorie(
 	p_mandant_id integer,
 	p_austrittsgrundkategorie varchar(16)
 ) as
-$$
+$body$
 begin
 
 	set session role tenant_user;
@@ -2920,7 +2922,7 @@ exception
     	raise exception 'Fuer Austrittsgrundkategorien sind nur folgende Werte erlaubt: ''verhaltensbedingt'', ''personenbedingt'', ''betriebsbedingt''!';
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -2931,7 +2933,7 @@ create or replace procedure insert_austrittsgrund(
 	p_austrittsgrund varchar(32),
 	p_austrittsgrundkategorie varchar(16)
 ) as
-$$
+$body$
 declare
 	v_kategorie_austrittsgruende_id integer;
 begin
@@ -2952,7 +2954,7 @@ exception
         raise exception 'Austrittsgrund ''%'' bereits vorhanden!', p_austrittsgrund;
 
 end;
-$$
+$body$
 language plpgsql;
 
 -- Stored Procedures fuer Use Case "Neuen Mitarbeiter anlegen"
@@ -3009,7 +3011,7 @@ create or replace procedure insert_neuer_mitarbeiter(
 	p_arbeitslosenversichert boolean,
 	p_rentenversichert boolean
 ) as
-$$
+$body$
 begin
 	
 	set session role tenant_user;
@@ -3121,7 +3123,7 @@ begin
 	end if;
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3144,7 +3146,7 @@ create or replace procedure insert_tbl_mitarbeiter(
     p_dienstliche_emailadresse varchar(64),
     p_befristet_bis date
 ) as
-$$
+$body$
 begin
 	
 	set session role tenant_user;
@@ -3186,7 +3188,7 @@ exception
         raise exception 'Personalnummer ''%'' bereits vorhanden!', p_personalnummer;  
 	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3196,7 +3198,7 @@ create or replace procedure insert_tbl_laender(
 	p_mandant_id integer,
 	p_land varchar(128)
 ) as
-$$
+$body$
 begin
 
 	set session role tenant_user;
@@ -3212,7 +3214,7 @@ exception
         raise notice 'Land ''%'' bereits vorhanden!', p_land;
    
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3223,7 +3225,7 @@ create or replace procedure insert_tbl_regionen(
 	p_region varchar(128),
 	p_land varchar(128)
 ) as
-$$
+$body$
 declare
 	v_land_id integer;
 begin
@@ -3243,7 +3245,7 @@ exception
         raise notice 'Region ''%'' bereits vorhanden!', p_region;
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3254,7 +3256,7 @@ create or replace procedure insert_tbl_staedte(
 	p_stadt varchar(128),
 	p_region varchar(128)
 ) as
-$$
+$body$
 declare
 	v_region_id integer;
 begin
@@ -3274,7 +3276,7 @@ exception
         raise notice 'Stadt ''%'' bereits vorhanden!', p_stadt;
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3286,7 +3288,7 @@ create or replace procedure insert_tbl_postleitzahlen(
 	p_ost_west_ausland varchar(8),
 	p_stadt varchar(128)
 ) as
-$$
+$body$
 declare
 	v_stadt_id integer;
 begin
@@ -3306,7 +3308,7 @@ exception
         raise notice 'Postleitzahl ''%'' bereits vorhanden!', p_postleitzahl;
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3318,7 +3320,7 @@ create or replace procedure insert_tbl_strassenbezeichnungen(
 	p_hausnummer varchar(8),
 	p_postleitzahl varchar(16)
 ) as
-$$
+$body$
 declare
 	v_strassenbezeichnung varchar(128);
 	v_postleitzahlen_id integer;
@@ -3340,7 +3342,7 @@ exception
             raise notice 'Strassenbezeichnung ''%'' bereits vorhanden!', v_strassenbezeichnung;
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3353,7 +3355,7 @@ create or replace procedure insert_tbl_wohnt_in(
 	p_hausnummer varchar(8),
 	p_eintrittsdatum date
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_ID integer;
 	v_strassenbezeichnung_id integer;
@@ -3376,7 +3378,7 @@ exception
         raise notice 'Mitarbeiter ist bereits mit diesem aktuellen Wohnort vermerkt!';
            
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3388,7 +3390,7 @@ create or replace procedure insert_tbl_hat_geschlecht(
 	p_geschlecht varchar(32),
 	p_eintrittsdatum date
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 	v_geschlecht_id integer;
@@ -3416,7 +3418,7 @@ exception
             raise notice 'Mitarbeiter ist bereits aktuell Geschlecht ''%''!', p_geschlecht;
    
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3428,7 +3430,7 @@ create or replace procedure insert_tbl_ist_mitarbeitertyp(
 	p_mitarbeitertyp varchar(32),
 	p_eintrittsdatum date
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 	v_mitarbeitertyp_id integer;
@@ -3456,7 +3458,7 @@ exception
         raise notice 'Mitarbeiter ist bereits aktuell Mitarbeitertyp''%''!', p_mitarbeitertyp;
    	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3468,7 +3470,7 @@ create or replace procedure insert_tbl_in_steuerklasse(
 	p_steuerklasse char(1),
 	p_eintrittsdatum date
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 	v_steuerklasse_id integer;
@@ -3496,7 +3498,7 @@ exception
         raise notice 'Es ist bereits vermerkt, dass der Mitarbeiter aktuell in Steuerklasse ''%'' ist!', p_steuerklasse;
    	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3506,7 +3508,7 @@ create or replace procedure insert_tbl_wochenarbeitsstunden(
     p_mandant_id integer,
     p_wochenarbeitsstunden decimal(4, 2)
 ) as
-$$
+$body$
 begin
     
     set session role tenant_user;
@@ -3522,7 +3524,7 @@ exception
         raise notice 'Wochenarbeitsstunden ''%'' bereits vorhanden!', p_wochenarbeitsstunden;
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3534,7 +3536,7 @@ create or replace procedure insert_tbl_arbeitet_x_wochenarbeitsstunden(
 	p_wochenarbeitsstunden decimal(4, 2),
 	p_eintrittsdatum date
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 	v_wochenarbeitsstunden_id integer;
@@ -3554,7 +3556,7 @@ exception
         raise notice 'Wochenarbeitsstunden von aktuell ''%'' fuer diesen Mitarbeiter ist bereits vermerkt!', p_wochenarbeitsstunden;
    	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3568,7 +3570,7 @@ create or replace procedure insert_tbl_eingesetzt_in(
 	p_fuehrungskraft boolean,
 	p_eintrittsdatum date
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 	v_abteilung_id integer;
@@ -3596,7 +3598,7 @@ exception
         raise notice 'Mitarbeiter ist bereits in der aktuellen Abteilung ''%'' vermerkt!', p_abteilung;
    
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3609,7 +3611,7 @@ create or replace procedure insert_tbl_hat_jobtitel(
 	p_erfahrungsstufe varchar(32),
 	p_eintrittsdatum date
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 	v_jobtitel_id integer;
@@ -3647,7 +3649,7 @@ exception
         raise notice 'Mitarbeiter hat bereits diesen Jobtitel und Erfahrungsstufe vermerkt!';
    	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3659,7 +3661,7 @@ create or replace procedure insert_tbl_in_unternehmen(
 	p_unternehmen varchar(128),
 	p_eintrittsdatum date
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 	v_unternehmen_id integer;
@@ -3687,7 +3689,7 @@ exception
         raise notice 'Mitarbeiter ist bereits in diesem Unternehmen!';
    	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3699,7 +3701,7 @@ create or replace procedure insert_tbl_hat_tarif(
 	p_tarifbezeichnung varchar(16),
 	p_eintrittsdatum date
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 	v_tarif_id integer;
@@ -3719,7 +3721,7 @@ begin
             raise notice 'Mitarbeiter ist bereits in diesem Tarif!';
    	
 end;
-$$
+$body$
 language plpgsql;
 
 /* 
@@ -3730,7 +3732,7 @@ create or replace procedure insert_tbl_aussertarifliche (
 	p_mandant_id integer,
 	p_eintrittsdatum date
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 begin
@@ -3750,7 +3752,7 @@ exception
         raise notice 'Mitarbeiter bereits als Aussertariflicher eingetragen!';
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3764,7 +3766,7 @@ create or replace procedure insert_tbl_hat_private_krankenversicherung(
 	p_ag_zuschuss_pflegeversicherung decimal(6, 2),
 	p_eintrittsdatum date
 ) as
-$$
+$body$
 declare
 	v_privatkrankenkasse_id integer;
 	v_mitarbeiter_id integer;
@@ -3794,7 +3796,7 @@ begin
    		values (v_mitarbeiter_id, v_privatkrankenkasse_id, p_mandant_id, p_ag_zuschuss_krankenversicherung, p_ag_zuschuss_pflegeversicherung, p_eintrittsdatum, '9999-12-31');
    	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3806,7 +3808,7 @@ create or replace procedure insert_tbl_hat_gesetzliche_Krankenversicherung(
 	p_ermaessigter_kv_beitrag boolean,
 	p_eintrittsdatum date
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 	v_krankenversicherung_id integer;
@@ -3837,7 +3839,7 @@ exception
         raise notice 'Es ist bereits vermerkt, dass der Mitarbeiter gesetzlich krankenversichert ist!';
    	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3850,7 +3852,7 @@ create or replace procedure insert_tbl_ist_in_gkv(
 	p_krankenkassenkuerzel varchar(16),
 	p_eintrittsdatum date
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 	v_krankenkasse_id integer;
@@ -3878,7 +3880,7 @@ exception
         raise notice 'Mitarbeiter ist bereits aktuell in Krankenkasse ''%'' vermerkt!', p_krankenkasse;
    	
 end;
-$$
+$body$
 language plpgsql;
 
 
@@ -3891,7 +3893,7 @@ create or replace procedure insert_tbl_hat_x_kinder_unter_25(
 	p_anzahl_kinder integer,
 	p_eintrittsdatum date
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 	v_anzahl_kinder_unter25_id integer;
@@ -3913,7 +3915,7 @@ exception
         raise notice 'Aktuelle Anzahl der Kinder fuer Mitarbeiter ''%'' ist bereits vermerkt!', p_personalnummer;
    	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3925,7 +3927,7 @@ create or replace procedure insert_tbl_arbeitet_in_sachsen(
 	p_in_sachsen boolean,
 	p_eintrittsdatum date
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 	v_arbeitsort_sachsen_id integer;
@@ -3945,7 +3947,7 @@ exception
         raise notice 'Es ist bereits vermerkt, ob Mitarbeiter ''%'' in Sachsen wohnt!', p_personalnummer;
    	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3956,7 +3958,7 @@ create or replace procedure insert_tbl_hat_gesetzliche_arbeitslosenversicherung(
 	p_personalnummer varchar(32),
 	p_eintrittsdatum date
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 	v_arbeitslosenversicherung_id integer;
@@ -3984,7 +3986,7 @@ exception
         raise notice 'Es ist bereits vermerkt, dass der Mitarbeiter gesetzlich arbeitslosenversichert ist!';
    	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -3995,7 +3997,7 @@ create or replace procedure insert_tbl_hat_gesetzliche_rentenversicherung(
 	p_personalnummer varchar(32),
 	p_eintrittsdatum date
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 	v_rentenversicherung_id integer;
@@ -4023,7 +4025,7 @@ exception
         raise notice 'Es ist bereits vermerkt, dass der Mitarbeiter gesetzlich rentenversichert ist!';
    	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -4036,7 +4038,7 @@ create or replace procedure insert_tbl_ist_anderweitig_versichert(
 	p_krankenkassenkuerzel varchar(16),
 	p_eintrittsdatum date
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 	v_krankenkasse_id integer;
@@ -4064,7 +4066,7 @@ exception
         raise notice 'Mitarbeiter ist bereits aktuell in Krankenkasse ''%'' vermerkt!', p_krankenkasse;
    	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -4076,7 +4078,7 @@ create or replace procedure insert_tbl_ist_Minijobber(
 	p_ist_kurzfristig_beschaeftigt boolean,
 	p_eintrittsdatum date
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 	v_minijob_id integer;
@@ -4107,7 +4109,7 @@ exception
         raise notice 'Es ist bereits vermerkt, dass der Mitarbeiter Minijobber ist!';
    	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -4121,7 +4123,7 @@ create or replace procedure insert_aussertarifliches_verguetungsbestandteil(
 	p_betrag decimal(8, 2),
 	p_eintragungsdatum date
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 	v_aussertarifliche_id integer;
@@ -4163,7 +4165,7 @@ exception
         raise exception 'Aussertariflicher Mitarbeiter ''%'' hat bereits aktuellen Verguetungsbestandteil ''%''!', p_personalnummer, p_Verguetungsbestandteil;
 
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -4184,7 +4186,7 @@ create or replace procedure update_adresse(
 	p_region varchar(128),
 	p_land varchar(128)
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 	v_anzahl_eintraege_id integer;
@@ -4217,7 +4219,7 @@ exception
         raise exception 'Mitarbeiter ''%'' bereits seit diesem Datum unter der Adresse gemeldet!', p_personalnummer;
    	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -4230,7 +4232,7 @@ create or replace procedure update_mitarbeiterentlassung(
 	p_letzter_arbeitstag date,
 	p_austrittsgrund varchar(32)
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 	v_eintrittsdatum date;
@@ -4291,7 +4293,7 @@ begin
 	execute 'UPDATE hat_Jobtitel SET Datum_Bis = $1 WHERE mitarbeiter_id = $2 AND Datum_Bis = ''9999-12-31''' using p_letzter_arbeitstag, v_mitarbeiter_id;
    	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -4308,7 +4310,7 @@ create or replace procedure update_krankenversicherungsbeitraege (
 	p_alter_eintrag_gueltig_bis date,
 	p_neuer_eintrag_gueltig_ab date
 ) as
-$$
+$body$
 declare
 	v_krankenversicherungsbeitrag_id integer;
 	v_krankenversicherung_id integer;
@@ -4393,7 +4395,7 @@ begin
    		values (v_krankenversicherung_id, v_krankenversicherungsbeitrag_id, p_mandant_id, p_neuer_eintrag_gueltig_ab, '9999-12-31');
    
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -4404,7 +4406,7 @@ create or replace procedure update_erstelle_abteilungshierarchie (
 	p_untere_abteilung varchar(64),
 	p_obere_abteilung varchar(64)
 ) as
-$$
+$body$
 declare
 	v_untere_abteilung_id integer;
 	v_obere_abteilung_id integer;
@@ -4429,7 +4431,7 @@ begin
     execute 'UPDATE abteilungen SET untersteht_abteilung = $1 WHERE abteilung_id = $2' using v_obere_abteilung_id, v_untere_abteilung_id;
    
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -4440,7 +4442,7 @@ create or replace procedure delete_mitarbeiterdaten(
 	p_mandant_id integer,
 	p_personalnummer varchar(32)
 ) as
-$$
+$body$
 declare
 	v_mitarbeiter_id integer;
 	v_aussertarif_id integer;
@@ -4485,7 +4487,7 @@ begin
 	execute 'DELETE FROM mitarbeiter WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
    	
 end;
-$$
+$body$
 language plpgsql;
 
 /*
@@ -4494,7 +4496,7 @@ language plpgsql;
 create or replace procedure delete_mandantendaten(
 	p_mandant_id integer
 ) as
-$$
+$body$
 begin
 	
 	set session role tenant_user;
@@ -4574,5 +4576,5 @@ begin
 	execute 'DELETE FROM mandanten WHERE mandant_id = $1' using p_mandant_id;
    	
 end;
-$$
+$body$
 language plpgsql;

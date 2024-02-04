@@ -1,6 +1,5 @@
-import psycopg2
-
 from src.main.Nutzer import Nutzer
+from src.main.Datenbankverbindung import datenbankbverbindung_aufbauen
 
 
 class Administrator:
@@ -55,7 +54,7 @@ class Administrator:
         :return: Nutzer_ID, welche als Objekt-Variable gespeichert wird
         """
 
-        conn = self._datenbankbverbindung_aufbauen()
+        conn = datenbankbverbindung_aufbauen()
 
         admin_insert_query = f"set search_path to {self.schema};" \
                              f"SELECT administrator_anlegen('{self.mandant.get_mandant_id()}', " \
@@ -71,21 +70,6 @@ class Administrator:
         conn.close()
 
         return nutzer_id
-
-    def _datenbankbverbindung_aufbauen(self):
-        """
-        Baut eine Connection zur Datenbank auf.
-        :return: conn-Variable, die die Verbindung zur Datenbank enthaelt
-        """
-        conn = psycopg2.connect(
-            host="localhost",
-            database="Personalstammdatenbank",
-            user="postgres",
-            password="@Postgres123",
-            port=5432
-        )
-
-        return conn
 
     def nutzer_anlegen(self, personalnummer, vorname, nachname, passwort, passwort_wiederholen):
         """
@@ -129,7 +113,7 @@ class Administrator:
                                       f"CALL nutzer_entsperren({self.get_mandant().get_mandant_id()}, " \
                                       f"'{personalnummer}', '{neues_passwort}')"
 
-                conn = self._datenbankbverbindung_aufbauen()
+                conn = datenbankbverbindung_aufbauen()
 
                 cur = conn.cursor()
                 cur.execute(nutzer_delete_query)
@@ -158,7 +142,7 @@ class Administrator:
         for i in range(len(self.get_mandant().get_nutzerliste())):
             if self.get_mandant().get_nutzerliste()[i].get_personalnummer() == personalnummer:
 
-                conn = self._datenbankbverbindung_aufbauen()
+                conn = datenbankbverbindung_aufbauen()
 
                 # Nutzer aus Datenbank entfernen
                 nutzer_delete_query = f"set search_path to {self.schema};" \
