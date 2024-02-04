@@ -206,23 +206,31 @@ class Nutzer:
         # pruefen
         krankenkasse_voller_name = self._existenz_str_daten_feststellen(daten[0], 'Krankenkasse voller Name', 128, True)
         krankenkasse_abkuerzung = self._existenz_str_daten_feststellen(daten[1], 'Krankenkasse Abkuerzung', 16, False)
-        zusatzbeitrag = self._existenz_zahlen_daten_feststellen(daten[2], 99, 'Zusatzbeitrag Krankenkasse', True)
-        u1_umlage = self._existenz_zahlen_daten_feststellen(daten[3], 99, 'U1-Umlage', True)
-        u2_umlage = self._existenz_zahlen_daten_feststellen(daten[4], 99, 'U2-Umlage', True)
-        insolvenzgeldumlage = self._existenz_zahlen_daten_feststellen(daten[5], 99, 'Insolvenzgeldumlage', True)
-        eintragungsdatum = self._existenz_date_daten_feststellen(daten[6], 'Eintragungsdatum', True)
+        zusatzbeitrag_ag_anteil = self._existenz_zahlen_daten_feststellen(daten[2],
+                                                                          99,
+                                                                          'Zusatzbeitrag Krankenkasse AG-Anteil',
+                                                                          True)
+        zusatzbeitrag_an_anteil = self._existenz_zahlen_daten_feststellen(daten[3],
+                                                                          99,
+                                                                          'Zusatzbeitrag Krankenkasse AN-Anteil',
+                                                                          True)
+        u1_umlage = self._existenz_zahlen_daten_feststellen(daten[4], 99, 'U1-Umlage', True)
+        u2_umlage = self._existenz_zahlen_daten_feststellen(daten[5], 99, 'U2-Umlage', True)
+        insolvenzgeldumlage = self._existenz_zahlen_daten_feststellen(daten[6], 99, 'Insolvenzgeldumlage', True)
+        eintragungsdatum = self._existenz_date_daten_feststellen(daten[7], 'Eintragungsdatum', True)
 
         export_daten = [self.mandant_id,
                         krankenkasse_voller_name,
                         krankenkasse_abkuerzung,
-                        zusatzbeitrag,
+                        zusatzbeitrag_ag_anteil,
+                        zusatzbeitrag_an_anteil,
                         u1_umlage,
                         u2_umlage,
                         insolvenzgeldumlage,
                         'gesetzlich',
                         eintragungsdatum]
 
-        self._export_zu_db('insert_gesetzliche_Krankenkasse(%s,%s,%s,%s,%s,%s,%s,%s,%s)', export_daten)
+        self._export_zu_db('insert_gesetzliche_Krankenkasse(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', export_daten)
 
     def insert_private_krankenkasse(self, neuanlage_private_krankenkasse):
         """

@@ -32,13 +32,13 @@ class TestNutzerInsertAnzahlKinder(unittest.TestCase):
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM an_pflegeversicherungsbeitraege_gesetzlich")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.700'), Decimal('75000.00'), Decimal('80125.46'))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.700'), Decimal('62100.00'), Decimal('69300.00'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM anzahl_kinder_unter_25")
         self.assertEqual(str(ergebnis), "[(1, 1, 1)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gesetzlichen_an_pv_beitragssatz")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag(self):
         """
@@ -62,13 +62,13 @@ class TestNutzerInsertAnzahlKinder(unittest.TestCase):
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM an_pflegeversicherungsbeitraege_gesetzlich")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.700'), Decimal('75000.00'), Decimal('80125.46'))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.700'), Decimal('62100.00'), Decimal('69300.00'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM anzahl_kinder_unter_25")
         self.assertEqual(str(ergebnis), "[(1, 1, 1)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gesetzlichen_an_pv_beitragssatz")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag_selbe_kinderanzahl_andere_werte(self):
         """
@@ -93,13 +93,13 @@ class TestNutzerInsertAnzahlKinder(unittest.TestCase):
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM an_pflegeversicherungsbeitraege_gesetzlich")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.700'), Decimal('75000.00'), Decimal('80125.46'))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.700'), Decimal('62100.00'), Decimal('69300.00'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM anzahl_kinder_unter_25")
         self.assertEqual(str(ergebnis), "[(1, 1, 1)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gesetzlichen_an_pv_beitragssatz")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def tearDown(self):
         """

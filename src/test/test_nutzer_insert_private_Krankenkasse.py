@@ -33,10 +33,10 @@ class TestNutzerInsertPrivateKrankenkasse(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, 'BARMER', 'BAR')]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM umlagen")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.600'), Decimal('0.440'), Decimal('0.060'), 'privat')]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.900'), Decimal('0.390'), Decimal('0.060'), 'privat')]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_umlagen_privat")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def test_erfolgreicher_eintrag_ohne_abkuerzung(self):
         """
@@ -50,10 +50,10 @@ class TestNutzerInsertPrivateKrankenkasse(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, 'BARMER', None)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM umlagen")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.600'), Decimal('0.440'), Decimal('0.060'), 'privat')]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.900'), Decimal('0.390'), Decimal('0.060'), 'privat')]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_umlagen_privat")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag(self):
         """
@@ -79,10 +79,10 @@ class TestNutzerInsertPrivateKrankenkasse(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, 'BARMER', 'BAR')]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM umlagen")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.600'), Decimal('0.440'), Decimal('0.060'), 'privat')]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.900'), Decimal('0.390'), Decimal('0.060'), 'privat')]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_umlagen_privat")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag_krankenkasse_case_insensitive(self):
         """
@@ -109,10 +109,10 @@ class TestNutzerInsertPrivateKrankenkasse(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, 'BARMER', 'BAR')]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM umlagen")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.600'), Decimal('0.440'), Decimal('0.060'), 'privat')]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.900'), Decimal('0.390'), Decimal('0.060'), 'privat')]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_umlagen_privat")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def tearDown(self):
         """

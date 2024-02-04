@@ -38,7 +38,7 @@ class TestNutzerInsertArbeitsortSachsen(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.200'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gesetzlichen_AG_PV_Beitragssatz")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag(self):
         """
@@ -69,7 +69,7 @@ class TestNutzerInsertArbeitsortSachsen(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.200'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gesetzlichen_AG_PV_Beitragssatz")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag_ebenfalls_true_andere_werte(self):
         """
@@ -101,7 +101,7 @@ class TestNutzerInsertArbeitsortSachsen(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.200'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gesetzlichen_AG_PV_Beitragssatz")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def tearDown(self):
         """

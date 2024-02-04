@@ -31,14 +31,14 @@ class TestNutzerInsertKrankenversicherungsbeitraege(unittest.TestCase):
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gkv_beitraege")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('7.300'), Decimal('7.300'), Decimal('72453.56'), "
-                                        "Decimal('75683.12'))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('7.300'), Decimal('7.300'), Decimal('62100.00'), "
+                                        "Decimal('69300.00'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM krankenversicherungen")
         self.assertEqual(str(ergebnis), "[(1, 1, False)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_GKV_Beitraege")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag(self):
         """
@@ -65,14 +65,14 @@ class TestNutzerInsertKrankenversicherungsbeitraege(unittest.TestCase):
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob auch weiterhin nur ein Datensatz angelegt wurde
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gkv_beitraege")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('7.300'), Decimal('7.300'), Decimal('72453.56'), "
-                                        "Decimal('75683.12'))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('7.300'), Decimal('7.300'), Decimal('62100.00'), "
+                                        "Decimal('69300.00'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM krankenversicherungen")
         self.assertEqual(str(ergebnis), "[(1, 1, False)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_GKV_Beitraege")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag_andere_werte(self):
         """
@@ -100,14 +100,14 @@ class TestNutzerInsertKrankenversicherungsbeitraege(unittest.TestCase):
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob auch weiterhin nur ein Datensatz angelegt wurde
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gkv_beitraege")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('7.300'), Decimal('7.300'), Decimal('72453.56'), "
-                                        "Decimal('75683.12'))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('7.300'), Decimal('7.300'), Decimal('62100.00'), "
+                                        "Decimal('69300.00'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM krankenversicherungen")
         self.assertEqual(str(ergebnis), "[(1, 1, False)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_GKV_Beitraege")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def tearDown(self):
         """

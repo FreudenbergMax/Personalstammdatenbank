@@ -35,16 +35,16 @@ class TestNutzerInsertGesetzlicheKrankenkasse(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, 'Kaufmaennische Krankenkasse', 'KKH')]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gkv_zusatzbeitraege")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.500'))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('0.990'), Decimal('0.990'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gkv_zusatzbeitrag")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM umlagen")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.600'), Decimal('0.440'), Decimal('0.060'), 'gesetzlich')]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('2.300'), Decimal('0.440'), Decimal('0.060'), 'gesetzlich')]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_umlagen_gesetzlich")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def test_erfolgreicher_eintrag_ohne_abkuerzung(self):
         """
@@ -59,16 +59,16 @@ class TestNutzerInsertGesetzlicheKrankenkasse(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, 'Kaufmaennische Krankenkasse', None)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gkv_zusatzbeitraege")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.500'))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('0.990'), Decimal('0.990'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gkv_zusatzbeitrag")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM umlagen")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.600'), Decimal('0.440'), Decimal('0.060'), 'gesetzlich')]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('2.300'), Decimal('0.440'), Decimal('0.060'), 'gesetzlich')]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_umlagen_gesetzlich")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag(self):
         """
@@ -96,15 +96,15 @@ class TestNutzerInsertGesetzlicheKrankenkasse(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, 'Kaufmaennische Krankenkasse', 'KKH')]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gkv_zusatzbeitraege")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.500'))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('0.990'), Decimal('0.990'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gkv_zusatzbeitrag")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM umlagen")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.600'), Decimal('0.440'), Decimal('0.060'), 'gesetzlich')]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('2.300'), Decimal('0.440'), Decimal('0.060'), 'gesetzlich')]")
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_umlagen_gesetzlich")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag_krankenkasse_case_insensitive(self):
         """
@@ -133,16 +133,16 @@ class TestNutzerInsertGesetzlicheKrankenkasse(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, 'Kaufmaennische Krankenkasse', 'KKH')]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gkv_zusatzbeitraege")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.500'))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('0.990'), Decimal('0.990'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gkv_zusatzbeitrag")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM umlagen")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.600'), Decimal('0.440'), Decimal('0.060'), "
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('2.300'), Decimal('0.440'), Decimal('0.060'), "
                                         "'gesetzlich')]")
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_umlagen_gesetzlich")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def tearDown(self):
         """

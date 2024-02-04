@@ -33,11 +33,11 @@ class TestNutzerInsertMinijobbeitraege(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, False)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Pauschalabgaben")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('9.800'), Decimal('3.000'), Decimal('3.000'), "
-                                        "Decimal('1.100'), Decimal('0.660'), Decimal('0.060'), Decimal('2.000'))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('13.000'), Decimal('15.000'), Decimal('3.600'), "
+                                        "Decimal('1.100'), Decimal('0.240'), Decimal('0.060'), Decimal('2.000'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_Pauschalabgaben")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag(self):
         """
@@ -61,11 +61,11 @@ class TestNutzerInsertMinijobbeitraege(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, False)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Pauschalabgaben")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('9.800'), Decimal('3.000'), Decimal('3.000'), "
-                                        "Decimal('1.100'), Decimal('0.660'), Decimal('0.060'), Decimal('2.000'))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('13.000'), Decimal('15.000'), Decimal('3.600'), "
+                                        "Decimal('1.100'), Decimal('0.240'), Decimal('0.060'), Decimal('2.000'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_Pauschalabgaben")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag_andere_werte(self):
         """
@@ -91,11 +91,11 @@ class TestNutzerInsertMinijobbeitraege(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, False)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Pauschalabgaben")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('9.800'), Decimal('3.000'), Decimal('3.000'), "
-                                        "Decimal('1.100'), Decimal('0.660'), Decimal('0.060'), Decimal('2.000'))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('13.000'), Decimal('15.000'), Decimal('3.600'), "
+                                        "Decimal('1.100'), Decimal('0.240'), Decimal('0.060'), Decimal('2.000'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_Pauschalabgaben")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def tearDown(self):
         """

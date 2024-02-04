@@ -36,14 +36,14 @@ class TestNutzerUpdateKrankenversicherungsbeitraege(unittest.TestCase):
         # pruefen, ob die neuen Beitraege und BEitragsbemessungsgrenzen korrekt eingetragen wurden
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM gkv_beitraege")
 
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('7.300'), Decimal('7.300'), Decimal('72453.56'), "
-                                        "Decimal('75683.12')), "
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('7.300'), Decimal('7.300'), Decimal('62100.00'), "
+                                        "Decimal('69300.00')), "
                                         "(2, 1, Decimal('7.400'), Decimal('7.400'), Decimal('74563.82'), "
                                         "Decimal('77234.21'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gkv_beitraege")
 
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(2024, 12, 31)), "
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(2024, 12, 31)), "
                                         "(1, 2, 1, datetime.date(2025, 1, 1), datetime.date(9999, 12, 31))]")
 
     def test_ermaessigter_beitragssatz_existiert_nicht(self):
@@ -70,7 +70,7 @@ class TestNutzerUpdateKrankenversicherungsbeitraege(unittest.TestCase):
                 'testdaten_update_krankenversicherungsbeitraege/Update Krankenversicherungsbeitraege - '
                 'datum_bis vor datum_von.xlsx')
 
-        erwartete_fehlermeldung = "FEHLER:  Startdatum '2023-12-15' des alten Eintrags liegt vor " \
+        erwartete_fehlermeldung = "FEHLER:  Startdatum '2024-01-01' des alten Eintrags liegt vor " \
                                   "letztgueltiger Tag '2019-12-31'. Das ist unlogisch!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))

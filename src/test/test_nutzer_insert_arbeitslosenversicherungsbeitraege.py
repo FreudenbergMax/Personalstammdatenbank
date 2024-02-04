@@ -34,11 +34,11 @@ class TestNutzerInsertArbeitslosenversicherungsbeitraege(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Arbeitslosenversicherungsbeitraege")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('3.000'), Decimal('3.000'), Decimal('57846.12'), "
-                                        "Decimal('60000.00'))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.300'), Decimal('1.300'), Decimal('90600.00'), "
+                                        "Decimal('89400.00'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_AV_Beitraege")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag(self):
         """
@@ -67,11 +67,11 @@ class TestNutzerInsertArbeitslosenversicherungsbeitraege(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Arbeitslosenversicherungsbeitraege")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('3.000'), Decimal('3.000'), Decimal('57846.12'), "
-                                        "Decimal('60000.00'))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.300'), Decimal('1.300'), Decimal('90600.00'), "
+                                        "Decimal('89400.00'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_AV_Beitraege")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def test_kein_doppelter_eintrag_andere_werte(self):
         """
@@ -100,11 +100,11 @@ class TestNutzerInsertArbeitslosenversicherungsbeitraege(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Arbeitslosenversicherungsbeitraege")
-        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('3.000'), Decimal('3.000'), Decimal('57846.12'), "
-                                        "Decimal('60000.00'))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.300'), Decimal('1.300'), Decimal('90600.00'), "
+                                        "Decimal('89400.00'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_AV_Beitraege")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2023, 12, 15), datetime.date(9999, 12, 31))]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
 
     def tearDown(self):
         """

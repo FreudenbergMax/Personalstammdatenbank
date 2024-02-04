@@ -889,8 +889,9 @@ create policy FilterMandant_istingkv
 create table GKV_Zusatzbeitraege (
 	GKV_Zusatzbeitrag_ID serial primary key,
 	Mandant_ID integer not null,
-	GKV_Zusatzbeitrag_in_Prozent decimal(5, 3) not null,
-	unique(Mandant_ID, GKV_Zusatzbeitrag_in_Prozent),
+	GKV_Zusatzbeitrag_AG_Anteil_in_Prozent decimal(5, 3) not null,
+	GKV_Zusatzbeitrag_AN_Anteil_in_Prozent decimal(5, 3) not null,
+	unique(Mandant_ID, GKV_Zusatzbeitrag_AG_Anteil_in_Prozent, GKV_Zusatzbeitrag_AN_Anteil_in_Prozent),
 	constraint fk_gkvzusatzbeitraege_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
@@ -1788,7 +1789,8 @@ create or replace procedure insert_gesetzliche_Krankenkasse (
 	p_mandant_id integer,
 	p_krankenkasse varchar(128),
 	p_krankenkassenkuerzel varchar(16),
-	p_gkv_zusatzbeitrag_in_prozent decimal(5, 3),
+	p_gkv_zusatzbeitrag_ag_anteil_in_prozent decimal(5, 3),
+	p_gkv_zusatzbeitrag_an_anteil_in_prozent decimal(5, 3),
 	p_u1_umlagesatz_in_prozent decimal(5, 3),
 	p_u2_umlagesatz_in_prozent decimal(5, 3),
 	p_insolvenzgeldumlagesatz_in_prozent decimal(5, 3),
@@ -1823,18 +1825,18 @@ begin
 	end if;
    
     -- Pruefen, ob der GKV_Zusatzbeitrag bereits vorhanden ist...
-   	execute 'SELECT gkv_zusatzbeitrag_id FROM gkv_zusatzbeitraege WHERE gkv_zusatzbeitrag_in_prozent = $1'
-	   		into v_gkvzusatzbeitrag_id using p_gkv_zusatzbeitrag_in_prozent;
+   	execute 'SELECT gkv_zusatzbeitrag_id FROM gkv_zusatzbeitraege WHERE gkv_zusatzbeitrag_ag_anteil_in_prozent = $1 AND gkv_zusatzbeitrag_an_anteil_in_prozent = $2'
+	   		into v_gkvzusatzbeitrag_id using p_gkv_zusatzbeitrag_ag_anteil_in_prozent, p_gkv_zusatzbeitrag_an_anteil_in_prozent;
 	
 	-- ... falls nicht, dann eintragen
    	if v_gkvzusatzbeitrag_id is null then
 		
-		insert into GKV_Zusatzbeitraege(Mandant_ID, GKV_Zusatzbeitrag_in_Prozent)
-   			values (p_mandant_id, p_gkv_zusatzbeitrag_in_prozent);
+		insert into GKV_Zusatzbeitraege(Mandant_ID, GKV_Zusatzbeitrag_AG_Anteil_in_Prozent, GKV_Zusatzbeitrag_AN_Anteil_in_Prozent)
+   			values (p_mandant_id, p_gkv_zusatzbeitrag_ag_anteil_in_prozent, p_gkv_zusatzbeitrag_an_anteil_in_prozent);
    		
    		-- Nochmal gkv_zusatzbeitrag_id ziehen, da diese als Schluessel fuer die Assoziation 'hat_GKV_Zusatzbeitrag' benoetigt wird
-   		execute 'SELECT gkv_zusatzbeitrag_id FROM gkv_zusatzbeitraege WHERE gkv_zusatzbeitrag_in_prozent = $1'
-	   		into v_gkvzusatzbeitrag_id using p_gkv_zusatzbeitrag_in_prozent;
+   		execute 'SELECT gkv_zusatzbeitrag_id FROM gkv_zusatzbeitraege WHERE gkv_zusatzbeitrag_ag_anteil_in_prozent = $1 AND gkv_zusatzbeitrag_an_anteil_in_prozent = $2'
+	   		into v_gkvzusatzbeitrag_id using p_gkv_zusatzbeitrag_ag_anteil_in_prozent, p_gkv_zusatzbeitrag_an_anteil_in_prozent;
    		
 	end if;
     
