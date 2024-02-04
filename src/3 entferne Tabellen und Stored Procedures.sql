@@ -1,5 +1,6 @@
 set role postgres;
 
+-- Erstellung der Datenbankstruktur
 drop table if exists wohnt_in;
 drop table if exists Strassenbezeichnungen;
 drop table if exists Postleitzahlen;
@@ -92,83 +93,98 @@ drop table if exists Nutzer;
 drop table if exists Administratoren;
 drop table if exists Mandanten;
 
+-- Loeschung der Stored Procedures fuer Use Case "Mandant- und Administrator-Account erstellen"
 drop function if exists mandant_anlegen(varchar(128), varchar(128));
 drop function if exists mandantenpasswort_pruefen(integer, varchar(128));
 drop function if exists administrator_anlegen(integer, varchar(32), varchar(64), varchar(64), varchar(128));
 drop function if exists adminpasswort_pruefen(integer, varchar(32), varchar(128), varchar(128));
+
+-- Loeschung der Stored Procedures fuer Use Case "Nutzer anlegen"
 drop function if exists nutzer_anlegen(integer, varchar(32), varchar(64), varchar(64), varchar(128));
 drop function if exists nutzerpasswort_pruefen( integer, varchar(32), varchar(128), varchar(128));
-drop procedure if exists nutzer_entsperren(integer, varchar(32), varchar(128));
-drop procedure if exists nutzerpasswort_aendern(integer, varchar(32), varchar(128));
-drop procedure if exists nutzer_entfernen(integer, varchar(32));
-drop procedure if exists pruefe_einmaligkeit_personalnummer(integer, varchar(64), varchar(32));
 
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neue Krankenversicherungsbeitraege"
+-- Loeschung der Stored Procedure fuer Use Case "Entsperrung eines Nutzer-Accounts"
+drop procedure if exists nutzer_entsperren(integer, varchar(32), varchar(128));
+
+-- Loeschung der Stored Procedure fuer Use Case "Neuvergabe des Nutzerpassworts nach Entsperrung"
+drop procedure if exists nutzerpasswort_aendern(integer, varchar(32), varchar(128));
+
+-- Loeschung der Stored Procedure fuer Use Case "Nutzer-Account entfernen"
+drop procedure if exists nutzer_entfernen(integer, varchar(32));
+
+-- Loeschung der Stored Procedure fuer Use Case "Gesetzliche Krankenversicherungsbeitraege eintragen"
 drop procedure if exists insert_krankenversicherungsbeitraege(integer, boolean, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neue gesetzliche Krankenkasse"
+-- Loeschung der Stored Procedure fuer Use Case "Gesetzliche Krankenkasse eintragen"
 drop procedure if exists insert_gesetzliche_Krankenkasse(integer, varchar(128), varchar(16), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), varchar(16), date);
 
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neue private Krankenkasse"
+-- Loeschung der Stored Procedure fuer Use Case "Private Krankenkasse eintragen"
 drop procedure if exists insert_private_Krankenkasse(integer, varchar(128), varchar(16), decimal(5, 3), decimal(5, 3), decimal(5, 3), varchar(16), date);
 
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neue gemeldete Krankenkasse fuer anderweitig Versicherte"
+-- Loeschung der Stored Procedure fuer Use Case "Gemeldete Krankenkasse eintragen"
 drop procedure if exists insert_gemeldete_Krankenkasse(integer, varchar(128), varchar(16), decimal(5, 3), decimal(5, 3), decimal(5, 3), varchar(16), date);
 
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neue Kinderanzahl"
+-- Loeschung der Stored Procedure fuer Use Case "Arbeitnehmerbeitrag zur Pflegeversicherung eintragen"
 drop procedure if exists insert_anzahl_kinder_an_pv_beitrag(integer, integer, decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
--- Loeschung der Stored Procedure fuer Use Case "Eintrag Sachsen"
+-- Loeschung der Stored Procedure fuer Use Case "Arbeitgeberbeitrag zur Pflegeversicherung eintragen"
 drop procedure if exists insert_arbeitsort_sachsen_ag_pv_beitrag(integer, boolean, decimal(5, 3), date);
 
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neue Arbeitslosenversicherungsbeitraege"
+-- Loeschung der Stored Procedure fuer Use Case "Arbeitslosenversicherungsbeitraege eintragen"
 drop procedure if exists insert_arbeitslosenversicherungsbeitraege(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neue Rentenversicherungsbeitraege"
+-- Loeschung der Stored Procedure fuer Use Case "Rentenversicherungsbeitraege eintragen"
 drop procedure if exists insert_rentenversicherungsbeitraege(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neue Minijobdaten"
+-- Loeschung der Stored Procedure fuer Use Case "Minijobbeitraege eintragen"
 drop procedure if exists insert_minijobbeitraege(integer, boolean, decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), date);
 
--- Loeschung Stored Procedure fuer Use Case "Eintrag neue Berufsgenossenschaft" 
+-- Loeschung der Stored Procedure fuer Use Case "Berufsgenossenschaft eintragen" 
 drop procedure if exists insert_berufsgenossenschaft(integer, varchar(128), varchar(16));
 
---Loeschung Stored Procedure fuer Use Case "Eintrag neue Unfallversicherungsbeitraege" 
+--Loeschung der Stored Procedure fuer Use Case "Unfallversicherungsbeitraege eintragen" 
 drop procedure if exists insert_unfallversicherungsbeitrag(integer, varchar(128), varchar (16), varchar(128), varchar(16), decimal(12, 2), integer);
 
--- Loeschung der Stored Procedures fuer Use Case "Eintrag neuer Tarif mit Verguetung"
+-- Loeschung der Stored Procedure fuer Use Case "Gewerkschaft eintragen"
 drop procedure if exists insert_gewerkschaft(integer, varchar(64));
+
+-- Loeschung der Stored Procedures fuer Use Case "Tarif eintragen"
 drop procedure if exists insert_tarif(integer, varchar(16), varchar(64));
+
+-- Loeschung der Stored Procedures fuer Use Case "Verguetungsbestandteil eintragen"
 drop procedure if exists insert_verguetungsbestandteil(integer, varchar(64), varchar(16));
+
+-- Loeschung der Stored Procedures fuer Use Case "Tarif mit Verguetungsbestandteil verknuepfen"
 drop procedure if exists insert_tarifliches_verguetungsbestandteil(integer, varchar(64), varchar(16), decimal(10, 2), date);
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neues Geschlecht"
+
+-- Loeschung der Stored Procedure fuer Use Case "Geschlecht anlegen"
 drop procedure if exists insert_geschlecht(integer, varchar(32));
 
--- Loeschung Stored Procedure fuer Use Case "Eintrag neuer Mitarbeitertyp"
+-- Loeschung der Stored Procedure fuer Use Case "Mitarbeitertyp eintragen"
 drop procedure if exists insert_mitarbeitertyp(integer,varchar(32));
 
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neue Steuerklasse"
+-- Loeschung der Stored Procedure fuer Use Case "Steuerklasse eintragen"
 drop procedure if exists insert_steuerklasse(integer, char(1));
 
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neue Abteilung"
+-- Loeschung der Stored Procedure fuer Use Case "Abteilung eintragen"
 drop procedure if exists insert_abteilung(integer, varchar(64), varchar(16));
 
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neuer Jobtitel" 
+-- Loeschung der Stored Procedure fuer Use Case "Jobtitel eintragen" 
 drop procedure if exists insert_jobtitel(integer, varchar(32));
 
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neue Erfahrungsstufe" 
+-- Loeschung der Stored Procedure fuer Use Case "Erfahrungsstufe eintragen" 
 drop procedure if exists insert_erfahrungsstufe(integer, varchar(32));
 
--- Loeschung Stored Procedure fuer Use Case "Eintrag neues Unternehmen" 
+-- Loeschung der Stored Procedure fuer Use Case "Unternehmen eintragen" 
 drop procedure if exists insert_unternehmen(integer, varchar(128), varchar(16));
 
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neue Austrittsgrundkategorie" 
+-- Loeschung der Stored Procedure fuer Use Case "Austrittsgrundkategorie eintragen" 
 drop procedure if exists insert_austrittsgrundkategorie(integer, varchar(16));
 
--- Loeschung der Stored Procedure fuer Use Case "Eintrag neuer Austrittsgrund" 
+-- Loeschung der Stored Procedure fuer Use Case "Austrittsgrund eintragen" 
 drop procedure if exists insert_austrittsgrund(integer, varchar(32), varchar(16));
 
--- Loeschung der Stored Procedures fuer Use Case "Eintrag neuer Mitarbeiter"
+-- Loeschung der Stored Procedures fuer Use Case "Neuen Mitarbeiter anlegen"
 drop procedure if exists insert_neuer_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, 
 varchar(32), varchar(32), varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), 
 varchar(16), varchar(8), varchar(128), varchar(128), varchar(128), varchar(32), varchar(32), char(1), decimal(4, 2), 
@@ -193,7 +209,6 @@ drop procedure if exists insert_tbl_in_unternehmen(integer, varchar(32), varchar
 drop procedure if exists insert_tbl_hat_tarif(integer, varchar(32), varchar(16), date);
 drop procedure if exists insert_tbl_aussertarifliche(varchar(32), integer, date);
 drop procedure if exists insert_tbl_hat_private_krankenversicherung(integer, varchar(32), varchar(128), decimal(6, 2), decimal(6, 2), date);
-drop procedure if exists insert_tbl_ist_Minijobber(integer, varchar(32), boolean, date);
 drop procedure if exists insert_tbl_hat_gesetzliche_Krankenversicherung(integer, varchar(32), boolean, date);
 drop procedure if exists insert_tbl_ist_in_gkv(integer, varchar(32), varchar(128), varchar(16), date);
 drop procedure if exists insert_tbl_hat_x_kinder_unter_25(integer, varchar(32), integer, date);
@@ -201,23 +216,25 @@ drop procedure if exists insert_tbl_arbeitet_in_sachsen(integer, varchar(32), bo
 drop procedure if exists insert_tbl_hat_gesetzliche_arbeitslosenversicherung(integer, varchar(32), date);
 drop procedure if exists insert_tbl_hat_gesetzliche_rentenversicherung(integer, varchar(32), date);
 drop procedure if exists insert_tbl_ist_anderweitig_versichert(integer, varchar(32), varchar(128), varchar(16), date);
+drop procedure if exists insert_tbl_ist_Minijobber(integer, varchar(32), boolean, date);
 
--- Loeschung der Stored Procedure fuer Use Case "Eintrag Verguetungsbestandteil fuer aussertariflicher Mitarbeiter"
+-- Loeschung der Stored Procedure fuer Use Case "Aussertariflichen Verguetungsbestandteil einfuegen"
 drop procedure if exists insert_aussertarifliches_verguetungsbestandteil(integer, varchar(32), varchar(64), decimal(8, 2), date);
 
--- Loeschung der Stored Procedure fuer Use Case "Update Adresse Mitarbeiter"
+-- Loeschung der Stored Procedure fuer Use Case "Adresse aktualisieren"
 drop procedure if exists update_adresse(integer, varchar(32), date, date, varchar(64), varchar(8), varchar(16), varchar(8), varchar(128), varchar(128), varchar(128));
--- Loeschung der Stored Procedure fuer Use Case "Update Kuendigung Mitarbeiter"
+
+-- Loeschung der Stored Procedure fuer Use Case "Mitarbeiterentlassung eintragen"
 drop procedure if exists update_mitarbeiterentlassung(integer, varchar(32), date, varchar(32));
 
--- Loeschung der Stored Procedure fuer Use Case "Update Krankenversicherungsbeitraege"
+-- Loeschung der Stored Procedure fuer Use Case "Krankenversicherungsbeitraege aktualisieren"
 drop procedure if exists update_krankenversicherungsbeitraege( integer, boolean, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date, date);
 
--- Loeschung der Stored Procedure fuer Use Case "Update Abteilungshierarchie"
+-- Loeschung der Stored Procedure fuer Use Case "Abteilungshierarchie erstellen"
 drop procedure if exists update_erstelle_abteilungshierarchie(integer, varchar(64), varchar(64));
 
--- Loeschung der Stored Procedure fuer Use Case "Update Kuendigung Mitarbeiter"
+-- Loeschung der Stored Procedure fuer Use Case "Mitarbeiterdaten entfernen"
 drop procedure if exists delete_mitarbeiterdaten(integer, varchar(32));
 
--- Loeschung der Stored Procedure fuer Use Case  "Entferne Daten eines Mandanten aus Datenbank"
+-- Loeschung der Stored Procedure fuer Use Case  "Nutzung der Personalstammdatenbank beenden"
 drop procedure if exists delete_mandantendaten(integer);

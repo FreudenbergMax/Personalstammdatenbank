@@ -1,7 +1,7 @@
 set role postgres;
 
 ----------------------------------------------------------------------------------------------------------------
--- Erstellung der Tabellen mit Row-Level-Security (RLS)
+-- Erstellung der Datenbankstruktur mit Row-Level-Security (RLS)
 
 create table Mandanten(
 	Mandant_ID serial primary key,
@@ -26,7 +26,6 @@ create table Administratoren(
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
---create unique index nutzer_idx on Nutzer(lower(Personalnummer));
 alter table Administratoren enable row level security;
 create policy FilterMandant_Administrator
     on Administratoren
@@ -45,13 +44,11 @@ create table Nutzer(
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
---create unique index nutzer_idx on Nutzer(lower(Personalnummer));
 alter table Nutzer enable row level security;
 create policy FilterMandant_Nutzer
     on Nutzer
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- Tabellen, die den Bereich "Austrittsgruende" behandeln, erstellen
 create table Kategorien_Austrittsgruende (
 	Kategorie_Austrittsgruende_ID serial primary key,
 	Mandant_ID integer not null,
@@ -61,7 +58,6 @@ create table Kategorien_Austrittsgruende (
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
 );
-create unique index austrittsgrundkategorie_idx on Kategorien_Austrittsgruende(lower(Austrittsgrundkategorie));
 alter table Kategorien_Austrittsgruende enable row level security;
 create policy FilterMandant_kategorien_austrittsgruende
     on Kategorien_Austrittsgruende
@@ -86,7 +82,6 @@ create policy FilterMandant_austrittsgruende
     on Austrittsgruende
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- Zentrale Tabelle 'Mitarbeiter' erstellen  
 create table Mitarbeiter (
     Mitarbeiter_ID serial primary key,
     Mandant_ID integer not null,
@@ -120,7 +115,6 @@ create policy FilterMandant_Mitarbeiter
     on Mitarbeiter
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- Tabellen, die den Bereich "Adresse" behandeln, erstellen
 create table Laender (
 	Land_ID serial primary key,
 	Mandant_ID integer not null,
@@ -209,13 +203,11 @@ create table Strassenbezeichnungen (
 			references Postleitzahlen(Postleitzahl_ID)
 );
 create unique index strassenbezeichnungen_idx on Strassenbezeichnungen(lower(Strasse));
-create unique index hausnummer_idx on Strassenbezeichnungen(lower(Hausnummer));
 alter table Strassenbezeichnungen enable row level security;
 create policy FilterMandant_Strassenbezeichnungen
     on Strassenbezeichnungen
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- Assoziationstabelle zwischen Mitarbeiter und Adressenbereich
 create table wohnt_in (
 	Mitarbeiter_ID integer not null,
 	Strassenbezeichnung_ID integer not null,
@@ -238,7 +230,6 @@ create policy FilterMandant_wohnt_in
     on wohnt_in
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- Tabellen, die den Bereich "Geschlechter" behandeln, erstellen
 create table Geschlechter(
 	Geschlecht_ID serial primary key,
 	Mandant_ID integer not null,
@@ -275,7 +266,6 @@ create policy FilterMandant_hat_geschlecht
     on hat_Geschlecht
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- Tabellen, die den Bereich "Mitarbeitertyp" (Angestellter, Arbeiter, Praktikant, Werkstudent etc.) behandeln, erstellen
 create table Mitarbeitertypen (
 	Mitarbeitertyp_ID serial primary key,
 	Mandant_ID integer not null,
@@ -291,7 +281,6 @@ create policy FilterMandant_mitarbeitertypen
     on Mitarbeitertypen
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- Assoziationstabelle zwischen Mitarbeiter und Mitarbeitertyp
 create table ist_Mitarbeitertyp (
 	Mitarbeiter_ID integer not null,
 	Mitarbeitertyp_ID integer not null,
@@ -314,7 +303,6 @@ create policy FilterMandant_ist_mitarbeitertyp
     on ist_Mitarbeitertyp
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- Tabellen, die den Bereich "Steuerklasse" behandeln, erstellen
 create table Steuerklassen (
     Steuerklasse_ID serial primary key,
     Mandant_ID integer not null,
@@ -329,7 +317,6 @@ create policy FilterMandant_steuerklassen
     on Steuerklassen
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- Assoziationstabelle zwischen Mitarbeiter und Steuerklasse
 create table in_Steuerklasse (
     Mitarbeiter_ID integer not null,
     Steuerklasse_ID integer not null,
@@ -352,7 +339,6 @@ create policy FilterMandant_in_steuerklasse
     on in_Steuerklasse
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- Tabellen, die den Bereich "Wochenstunden" behandeln, erstellen
 create table Wochenarbeitsstunden(
 	Wochenarbeitsstunden_ID serial primary key,
 	Mandant_ID integer not null,
@@ -367,7 +353,6 @@ create policy FilterMandant_wochenarbeitsstunden
     on Wochenarbeitsstunden
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- Assoziationstabelle zwischen Mitarbeiter und Wochenstunden
 create table arbeitet_x_Wochenstunden (
     Mitarbeiter_ID integer not null,
     Wochenarbeitsstunden_ID integer not null,
@@ -389,8 +374,7 @@ alter table arbeitet_x_Wochenstunden enable row level security;
 create policy FilterMandant_arbeitet_x_wochenstunden
     on arbeitet_x_Wochenstunden
     using (Mandant_ID = current_setting('app.current_tenant')::int);
-   
--- Tabellen, die den Bereich "Abteilung" behandeln, erstellen
+
 create table Abteilungen (
 	Abteilung_ID serial primary key,
 	Mandant_ID integer not null,
@@ -406,13 +390,11 @@ create table Abteilungen (
 			references Abteilungen(Abteilung_ID)
 );
 create unique index abteilung_idx on Abteilungen(lower(Abteilung));
-create unique index abteilung_abk_idx on Abteilungen(lower(Abkuerzung));
 alter table Abteilungen enable row level security;
 create policy FilterMandant_abteilungen
     on Abteilungen
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- Assoziationstabelle zwischen Mitarbeiter und Geschaeftsbereich
 create table eingesetzt_in (
 	Mitarbeiter_ID integer not null,
 	Abteilung_ID integer not null,
@@ -435,8 +417,7 @@ alter table eingesetzt_in enable row level security;
 create policy FilterMandant_eingesetzt_in
     on eingesetzt_in
     using (Mandant_ID = current_setting('app.current_tenant')::int);
-   
--- Tabellen, die den Bereich "Jobtitel" behandeln, erstellen
+
 create table Jobtitel (
 	Jobtitel_ID serial primary key,
 	Mandant_ID integer not null,
@@ -467,7 +448,6 @@ create policy FilterMandant_erfahrungsstufen
     on Erfahrungsstufen
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- Assoziationstabelle zwischen Mitarbeiter und Jobtitel + Erfahrungsstufen
 create table hat_Jobtitel (
 	Mitarbeiter_ID integer not null,
 	Jobtitel_ID integer not null,
@@ -494,7 +474,6 @@ create policy FilterMandant_hat_jobtitel
     on hat_Jobtitel
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- Tabellen, die den Bereich "Unternehmen" behandeln, erstellen
 create table Unternehmen (
 	Unternehmen_ID serial primary key,
 	Mandant_ID integer not null,
@@ -510,13 +489,11 @@ create table Unternehmen (
 			references Unternehmen(Unternehmen_ID)
 );
 create unique index unternehmen_idx on Unternehmen(lower(Unternehmen));
-create unique index abk_unternehmen_idx on Unternehmen(lower(Abkuerzung));
 alter table Unternehmen enable row level security;
 create policy FilterMandant_unternehmen
     on Unternehmen
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- Assoziationstabelle zwischen Mitarbeiter und Unternehmen
 create table in_Unternehmen (
 	Mitarbeiter_ID integer not null,
 	Unternehmen_ID integer not null,
@@ -550,7 +527,6 @@ create table Berufsgenossenschaften(
 			references Mandanten(Mandant_ID)
 );
 create unique index berufsgenossenschaft_idx on Berufsgenossenschaften(lower(Berufsgenossenschaft));
-create unique index Berufsgenossenschaft_abk_idx on Berufsgenossenschaften(lower(Abkuerzung));
 alter table Berufsgenossenschaften enable row level security;
 create policy FilterMandant_berufsgenossenschaften
     on Berufsgenossenschaften
@@ -578,7 +554,6 @@ create policy FilterMandant_unfallversicherungsbeitraege
     on Unfallversicherungsbeitraege
     using (Mandant_ID = current_setting('app.current_tenant')::int);
  
--- Tabellen, die den Bereich "Tarifentgelt" behandeln, erstellen
 create table Gewerkschaften (
 	Gewerkschaft_ID serial primary key,
 	Mandant_ID integer not null,
@@ -625,7 +600,6 @@ create table Verguetungsbestandteile(
 			references Mandanten(Mandant_ID)
 );
 create unique index verguetungsbestandteil_idx on Verguetungsbestandteile(lower(Verguetungsbestandteil));
-create unique index auszahlungsmonat_idx on Verguetungsbestandteile(lower(Auszahlungsmonat));
 alter table Verguetungsbestandteile enable row level security;
 create policy FilterMandant_verguetungsbestandteile
     on Verguetungsbestandteile
@@ -729,7 +703,6 @@ create table gemeldete_Krankenkassen(
 			references Mandanten(Mandant_ID)
 );
 create unique index gemeldete_krankenkasse_idx on gemeldete_Krankenkassen(lower(gemeldete_Krankenkasse));
-create unique index abk_gemeldete_krankenkasse_idx on gemeldete_Krankenkassen(lower(Krankenkassenkuerzel));
 alter table gemeldete_Krankenkassen enable row level security;
 create policy FilterMandant_gemeldetekrankenkassen
     on gemeldete_Krankenkassen
@@ -768,7 +741,6 @@ create table Privatkrankenkassen(
 			references Mandanten(Mandant_ID)
 );
 create unique index private_krankenkasse_idx on Privatkrankenkassen(lower(Privatkrankenkasse));
-create unique index abk_private_krankenkasse_idx on Privatkrankenkassen(lower(Privatkrankenkassenkuerzel));
 alter table Privatkrankenkassen enable row level security;
 create policy FilterMandant_privatkrankenkassen
     on Privatkrankenkassen
@@ -798,7 +770,6 @@ create policy FilterMandant_hatprivatkrankenkasse
     on hat_Privatkrankenkasse
     using (Mandant_ID = current_setting('app.current_tenant')::int); 
 
--- Tabellen, die den Bereich "Gesetzlich Krankenversicherte" behandeln, erstellen
 create table Krankenversicherungen (
 	Krankenversicherung_ID serial primary key,
 	Mandant_ID integer not null,
@@ -886,13 +857,11 @@ create table gesetzliche_Krankenkassen (
 			references Mandanten(Mandant_ID)
 );
 create unique index ges_krankenkasse_idx on gesetzliche_Krankenkassen(lower(Krankenkasse_gesetzlich));
-create unique index abk_ges_krankenkasse_idx on gesetzliche_Krankenkassen(lower(Krankenkassenkuerzel));
 alter table gesetzliche_Krankenkassen enable row level security;
 create policy FilterMandant_gesetzlichekrankenkassen
     on gesetzliche_Krankenkassen
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- GKV = gesetzliche Krankenversicherung
 create table ist_in_GKV(
 	Mitarbeiter_ID integer not null,
 	gesetzliche_Krankenkasse_ID integer not null,
@@ -1070,7 +1039,6 @@ create policy FilterMandant_hatxKinderunter25
     on hat_x_Kinder_unter_25
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- PV = Pflegeversicherung
 create table AN_Pflegeversicherungsbeitraege_gesetzlich (
 	AN_PV_Beitrag_ID serial primary key,
 	Mandant_ID integer not null,
@@ -1181,8 +1149,6 @@ create policy FilterMandant_hatgesetzlichenagpvbeitragssatz
     on hat_gesetzlichen_AG_PV_Beitragssatz
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- Tabellen, die den Bereich "Gesetzliche Arbeitslosenversicherung" behandeln, erstellen
--- AV = Arbeitslosenversicherung
 create table Arbeitslosenversicherungen (
 	Arbeitslosenversicherung_ID serial primary key,
 	Mandant_ID integer not null,
@@ -1256,8 +1222,6 @@ create policy FilterMandant_hatavbeitraege
     on hat_AV_Beitraege
     using (Mandant_ID = current_setting('app.current_tenant')::int); 
 
--- Tabellen, die den Bereich "Gesetzliche Rentenversicherung" behandeln, erstellen
--- RV = Rentenversicherung
 create table Rentenversicherungen (
 	Rentenversicherung_ID serial primary key,
 	Mandant_ID integer not null,
@@ -1331,7 +1295,6 @@ create policy FilterMandant_hatrvbeitraege
     on hat_RV_Beitraege
     using (Mandant_ID = current_setting('app.current_tenant')::int);
 
--- Tabellen, die den Bereich 'Minijobs' behandeln, erstellen
 create table Minijobs(
 	Minijob_ID serial primary key,
 	Mandant_ID integer not null,
@@ -1415,6 +1378,7 @@ create policy FilterMandant_hatpauschalabgaben
 ----------------------------------------------------------------------------------------------------------------
 -- Erstellung der Stored Procedures
 
+-- Stored Procedures fuer Use Case "Mandant- und Administrator-Account erstellen"
 /*
  * Funktion legt neuen Mandanten in der Datenbank an.
  */
@@ -1564,6 +1528,7 @@ end;
 $$
 language plpgsql;
 
+-- Stored Procedures fuer Use Case "Nutzer anlegen"
 /*
  * Funktion traegt die Daten eines neuen Nutzers in die Datenbank ein.
  */
@@ -1648,8 +1613,9 @@ end;
 $$
 language plpgsql;
 
+
 /*
- * Funktion gibt einen gesperrten Nutzer wieder frei.
+ * Stored Procedure fuer Use Case "Entsperrung eines Nutzer-Accounts": Stored Procedure fuer Use Case "Entsperrung eines Nutzer-Accounts": Funktion gibt einen gesperrten Nutzer wieder frei.
  */
 create or replace procedure nutzer_entsperren(
 	p_mandant_id integer,
@@ -1669,7 +1635,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion aendert Passwort eines Nutzers.
+ * Stored Procedure fuer Use Case "Neuvergabe des Nutzerpassworts nach Entsperrung": Funktion aendert Passwort eines Nutzers.
  */
 create or replace procedure nutzerpasswort_aendern(
 	p_mandant_id integer,
@@ -1689,7 +1655,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion entfernt einen Nutzer aus der Datenbank.
+ * Stored Procedure fuer Use Case "Nutzer-Account entfernen": Funktion entfernt einen Nutzer aus der Datenbank.
  */
 create or replace procedure nutzer_entfernen(
 	p_mandant_id integer,
@@ -1711,15 +1677,8 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Eintrag neue Krankenversicherungsbeitraege"
-
 /*
- * Funktion traegt neue Daten bzgl. Krankenversicherungsbeitraege und Beitragsbemessungsgrenzen ein
+ * Stored Procedure fuer Use Case "Gesetzliche Krankenversicherungsbeitraege eintragen": Funktion traegt neue Daten bzgl. Krankenversicherungsbeitraege und Beitragsbemessungsgrenzen ein
  */
 create or replace procedure insert_krankenversicherungsbeitraege (
 	p_mandant_id integer,
@@ -1820,15 +1779,8 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Eintrag neue gesetzliche Krankenkasse"
-
 /*
- * Funktion traegt neue Daten einer Krankenkasse mit dessen individuellen Zusatzbeitrag und Umlagesaetze ein.
+ * Stored Procedure fuer Use Case "Gesetzliche Krankenkasse eintragen": Funktion traegt neue Daten einer Krankenkasse mit dessen individuellen Zusatzbeitrag und Umlagesaetze ein.
  */
 create or replace procedure insert_gesetzliche_Krankenkasse (
 	p_mandant_id integer,
@@ -1917,15 +1869,8 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Eintrag neue private Krankenkasse"
-
 /*
- * Funktion traegt neue Daten einer privaten Krankenkasse mit dessen Umlagesaetze ein.
+ * Stored Procedure fuer Use Case "Private Krankenkasse eintragen": Funktion traegt neue Daten einer privaten Krankenkasse mit dessen Umlagesaetze ein.
  */
 create or replace procedure insert_private_Krankenkasse (
 	p_mandant_id integer,
@@ -1991,15 +1936,8 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Eintrag neue gemeldete Krankenkasse fuer anderweitig Versicherte"
-
 /*
- * Funktion traegt neue Daten einer privaten Krankenkasse mit dessen Umlagesaetze ein.
+ * Stored Procedure fuer Use Case "Gemeldete Krankenkasse eintragen": Funktion traegt neue Daten einer privaten Krankenkasse mit dessen Umlagesaetze ein.
  */
 create or replace procedure insert_gemeldete_Krankenkasse(
 	p_mandant_id integer,
@@ -2065,15 +2003,8 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Eintrag neue Kinderanzahl"
-
 /*
- * Funktion traegt neue Daten bzgl. der Anzahl der Kinder ein.
+ * Stored Procedure fuer Use Case "Arbeitnehmerbeitrag zur Pflegeversicherung eintragen": Funktion traegt neue Daten bzgl. der Anzahl der Kinder ein.
  */
 create or replace procedure insert_anzahl_kinder_an_pv_beitrag (
 	p_mandant_id integer,
@@ -2164,15 +2095,9 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Eintrag Arbeitsort Sachsen"
-
 /*
- * Funktion traegt neue Daten in Bezug auf die Frage ein, ob der Arbeitsort in Sachsen ist. (Wichtig fuer Bestimmung des AG-Anteil zur Pflegeversicherung).
+ * Stored Procedure fuer Use Case "Arbeitgeberbeitrag zur Pflegeversicherung eintragen": Funktion traegt neue Daten in Bezug auf die Frage ein, 
+ * ob der Arbeitsort in Sachsen ist. (Wichtig fuer Bestimmung des AG-Anteil zur Pflegeversicherung).
  */
 create or replace procedure insert_arbeitsort_sachsen_ag_pv_beitrag(
 	p_mandant_id integer,
@@ -2231,16 +2156,9 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Eintrag neue Arbeitslosenversicherungsbeitraege"
-
 /*
- * Funktion traegt neue Daten bzgl. Arbeitslosenversicherungsbeitraege und Beitragsbemessungsgrenzen ein
+ * Stored Procedure fuer Use Case "Arbeitslosenversicherungsbeitraege eintragen": Funktion traegt neue Daten 
+ * bzgl. Arbeitslosenversicherungsbeitraege und Beitragsbemessungsgrenzen ein
  */
 create or replace procedure insert_arbeitslosenversicherungsbeitraege (
 	p_mandant_id integer,
@@ -2339,15 +2257,8 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Eintrag neue Rentenversicherungsbeitraege"
-
 /*
- * Funktion traegt neue Daten bzgl. Rentenversicherungsbeitraege und Beitragsbemessungsgrenzen ein
+ * Stored Procedure fuer Use Case "Rentenversicherungsbeitraege eintragen": Funktion traegt neue Daten bzgl. Rentenversicherungsbeitraege und Beitragsbemessungsgrenzen ein
  */
 create or replace procedure insert_rentenversicherungsbeitraege(
 	p_mandant_id integer,
@@ -2448,15 +2359,8 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Eintrag neue Minijobdaten"
-
 /*
- * Funktion traegt neue Daten bzgl. Minijobbeitraege und Beitragsbemessungsgrenzen ein
+ * Stored Procedure fuer Use Case "Minijobbeitraege eintragen": Funktion traegt neue Daten bzgl. Minijobbeitraege und Beitragsbemessungsgrenzen ein
  */
 create or replace procedure insert_minijobbeitraege(
 	p_mandant_id integer,
@@ -2479,7 +2383,7 @@ begin
     set session role tenant_user;
     execute 'SET app.current_tenant=' || p_mandant_id;
    
-	-- Pruefen, ob Wahrheitswert fuer Frage, ob kurzfristige BEschaeftigung vorliegt, bereits vorhanden ist...
+	-- Pruefen, ob Wahrheitswert fuer Frage, ob Minijob vorliegt, bereits vorhanden ist...
    	execute 'SELECT minijob_id FROM minijobs WHERE kurzfristig_beschaeftigt = $1' into v_minijob_id using p_kurzfristig_beschaeftigt;
     
     -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden muessen
@@ -2577,14 +2481,8 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
---Stored Procedure fuer Use Case "Eintrag neue Berufsgenossenschaft" 
 /*
- * Funktion traegt neue Daten in Tabelle 'Berufsgenossenschaften' ein.
+ * Stored Procedure fuer Use Case "Berufsgenossenschaft eintragen": Funktion traegt neue Daten in Tabelle 'Berufsgenossenschaften' ein.
  */
 create or replace procedure insert_berufsgenossenschaft(
 	p_mandant_id integer,
@@ -2610,14 +2508,8 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
---Stored Procedure fuer Use Case "Eintrag neue Unfallversicherungsbeitraege" 
 /*
- * Funktion traegt neue Daten in Tabelle 'Unfallversicherungsbeitraege' ein.
+ * Stored Procedure fuer Use Case "Unfallversicherungsbeitraege eintragen": Funktion traegt neue Daten in Tabelle 'Unfallversicherungsbeitraege' ein.
  */
 create or replace procedure insert_unfallversicherungsbeitrag(
 	p_mandant_id integer,
@@ -2665,15 +2557,8 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedures fuer Use Case "Eintrag neuer Tarif inkl. Gewerkschaft, Verguetung etc,"
-
 /*
- * Funktion traegt neue Daten in Tabelle 'Gewerkschaften' ein.
+ * Stored Procedures fuer Use Case "Gewerkschaft eintragen": Funktion traegt neue Daten in Tabelle 'Gewerkschaften' ein.
  */
 create or replace procedure insert_gewerkschaft(
 	p_mandant_id integer,
@@ -2699,7 +2584,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt neue Tarif-Daten ein.
+ * Stored Procedures fuer Use Case "Tarif eintragen": Funktion traegt neue Tarif-Daten ein.
  */
 create or replace procedure insert_tarif(
 	p_mandant_id integer,
@@ -2746,7 +2631,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt neue Daten in Tabelle 'Verguetungsbestandteil' ein.
+ * Stored Procedures fuer Use Case "Verguetungsbestandteil eintragen": Funktion traegt neue Daten in Tabelle 'Verguetungsbestandteil' ein.
  */
 create or replace procedure insert_verguetungsbestandteil(
 	p_mandant_id integer,
@@ -2776,7 +2661,8 @@ $$
 language plpgsql;
 
 /*
- * Funktion verknuepft Tarif mit (diversen) Verguetungsbestandteilen- Darunter fallen neben Monatsgehalt, Weihnachtsgeld etc.
+ * Stored Procedures fuer Use Case "Tarif mit Verguetungsbestandteil verknuepfen": Funktion verknuepft Tarif mit (diversen) Verguetungsbestandteilen - 
+ * Darunter fallen neben Monatsgehalt Zusatzleistungen wie Weihnachtsgeld etc.
  */
 create or replace procedure insert_tarifliches_verguetungsbestandteil(
 	p_mandant_id integer,
@@ -2821,14 +2707,8 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Eintrag neues Geschlecht"
 /*
- * Funktion traegt neue Daten in Tabelle 'Geschlechter' ein.
+ * Stored Procedure fuer Use Case "Geschlecht anlegen": Funktion traegt neue Daten in Tabelle 'Geschlechter' ein.
  */
 create or replace procedure insert_geschlecht(
     p_mandant_id integer,
@@ -2855,14 +2735,8 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Eintrag neuer Mitarbeitertyp"
 /*
- * Funktion traegt neue Daten in Tabelle 'Mitarbeitertypen' ein.
+ * Stored Procedure fuer Use Case "Mitarbeitertyp eintragen": Funktion traegt neue Daten in Tabelle 'Mitarbeitertypen' ein.
  */
 create or replace procedure insert_mitarbeitertyp(
     p_mandant_id integer,
@@ -2887,10 +2761,8 @@ end;
 $$
 language plpgsql;
 
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Eintrag neue Steuerklasse"
 /*
- * Funktion traegt neue Daten in Tabelle 'Steuerklasse' ein.
+ * Stored Procedure fuer Use Case "Steuerklasse eintragen": Funktion traegt neue Daten in Tabelle 'Steuerklasse' ein.
  */
 create or replace procedure insert_steuerklasse(
     p_mandant_id integer,
@@ -2917,14 +2789,8 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Eintrag neue Abteilung"
 /*
- * Funktion traegt neue Daten in Tabelle 'Abteilungen' ein.
+ * Stored Procedure fuer Use Case "Abteilung eintragen": Funktion traegt neue Daten in Tabelle 'Abteilungen' ein.
  */
 create or replace procedure insert_abteilung(
     p_mandant_id integer,
@@ -2949,14 +2815,8 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
---Stored Procedure fuer Use Case "Eintrag neuer Jobtitel" 
 /*
- * Funktion traegt neue Daten in Tabelle 'Jobtitel' ein.
+ * Stored Procedure fuer Use Case "Jobtitel eintragen": Funktion traegt neue Daten in Tabelle 'Jobtitel' ein.
  */
 create or replace procedure insert_jobtitel (
 	p_mandant_ID integer,
@@ -2981,14 +2841,9 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
---Stored Procedure fuer Use Case "Eintrag neue Erfahrungsstufe" 
 /*
- * Funktion traegt neue Daten in Tabelle 'Erfahrungsstufen' ein.
+ * Stored Procedure fuer Use Case "Erfahrungsstufe eintragen" : Funktion traegt neue Daten in Tabelle 'Erfahrungsstufen' 
+ * wie beispielsweise 'Junior', 'Senior' etc. ein.
  */
 create or replace procedure insert_erfahrungsstufe (
 	p_Mandant_ID integer,
@@ -3013,14 +2868,8 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
---Stored Procedure fuer Use Case "Eintrag neues Unternehmen" 
 /*
- * Funktion traegt neue Daten in Tabelle 'Unternehmen' ein.
+ * Stored Procedure fuer Use Case "Unternehmen eintragen": Funktion traegt neue Daten in Tabelle 'Unternehmen' ein.
  */
 create or replace procedure insert_unternehmen(
 	p_mandant_id integer,
@@ -3046,14 +2895,8 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Eintrag neue Austrottsgrundkategorie" 
 /*
- * Funktion traegt die Daten in die Tabelle "Kategorien_Austrittsgruende" ein
+ * Stored Procedure fuer Use Case "Austrittsgrundkategorie eintragen": Funktion traegt die Daten in die Tabelle "Kategorien_Austrittsgruende" ein
  */
 create or replace procedure insert_austrittsgrundkategorie(
 	p_mandant_id integer,
@@ -3080,14 +2923,8 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Eintrag neuer Austrittsgrund" 
 /*
- * Funktion traegt die Daten in die Tabelle "Austrittsgruende" ein
+ * Stored Procedure fuer Use Case "Austrittsgrund eintragen": Funktion traegt die Daten in die Tabelle "Austrittsgruende" ein
  */
 create or replace procedure insert_austrittsgrund(
 	p_mandant_id integer,
@@ -3118,19 +2955,12 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedures fuer Use Case "Eintrag neuer Mitarbeiter"
-
+-- Stored Procedures fuer Use Case "Neuen Mitarbeiter anlegen"
 /*
  * Mit dieser Funktion sollen die Daten eines neuen Mitarbeiters in die Tabelle eingetragen werden
  */
 create or replace procedure insert_neuer_mitarbeiter(
 	p_mandant_id integer,
-	-- Tabelle Mitarbeiterdaten
 	p_personalnummer varchar(32),
 	p_vorname varchar(64),
 	p_zweitname varchar(128),
@@ -3145,7 +2975,6 @@ create or replace procedure insert_neuer_mitarbeiter(
     p_dienstliche_telefonnummer varchar(16),
     p_dienstliche_emailadresse varchar(64),
     p_befristet_bis date,
-    -- Bereich 'Adresse'
     p_strasse varchar(64),
 	p_hausnummer varchar(8),
 	p_postleitzahl varchar(16),
@@ -3153,27 +2982,18 @@ create or replace procedure insert_neuer_mitarbeiter(
 	p_stadt varchar(128),
 	p_region varchar(128),
 	p_land varchar(128),
-	-- Bereich 'Geschlecht' 
 	p_geschlecht varchar(32),
-	-- Bereich 'Mitarbeitertyp'
 	p_mitarbeitertyp varchar(32),
-	-- Bereich 'Steuerklasse'
 	p_steuerklasse char(1),
-	-- Bereich 'Wochenarbeitszeit'
 	p_wochenarbeitsstunden decimal(4, 2),
-	-- Bereich 'p_Abteilung'
 	p_abteilung varchar(64),
 	p_abk_abteilung varchar(16),
 	p_fuehrungskraft boolean,
-	-- Bereich 'Jobtitel'
 	p_jobtitel varchar(32),
 	p_erfahrungsstufe varchar(32),
-	-- Bereich 'Unternehmen'
 	p_unternehmen varchar(128),
-	-- Bereich 'Entgelt'
 	p_tarifbeschaeftigt boolean,
 	p_tarifbezeichnung varchar(16),
-	-- Bereich 'Kranken- und Pflegeversicherung'
 	p_ist_kurzfristig_beschaeftigt boolean,
 	p_krankenkasse varchar(128),
 	p_krankenkassenkuerzel varchar(16),
@@ -3186,9 +3006,7 @@ create or replace procedure insert_neuer_mitarbeiter(
 	p_ag_zuschuss_pflegeversicherung decimal(6, 2),
 	p_ist_minijobber boolean,
 	p_anderweitig_versichert boolean,
-	-- Bereich 'Arbeitslosenversicherung'
 	p_arbeitslosenversichert boolean,
-	-- Bereich 'Rentenversicherung'
 	p_rentenversichert boolean
 ) as
 $$
@@ -3215,7 +3033,7 @@ begin
 								p_befristet_bis
 								);
 	
-	-- Bereich Adresse ausfuellen. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn alle Adress-Daten vorliegen, 
+	-- Adresse ausfuellen. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn alle Adress-Daten vorliegen, 
 	-- werden die Adress-Funktionen sicher aufgerufen.
 	call insert_tbl_laender(p_mandant_id, p_land);
 	call insert_tbl_regionen(p_mandant_id, p_region, p_land);
@@ -3255,8 +3073,7 @@ begin
 	-- diese Daten vorliegen, wird die entsprechende Funktion sicher aufgerufen.
 	call insert_tbl_in_unternehmen(p_mandant_id, p_personalnummer, p_unternehmen, p_eintrittsdatum);
 	
-	-- Tarif erfassen, sofern fuer Mitarbeiter Tarif vorgesehen ist. Da die Stored Procedure 'insert_mitarbeiterdaten' nur ausgefuehrt werden kann, wenn 
-	-- diese Daten vorliegen, wird die entsprechende Funktion sicher aufgerufen.
+	-- Tarif erfassen, sofern fuer Mitarbeiter Tarif vorgesehen ist. 
 	if p_tarifbeschaeftigt is true and p_tarifbezeichnung is not null then 
 		call insert_tbl_hat_tarif(p_mandant_id, p_personalnummer, p_tarifbezeichnung, p_eintrittsdatum);
 	end if;
@@ -3308,7 +3125,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Tabelle "Mitarbeiter" ein
+ * Funktion traegt die Daten in die Tabelle "Mitarbeiter" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_mitarbeiter(
 	p_mandant_id integer,
@@ -3373,7 +3190,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Tabelle "Laender" ein
+ * Funktion traegt die Daten in die Tabelle "Laender" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_laender(
 	p_mandant_id integer,
@@ -3399,7 +3216,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Tabelle "Regionen" ein
+ * Funktion traegt die Daten in die Tabelle "Regionen" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_regionen(
 	p_mandant_id integer,
@@ -3430,7 +3247,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Tabelle "Staedte" ein
+ * Funktion traegt die Daten in die Tabelle "Staedte" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_staedte(
 	p_mandant_id integer,
@@ -3461,7 +3278,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Tabelle "Postleitzahlen" ein
+ * Funktion traegt die Daten in die Tabelle "Postleitzahlen" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_postleitzahlen(
 	p_mandant_id integer,
@@ -3493,7 +3310,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Tabelle "Strassenbezeichnungen" ein
+ * Funktion traegt die Daten in die Tabelle "Strassenbezeichnungen" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_strassenbezeichnungen(
 	p_mandant_id integer,
@@ -3527,7 +3344,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Assoziation "wohnt_in" ein
+ * Funktion traegt die Daten in die Assoziation "wohnt_in" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_wohnt_in(
 	p_mandant_id integer,
@@ -3563,7 +3380,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Assoziation "hat_Geschlecht" ein
+ * Funktion traegt die Daten in die Assoziation "hat_Geschlecht" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_hat_geschlecht(
 	p_mandant_id integer,
@@ -3603,7 +3420,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Assoziation "ist_Mitarbeitertyp" ein
+ * Funktion traegt die Daten in die Assoziation "ist_Mitarbeitertyp" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_ist_mitarbeitertyp(
 	p_mandant_id integer,
@@ -3643,7 +3460,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Assoziation "in_steuerklasse" ein
+ * Funktion traegt die Daten in die Assoziation "in_steuerklasse" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_in_steuerklasse(
 	p_mandant_id integer,
@@ -3683,7 +3500,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt neue Daten in Tabelle 'Wochenarbeitsstunden' ein.
+ * Funktion traegt neue Daten in Tabelle 'Wochenarbeitsstunden' ein. und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_wochenarbeitsstunden(
     p_mandant_id integer,
@@ -3709,7 +3526,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Assoziation "arbeitet_x_Wochenarbeitsstunden" ein
+ * Funktion traegt die Daten in die Assoziation "arbeitet_x_Wochenarbeitsstunden" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_arbeitet_x_wochenarbeitsstunden(
 	p_mandant_id integer,
@@ -3741,7 +3558,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Assoziation "eingesetzt_in" ein
+ * Funktion traegt die Daten in die Assoziation "eingesetzt_in" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_eingesetzt_in(
 	p_mandant_id integer,
@@ -3783,7 +3600,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Assoziation "hat_Jobtitel" ein
+ * Funktion traegt die Daten in die Assoziation "hat_Jobtitel" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_hat_jobtitel(
 	p_mandant_id integer,
@@ -3834,7 +3651,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Assoziation "in_Unternehmen" ein
+ * Funktion traegt die Daten in die Assoziation "in_Unternehmen" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_in_unternehmen(
 	p_mandant_id integer,
@@ -3874,7 +3691,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Assoziation "hat_Tarif" ein
+ * Funktion traegt die Daten in die Assoziation "hat_Tarif" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_hat_tarif(
 	p_mandant_id integer,
@@ -3905,8 +3722,8 @@ end;
 $$
 language plpgsql;
 
-/*
- * Funktion traegt neue Daten in Tabelle 'Aussertarifliche' ein.
+/* 
+ * Funktion traegt neue Daten in Tabelle 'Aussertarifliche' ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_aussertarifliche (
 	p_personalnummer varchar(32),
@@ -3937,7 +3754,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Assoziation "hat_private_Krankenversicherung" ein
+ * Funktion traegt die Daten in die Assoziation "hat_private_Krankenversicherung" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_hat_private_krankenversicherung(
 	p_mandant_id integer,
@@ -3981,7 +3798,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Assoziation "hat_gesetzliche_Krankenversicherung" ein
+ * Funktion traegt die Daten in die Assoziation "hat_gesetzliche_Krankenversicherung" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_hat_gesetzliche_Krankenversicherung(
 	p_mandant_id integer,
@@ -4024,7 +3841,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Assoziation "ist_in_GKV" ein
+ * Funktion traegt die Daten in die Assoziation "ist_in_GKV" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_ist_in_gkv(
 	p_mandant_id integer,
@@ -4066,7 +3883,7 @@ language plpgsql;
 
 
 /*
- * Funktion traegt die Daten in die Assoziation "hat_x_Kinder_unter_25" ein
+ * Funktion traegt die Daten in die Assoziation "hat_x_Kinder_unter_25" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_hat_x_kinder_unter_25(
 	p_mandant_id integer,
@@ -4100,7 +3917,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Assoziation "arbeitet_in_sachsen" ein
+ * Funktion traegt die Daten in die Assoziation "arbeitet_in_sachsen" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_arbeitet_in_sachsen(
 	p_mandant_id integer,
@@ -4132,7 +3949,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Assoziation "hat_gesetzliche_arbeitslosenversicherung" ein
+ * Funktion traegt die Daten in die Assoziation "hat_gesetzliche_arbeitslosenversicherung" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_hat_gesetzliche_arbeitslosenversicherung(
 	p_mandant_id integer,
@@ -4171,7 +3988,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt neue Daten in Tabelle 'hat_gesetzliche_Rentenversicherung' ein.
+ * Funktion traegt neue Daten in Tabelle 'hat_gesetzliche_Rentenversicherung' ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_hat_gesetzliche_rentenversicherung(
 	p_mandant_id integer,
@@ -4210,7 +4027,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Assoziation "ist_anderweitig_versichert" ein
+ * Funktion traegt die Daten in die Assoziation "ist_anderweitig_versichert" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_ist_anderweitig_versichert(
 	p_mandant_id integer,
@@ -4251,7 +4068,7 @@ $$
 language plpgsql;
 
 /*
- * Funktion traegt die Daten in die Assoziation "ist_Minijobber" ein
+ * Funktion traegt die Daten in die Assoziation "ist_Minijobber" ein und wird von Stored Procedure 'insert_neuer_mitarbeiter' aufgerufen.
  */
 create or replace procedure insert_tbl_ist_Minijobber(
 	p_mandant_id integer,
@@ -4293,15 +4110,9 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Eintrag Verguetungsbestandteil fuer aussertariflicher Mitarbeiter"
 /*
- * Funktion verknuepft aussertariflichen Mitarbeiter mit (diversen) Verguetungsbestandteilen- Darunter fallen neben Monatsgehalt, Weihnachtsgeld etc. auch Beamtenbeihilfen, da der Staat verpflichtet ist, 
- * Beamten Beihilfen zu zahlen z.B. fuer (private) Krankenversicherung, Kinder etc..
+ * Stored Procedure fuer Use Case "Aussertariflichen Verguetungsbestandteil einfuegen": Funktion verknuepft 
+ * aussertariflichen Mitarbeiter mit (diversen) Verguetungsbestandteilen- Darunter fallen neben Monatsgehalt, Weihnachtsgeld etc.
  */
 create or replace procedure insert_aussertarifliches_verguetungsbestandteil(
 	p_mandant_id integer,
@@ -4355,17 +4166,10 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Update neue Adresse fuer bestehenden Mitarbeiter"
-
 /*
- * Methode schreibt die Daten einer neuen Wohnadresse fuer einen Mitarbeiter ein. Zudem wird der letzte Tag des alten Wohnsitzes im entsprechenden
- * Datensatz der Tabelle 'wohnt_in' eingetragen (zuvor steht dort standardmaessig '9999-12-31'). Die Methode wird auch benutzt, um bei einem neuen
- * Mitarbeiter, wo noch keine Adressdaten hinterlegt sind, dessen Adresse anzulegen. 
+ * Stored Procedure fuer Use Case "Adresse aktualisieren": Methode schreibt die Daten einer neuen Wohnadresse fuer einen Mitarbeiter ein. Zudem 
+ * wird der letzte Tag des alten Wohnsitzes im entsprechenden Datensatz der Tabelle 'wohnt_in' eingetragen (zuvor steht dort standardmaessig 
+ * '9999-12-31'). Die Methode wird auch benutzt, um bei einem neuen Mitarbeiter, wo noch keine Adressdaten hinterlegt sind, dessen Adresse anzulegen. 
  */
 create or replace procedure update_adresse(
 	p_mandant_id integer,
@@ -4416,15 +4220,9 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Update Kuendigung Mitarbeiter"
 /*
- * Methode aendert die Angaben aufgrund von Kuendigung eines bestimmten Mitarbeiters. Es wird das Austrittsdatum in Tabelle 'Mitarbeiter' auf
- * den letzten Arbeitstag geupdatet und der Austrittsgrund bzw. dessen Kategorie in dessen Tabellen vermerkt. 
+ * Stored Procedure fuer Use Case "Mitarbeiterentlassung eintragen": Methode aendert die Angaben aufgrund von Kuendigung eines bestimmten Mitarbeiters. 
+ * Es wird das Austrittsdatum in Tabelle 'Mitarbeiter' auf den letzten Arbeitstag geupdatet und der Austrittsgrund bzw. dessen Kategorie in dessen Tabellen vermerkt. 
  */
 create or replace procedure update_mitarbeiterentlassung(
 	p_mandant_id integer,
@@ -4496,15 +4294,9 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedures fuer Use Case "Update Krankenversicherungsbeitraege"
-
 /*
- * Funktion traegt die neuen Versicherungsbeitraege in Prozent und Beitragsbemessungsgrenzen der Krankenversicherungen
+ * Stored Procedure fuer Use Case "Krankenversicherungsbeitraege aktualisieren": Funktion traegt die neuen Versicherungsbeitraege in 
+ * Prozent und Beitragsbemessungsgrenzen der Krankenversicherungen
  */
 create or replace procedure update_krankenversicherungsbeitraege (
 	p_mandant_id integer,
@@ -4604,15 +4396,8 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedures fuer Use Case "Update Abteilungshierarchie"
-
 /*
- * Funktion unterstellt Abteilung einer uebergeordneten Abteilung 
+ * Stored Procedure fuer Use Case "Abteilungshierarchie erstellen": Funktion unterstellt Abteilung einer uebergeordneten Abteilung 
  */
 create or replace procedure update_erstelle_abteilungshierarchie (
 	p_mandant_id integer,
@@ -4647,15 +4432,9 @@ end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Update Kuendigung Mitarbeiter"
 /*
- * Methode loescht alle Eintraege eines Mitarbeiters aus den Assoziationstabellen, der Tabelle 'Privat_Krankenversicherte' 
- * und der zentralen Tabelle 'Mitarbeiter'. 
+ * Stored Procedure fuer Use Case "Mitarbeiterdaten entfernen": Methode loescht alle Eintraege eines Mitarbeiters 
+ * aus den Assoziationstabellen und der zentralen Tabelle 'Mitarbeiter'. 
  */
 create or replace procedure delete_mitarbeiterdaten(
 	p_mandant_id integer,
@@ -4675,8 +4454,6 @@ begin
 	if v_mitarbeiter_id is null then
 		raise exception 'Mitarbeiter ''%'' existiert nicht!', p_personalnummer;
 	end if;
-	
-	-- personenbezogene Mitarbeiterdaten aus Bereich 'Entgelt' entfernen
 
 	-- Es muss geprueft werden, ob der Mitarbeiter aussertariflich angestellt war. Falls ja, muss neben den Eintraegen in der Tabelle
 	-- 'Aussertarif' auch die Eintraege in der Assoziation 'hat_verguetungsbestandteil_at' entfernt werden. Dort ist der Schluessel 
@@ -4686,21 +4463,12 @@ begin
 		execute 'DELETE FROM hat_verguetungsbestandteil_at WHERE aussertarif_id = $1' using v_aussertarif_id;
 		execute 'DELETE FROM aussertarifliche WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 	end if;
+
 	execute 'DELETE FROM hat_tarif WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
-	
-	-- personenbezogene Mitarbeiterdaten aus Bereich 'Adresse' entfernen
 	execute 'DELETE FROM wohnt_in WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
-
-	-- personenbezogene Mitarbeiterdaten aus Bereich 'Geschlechter' entfernen
 	execute 'DELETE FROM hat_geschlecht WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
-
-	-- personenbezogene Mitarbeiterdaten aus Bereich 'Mitarbeiteryp' entfernen
 	execute 'DELETE FROM ist_mitarbeitertyp WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
-
-	-- personenbezogene Mitarbeiterdaten aus Bereich 'Unternehmen' entfernen
 	execute 'DELETE FROM in_unternehmen WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
-
-	-- personenbezogene Mitarbeiterdaten aus Bereich 'Kranken- und Pflegeversicherung' entfernen
 	execute 'DELETE FROM ist_minijobber WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 	execute 'DELETE FROM ist_anderweitig_versichert WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 	execute 'DELETE FROM hat_privatkrankenkasse WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
@@ -4708,40 +4476,20 @@ begin
 	execute 'DELETE FROM hat_gesetzliche_krankenversicherung WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 	execute 'DELETE FROM hat_x_kinder_unter_25 WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
 	execute 'DELETE FROM arbeitet_in_sachsen WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
-
-	-- personenbezogene Mitarbeiterdaten aus Bereich 'Arbeitslosenversicherung' entfernen
 	execute 'DELETE FROM hat_gesetzliche_arbeitslosenversicherung WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
-
-	-- personenbezogene Mitarbeiterdaten aus Bereich 'Rentenversicherung' entfernen
 	execute 'DELETE FROM hat_gesetzliche_rentenversicherung WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
-
-	-- personenbezogene Mitarbeiterdaten aus Bereich 'Steuerklasse' entfernen
 	execute 'DELETE FROM in_steuerklasse WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
-
-	-- personenbezogene Mitarbeiterdaten aus Bereich 'Wochenarbeitsstunden' entfernen
 	execute 'DELETE FROM arbeitet_x_wochenstunden WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
-
-	-- personenbezogene Mitarbeiterdaten aus Bereich 'Wochenarbeitsstunden' entfernen
 	execute 'DELETE FROM eingesetzt_in WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
-	
-	-- personenbezogene Mitarbeiterdaten aus Bereich 'Jobtitel' entfernen
 	execute 'DELETE FROM hat_jobtitel WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
-
-	-- personenbezogene Mitarbeiterdaten aus zentraler Tabelle 'Mitarbeiter' entfernen
 	execute 'DELETE FROM mitarbeiter WHERE mitarbeiter_id = $1' using v_mitarbeiter_id;
    	
 end;
 $$
 language plpgsql;
 
-
-
-
-
-----------------------------------------------------------------------------------------------------------------
--- Stored Procedure fuer Use Case "Entferne Daten eines Mandanten aus Datenbank"
 /*
- * Methode loescht alle Eintraege eines Mandanten aus allen Tabellen. 
+ * Stored Procedure fuer Use Case  "Nutzung der Personalstammdatenbank beenden": Methode loescht alle Eintraege eines Mandanten aus allen Tabellen. 
  */
 create or replace procedure delete_mandantendaten(
 	p_mandant_id integer
@@ -4752,7 +4500,6 @@ begin
 	set session role tenant_user;
 	execute 'SET app.current_tenant=' || p_mandant_id;
 
-	-- Daten aus Bereich 'Entgelt' entfernen
 	execute 'DELETE FROM hat_verguetungsbestandteil_at WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM hat_verguetungsbestandteil_tarif WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM verguetungsbestandteile WHERE mandant_id = $1' using p_mandant_id;
@@ -4760,102 +4507,68 @@ begin
 	execute 'DELETE FROM hat_tarif WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM tarife WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM gewerkschaften WHERE mandant_id = $1' using p_mandant_id;
-
-	-- Daten aus Bereich 'Adresse' entfernen
 	execute 'DELETE FROM wohnt_in WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM strassenbezeichnungen WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM postleitzahlen WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM staedte WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM regionen WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM laender WHERE mandant_id = $1' using p_mandant_id;
-
-	-- Daten aus Bereich 'Geschlecht' entfernen
 	execute 'DELETE FROM hat_geschlecht WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM geschlechter WHERE mandant_id = $1' using p_mandant_id;
-	
-	-- Daten aus Bereich 'Mitarbeiteryp' entfernen
 	execute 'DELETE FROM ist_mitarbeitertyp WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM mitarbeitertypen WHERE mandant_id = $1' using p_mandant_id;
-
-	-- Daten aus Bereich 'Unternehmen' entfernen
 	execute 'DELETE FROM in_unternehmen WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM unfallversicherungsbeitraege WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM unternehmen WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM berufsgenossenschaften WHERE mandant_id = $1' using p_mandant_id;
-
-	-- Daten aus Bereich 'Kranken- und Pflegeversicherung' entfernen
 	execute 'DELETE FROM ist_minijobber WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM hat_pauschalabgaben WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM minijobs WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM pauschalabgaben WHERE mandant_id = $1' using p_mandant_id;
-
 	execute 'DELETE FROM ist_anderweitig_versichert WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM hat_umlagen_anderweitig WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM gemeldete_krankenkassen WHERE mandant_id = $1' using p_mandant_id;
-
 	execute 'DELETE FROM hat_privatkrankenkasse WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM hat_umlagen_privat WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM privatkrankenkassen WHERE mandant_id = $1' using p_mandant_id;
-
 	execute 'DELETE FROM ist_in_gkv WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM hat_gkv_zusatzbeitrag WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM hat_umlagen_gesetzlich WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM gesetzliche_krankenkassen WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM gkv_zusatzbeitraege WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM umlagen WHERE mandant_id = $1' using p_mandant_id;
-	
 	execute 'DELETE FROM hat_gesetzliche_krankenversicherung WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM hat_gkv_beitraege WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM krankenversicherungen WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM gkv_beitraege WHERE mandant_id = $1' using p_mandant_id;
-
 	execute 'DELETE FROM hat_x_kinder_unter_25 WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM hat_gesetzlichen_an_pv_beitragssatz WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM anzahl_kinder_unter_25 WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM an_pflegeversicherungsbeitraege_gesetzlich WHERE mandant_id = $1' using p_mandant_id;
-	
 	execute 'DELETE FROM arbeitet_in_sachsen WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM hat_gesetzlichen_ag_pv_beitragssatz WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM arbeitsort_sachsen WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM ag_pflegeversicherungsbeitraege_gesetzlich WHERE mandant_id = $1' using p_mandant_id;
-
-	-- Daten aus Bereich 'Arbeitslosenversicherung' entfernen
 	execute 'DELETE FROM hat_gesetzliche_arbeitslosenversicherung WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM hat_av_beitraege WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM arbeitslosenversicherungen WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM arbeitslosenversicherungsbeitraege WHERE mandant_id = $1' using p_mandant_id;
-
-	-- Daten aus Bereich 'Rentenversicherung' entfernen
 	execute 'DELETE FROM hat_gesetzliche_rentenversicherung WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM hat_rv_beitraege WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM rentenversicherungen WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM rentenversicherungsbeitraege WHERE mandant_id = $1' using p_mandant_id;
-
-	-- Daten aus Bereich 'Steuerklasse' entfernen
 	execute 'DELETE FROM in_steuerklasse WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM steuerklassen WHERE mandant_id = $1' using p_mandant_id;
-	
-	-- Daten aus Bereich 'Wochenarbeitszeit' entfernen
 	execute 'DELETE FROM arbeitet_x_wochenstunden WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM wochenarbeitsstunden WHERE mandant_id = $1' using p_mandant_id;
-
-		-- Daten aus Bereich 'Abteilung' entfernen
 	execute 'DELETE FROM eingesetzt_in WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM abteilungen WHERE mandant_id = $1' using p_mandant_id;
-
-	-- Daten aus Bereich 'Jobtitel' entfernen
 	execute 'DELETE FROM hat_jobtitel WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM jobtitel WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM erfahrungsstufen WHERE mandant_id = $1' using p_mandant_id;
-
-	-- Daten aus zentraler Tabelle 'Mitarbeiter' entfernen
 	execute 'DELETE FROM mitarbeiter WHERE mandant_id = $1' using p_mandant_id;
-
-	-- Daten aus Bereich 'Austrittsgruende' entfernen
 	execute 'DELETE FROM austrittsgruende WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM kategorien_austrittsgruende WHERE mandant_id = $1' using p_mandant_id;
-
-	-- Daten aus Tabellen 'Nutzer' und zuletzt 'Mandanten' loeschen
 	execute 'DELETE FROM nutzer WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM administratoren WHERE mandant_id = $1' using p_mandant_id;
 	execute 'DELETE FROM mandanten WHERE mandant_id = $1' using p_mandant_id;
