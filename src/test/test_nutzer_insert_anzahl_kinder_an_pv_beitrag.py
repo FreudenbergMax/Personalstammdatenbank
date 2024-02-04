@@ -35,7 +35,7 @@ class TestNutzerInsertAnzahlKinder(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.700'), Decimal('62100.00'), Decimal('69300.00'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM anzahl_kinder_unter_25")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1)]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, False)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gesetzlichen_an_pv_beitragssatz")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
@@ -55,8 +55,8 @@ class TestNutzerInsertAnzahlKinder(unittest.TestCase):
             self.nutzer.insert_anzahl_kinder_an_pv_beitrag('testdaten_insert_anzahl_kinder/'
                                                            'Anzahl Kinder Arbeitnehmer PV-Beitrag.xlsx')
 
-        erwartete_fehlermeldung = "FEHLER:  Kinderanzahl '1' ist bereits vorhanden! Uebergebene Daten werden " \
-                                  "nicht eingetragen!"
+        erwartete_fehlermeldung = "FEHLER:  Daten fuer Kinderanzahl '1' und 'juenger als 23/vor 1940 geboren' = 'f' " \
+                                  "ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
@@ -65,7 +65,7 @@ class TestNutzerInsertAnzahlKinder(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.700'), Decimal('62100.00'), Decimal('69300.00'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM anzahl_kinder_unter_25")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1)]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, False)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gesetzlichen_an_pv_beitragssatz")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
@@ -86,8 +86,8 @@ class TestNutzerInsertAnzahlKinder(unittest.TestCase):
             self.nutzer.insert_anzahl_kinder_an_pv_beitrag('testdaten_insert_anzahl_kinder/Anzahl Kinder Arbeitnehmer '
                                                            'PV-Beitrag - selbe Kinderanzahl, andere Werte.xlsx')
 
-        erwartete_fehlermeldung = "FEHLER:  Kinderanzahl '1' ist bereits vorhanden! Uebergebene Daten werden nicht " \
-                                  "eingetragen!"
+        erwartete_fehlermeldung = "FEHLER:  Daten fuer Kinderanzahl '1' und 'juenger als 23/vor 1940 geboren' = 'f' " \
+                                  "ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
@@ -96,7 +96,7 @@ class TestNutzerInsertAnzahlKinder(unittest.TestCase):
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('1.700'), Decimal('62100.00'), Decimal('69300.00'))]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM anzahl_kinder_unter_25")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1)]")
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, False)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_gesetzlichen_an_pv_beitragssatz")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")

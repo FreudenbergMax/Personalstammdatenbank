@@ -314,26 +314,31 @@ class Nutzer:
         # Daten aus importierter Excel-Tabelle '2 insert Sozialversicherungsdaten/5 Anzahl Kinder Arbeitnehmer
         # PV-Beitrag.xlsx' pruefen
         anzahl_kinder = self._existenz_zahlen_daten_feststellen(daten[0], 99, 'Anzahl Kinder', True)
-        an_beitrag_pv_in_prozent = self._existenz_zahlen_daten_feststellen(daten[1], 99, 'AN-Beitrag PV in %', True)
-        beitragsbemessungsgrenze_pv = self._existenz_zahlen_daten_feststellen(daten[2],
+        juenger_als_23_oder_vor_1940_geboren = self._existenz_boolean_daten_feststellen(daten[1],
+                                                                                        'juenger als 23/'
+                                                                                        'vor 1940 geboren',
+                                                                                        True)
+        an_beitrag_pv_in_prozent = self._existenz_zahlen_daten_feststellen(daten[2], 99, 'AN-Beitrag PV in %', True)
+        beitragsbemessungsgrenze_pv = self._existenz_zahlen_daten_feststellen(daten[3],
                                                                               99999999,
                                                                               'Beitragsbemessungsgrenze PV',
                                                                               True)
-        jahresarbeitsentgeltgrenze_pv = self._existenz_zahlen_daten_feststellen(daten[3],
+        jahresarbeitsentgeltgrenze_pv = self._existenz_zahlen_daten_feststellen(daten[4],
                                                                                 99999999,
                                                                                 'Jahresarbeitsentgeltgrenze PV',
                                                                                 True)
 
-        eintragungsdatum = self._existenz_date_daten_feststellen(daten[4], 'Eintragungsdatum', True)
+        eintragungsdatum = self._existenz_date_daten_feststellen(daten[5], 'Eintragungsdatum', True)
 
         export_daten = [self.mandant_id,
                         anzahl_kinder,
+                        juenger_als_23_oder_vor_1940_geboren,
                         an_beitrag_pv_in_prozent,
                         beitragsbemessungsgrenze_pv,
                         jahresarbeitsentgeltgrenze_pv,
                         eintragungsdatum]
 
-        self._export_zu_db('insert_anzahl_kinder_an_pv_beitrag(%s,%s,%s,%s,%s,%s)', export_daten)
+        self._export_zu_db('insert_anzahl_kinder_an_pv_beitrag(%s,%s,%s,%s,%s,%s,%s)', export_daten)
 
     def insert_arbeitsort_sachsen_ag_pv_beitrag(self, neuanlage_wohnhaft_sachsen):
         """
@@ -863,26 +868,31 @@ class Nutzer:
 
         anzahl_kinder = self._existenz_zahlen_daten_feststellen(daten[38], 99, 'Anzahl Kinder', False)
 
-        wohnhaft_sachsen = self._existenz_boolean_daten_feststellen(daten[39], 'wohnhaft Sachsen', False)
+        juenger_als_23_oder_vor_1940_geboren = self._existenz_boolean_daten_feststellen(daten[39],
+                                                                                        'juenger als 23/'
+                                                                                        'vor 1940 geboren',
+                                                                                        False)
 
-        privat_krankenversichert = self._existenz_boolean_daten_feststellen(daten[40],
+        wohnhaft_sachsen = self._existenz_boolean_daten_feststellen(daten[40], 'wohnhaft Sachsen', False)
+
+        privat_krankenversichert = self._existenz_boolean_daten_feststellen(daten[41],
                                                                             'privat Krankenversichert?',
                                                                             False)
 
-        ag_zuschuss_private_krankenversicherung = self._existenz_zahlen_daten_feststellen(daten[41],
+        ag_zuschuss_private_krankenversicherung = self._existenz_zahlen_daten_feststellen(daten[42],
                                                                                           99999999,
                                                                                           'AG-Zuschuss PKV',
                                                                                           False)
 
-        ag_zuschuss_private_pflegeversicherung = self._existenz_zahlen_daten_feststellen(daten[42],
+        ag_zuschuss_private_pflegeversicherung = self._existenz_zahlen_daten_feststellen(daten[43],
                                                                                          99999999,
                                                                                          'AG-Zuschuss PPV',
                                                                                          False)
 
-        minijob = self._existenz_boolean_daten_feststellen(daten[43], 'Minijob?', False)
-        anderweitig_versichert = self._existenz_boolean_daten_feststellen(daten[44], 'anderweitig_versichert?', False)
-        arbeitslosenversichert = self._existenz_boolean_daten_feststellen(daten[45], 'arbeitslosenversichert?', False)
-        rentenversichert = self._existenz_boolean_daten_feststellen(daten[46], 'rentenversichert?', False)
+        minijob = self._existenz_boolean_daten_feststellen(daten[44], 'Minijob?', False)
+        anderweitig_versichert = self._existenz_boolean_daten_feststellen(daten[45], 'anderweitig_versichert?', False)
+        arbeitslosenversichert = self._existenz_boolean_daten_feststellen(daten[46], 'arbeitslosenversichert?', False)
+        rentenversichert = self._existenz_boolean_daten_feststellen(daten[47], 'rentenversichert?', False)
 
         # Ein Mitarbeiter darf nur entweder gesetzlich krankenversichert ODER privat versichert mit Anspruch auf
         # Arbeitgeberzuschuss ODER Minijobber ODER anderweitig versichert (z.B. kufzfristig Beschaeftigte, Werkstudenten
@@ -959,6 +969,7 @@ class Nutzer:
                         gesetzlich_krankenversichert,
                         ermaessigter_gkv_beitragssatz,
                         anzahl_kinder,
+                        juenger_als_23_oder_vor_1940_geboren,
                         wohnhaft_sachsen,
                         privat_krankenversichert,
                         ag_zuschuss_private_krankenversicherung,
@@ -968,7 +979,7 @@ class Nutzer:
                         arbeitslosenversichert,
                         rentenversichert]
         self._export_zu_db('insert_neuer_mitarbeiter('
-                           '%s,%s,%s,%s,%s,%s,%s,%s,'
+                           '%s,%s,%s,%s,%s,%s,%s,%s,%s,'
                            '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'
                            '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'
                            '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'

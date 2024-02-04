@@ -1010,7 +1010,8 @@ create table Anzahl_Kinder_unter_25 (
 	Anzahl_Kinder_unter_25_ID serial primary key,
 	Mandant_ID integer not null,
 	Anzahl_Kinder integer not null,
-	unique(Mandant_ID, Anzahl_Kinder),
+	juenger_als_23_oder_vor_1940_geboren boolean not null,
+	unique(Mandant_ID, Anzahl_Kinder, juenger_als_23_oder_vor_1940_geboren),
 	constraint fk_anzahlkinderunter25_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
@@ -2013,6 +2014,7 @@ language plpgsql;
 create or replace procedure insert_anzahl_kinder_an_pv_beitrag (
 	p_mandant_id integer,
 	p_anzahl_kinder integer,
+	p_juenger_als_23_oder_vor_1940_geboren boolean,
 	p_an_anteil_pv_beitrag_in_prozent decimal(5, 3),
 	p_beitragsbemessungsgrenze_pv decimal(10, 2),
 	p_jahresarbeitsentgeltgrenze_pv decimal(10, 2),
@@ -2028,21 +2030,22 @@ begin
     execute 'SET app.current_tenant=' || p_mandant_id;
     
    	-- Pruefen, ob Anzahl Kinder unter 25 bereits vorhanden ist...
-   	execute 'SELECT anzahl_kinder_unter_25_id FROM anzahl_kinder_unter_25 WHERE anzahl_kinder = $1' 
-   		into v_anzahl_kinder_unter_25_id using p_anzahl_kinder;
+   	execute 'SELECT anzahl_kinder_unter_25_id FROM anzahl_kinder_unter_25 WHERE anzahl_kinder = $1 AND juenger_als_23_oder_vor_1940_geboren = $2' 
+   		into v_anzahl_kinder_unter_25_id using p_anzahl_kinder, p_juenger_als_23_oder_vor_1940_geboren;
     
     -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden muessen
     if v_anzahl_kinder_unter_25_id is not null then
-		raise exception 'Kinderanzahl ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen!', p_anzahl_kinder; 
+		raise exception 'Daten fuer Kinderanzahl ''%'' und ''juenger als 23/vor 1940 geboren'' = ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen!', 
+			p_anzahl_kinder, p_juenger_als_23_oder_vor_1940_geboren; 
 	
 	--... ansonsten neue Kinderanzahl eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_gesetzlichen_AN_PV_Beitragssatz' benoetigt
 	else
 	
-		insert into Anzahl_Kinder_unter_25(Mandant_ID, Anzahl_Kinder)
-   			values (p_mandant_id, p_anzahl_kinder);
+		insert into Anzahl_Kinder_unter_25(Mandant_ID, Anzahl_Kinder, juenger_als_23_oder_vor_1940_geboren)
+   			values (p_mandant_id, p_anzahl_kinder, p_juenger_als_23_oder_vor_1940_geboren);
 
-		execute 'SELECT anzahl_kinder_unter_25_id FROM anzahl_kinder_unter_25 WHERE anzahl_kinder = $1' 
-			into v_anzahl_kinder_unter_25_id using p_anzahl_kinder;
+		execute 'SELECT anzahl_kinder_unter_25_id FROM anzahl_kinder_unter_25 WHERE anzahl_kinder = $1 AND juenger_als_23_oder_vor_1940_geboren = $2' 
+			into v_anzahl_kinder_unter_25_id using p_anzahl_kinder, p_juenger_als_23_oder_vor_1940_geboren;
 	
     end if;
     
@@ -3004,6 +3007,7 @@ create or replace procedure insert_neuer_mitarbeiter(
 	p_gesetzlich_krankenversichert boolean,
 	p_ermaessigter_kv_beitrag boolean,
 	p_anzahl_kinder integer,
+	p_juenger_als_23_oder_vor_1940_geboren boolean,
 	p_in_sachsen boolean,
 	p_privat_krankenversichert boolean,
 	p_ag_zuschuss_krankenversicherung decimal(6, 2),
@@ -3095,7 +3099,7 @@ begin
 	
 		call insert_tbl_hat_gesetzliche_Krankenversicherung(p_mandant_id, p_personalnummer, p_ermaessigter_kv_beitrag, p_eintrittsdatum);
 		call insert_tbl_ist_in_gkv(p_mandant_id, p_personalnummer, p_krankenkasse, p_krankenkassenkuerzel, p_eintrittsdatum);
-		call insert_tbl_hat_x_kinder_unter_25(p_mandant_id, p_personalnummer, p_anzahl_kinder, p_eintrittsdatum);
+		call insert_tbl_hat_x_kinder_unter_25(p_mandant_id, p_personalnummer, p_anzahl_kinder, p_juenger_als_23_oder_vor_1940_geboren, p_eintrittsdatum);
 		call insert_tbl_arbeitet_in_sachsen(p_mandant_id, p_personalnummer, p_in_sachsen, p_eintrittsdatum);									  
 
 	end if;
@@ -3893,6 +3897,7 @@ create or replace procedure insert_tbl_hat_x_kinder_unter_25(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_anzahl_kinder integer,
+	p_juenger_als_23_oder_vor_1940_geboren boolean,
 	p_eintrittsdatum date
 ) as
 $body$
@@ -3906,8 +3911,15 @@ begin
 	
 	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
 	
-	execute 'SELECT anzahl_kinder_unter_25_id FROM anzahl_kinder_unter_25 WHERE anzahl_kinder = $1'
-			into v_anzahl_kinder_unter25_id using p_anzahl_kinder;
+	-- Pruefen, ob Kombination von 'Anzahl Kinder unter 25' und 'juenger als 23 oder vor 1940 geboren' vorhanden ist 
+	execute 'SELECT anzahl_kinder_unter_25_id FROM anzahl_kinder_unter_25 WHERE anzahl_kinder = $1 AND juenger_als_23_oder_vor_1940_geboren = $2'
+			into v_anzahl_kinder_unter25_id using p_anzahl_kinder, p_juenger_als_23_oder_vor_1940_geboren;
+	
+	-- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Krankenkasse hinterlegt werden muss!
+    if v_anzahl_kinder_unter25_id is null then
+		raise exception 'Kombination von Anzahl Kinder unter 25: ''%'' und juenger als 23 oder geboren vor 1940 = ''%'' noch nicht hinterlegt! Bitte tragen Sie zuerst diese Daten ein!', 
+			p_anzahl_kinder, p_juenger_als_23_oder_vor_1940_geboren;   
+    end if;
     
     insert into hat_x_Kinder_unter_25(Mitarbeiter_ID, Anzahl_Kinder_unter_25_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_anzahl_kinder_unter25_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');
@@ -3939,7 +3951,14 @@ begin
 	execute 'SET app.current_tenant=' || p_mandant_id;
 	
 	execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;
+
+	-- Pruefen, ob Arbeitsort Sachsen bereits hinterlegt ist oder nicht
 	execute 'SELECT arbeitsort_sachsen_id FROM arbeitsort_sachsen WHERE in_sachsen = $1' into v_arbeitsort_sachsen_id using p_in_sachsen;
+
+	-- falls nicht, dann Fehlermeldung
+	if v_arbeitsort_sachsen_id is null then
+		raise exception 'Arbeitsort Sachsen: ''%'' noch nicht hinterlegt! Bitte tragen Sie zuerst diese Daten ein!', p_in_sachsen;   
+    end if;
     
     insert into arbeitet_in_sachsen(Mitarbeiter_ID, arbeitsort_sachsen_ID, Mandant_ID, Datum_Von, Datum_Bis)
    		values (v_mitarbeiter_id, v_arbeitsort_sachsen_id, p_mandant_id, p_eintrittsdatum, '9999-12-31');

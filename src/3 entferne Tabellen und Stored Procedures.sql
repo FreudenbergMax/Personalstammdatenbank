@@ -116,7 +116,7 @@ drop procedure if exists nutzer_entfernen(integer, varchar(32));
 drop procedure if exists insert_krankenversicherungsbeitraege(integer, boolean, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
 -- Loeschung der Stored Procedure fuer Use Case "Gesetzliche Krankenkasse eintragen"
-drop procedure if exists insert_gesetzliche_Krankenkasse(integer, varchar(128), varchar(16), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), varchar(16), date);
+drop procedure if exists insert_gesetzliche_Krankenkasse(integer, varchar(128), varchar(16), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), varchar(16), date);
 
 -- Loeschung der Stored Procedure fuer Use Case "Private Krankenkasse eintragen"
 drop procedure if exists insert_private_Krankenkasse(integer, varchar(128), varchar(16), decimal(5, 3), decimal(5, 3), decimal(5, 3), varchar(16), date);
@@ -125,7 +125,7 @@ drop procedure if exists insert_private_Krankenkasse(integer, varchar(128), varc
 drop procedure if exists insert_gemeldete_Krankenkasse(integer, varchar(128), varchar(16), decimal(5, 3), decimal(5, 3), decimal(5, 3), varchar(16), date);
 
 -- Loeschung der Stored Procedure fuer Use Case "Arbeitnehmerbeitrag zur Pflegeversicherung eintragen"
-drop procedure if exists insert_anzahl_kinder_an_pv_beitrag(integer, integer, decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
+drop procedure if exists insert_anzahl_kinder_an_pv_beitrag(integer, integer, boolean, decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
 -- Loeschung der Stored Procedure fuer Use Case "Arbeitgeberbeitrag zur Pflegeversicherung eintragen"
 drop procedure if exists insert_arbeitsort_sachsen_ag_pv_beitrag(integer, boolean, decimal(5, 3), date);
@@ -189,7 +189,7 @@ drop procedure if exists insert_neuer_mitarbeiter(integer, varchar(32), varchar(
 varchar(32), varchar(32), varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), 
 varchar(16), varchar(8), varchar(128), varchar(128), varchar(128), varchar(32), varchar(32), char(1), decimal(4, 2), 
 varchar(64), varchar(16), boolean, varchar(32), varchar(32), varchar(128), boolean, varchar(16), boolean, varchar(128), 
-varchar(16), boolean, boolean, integer, boolean, boolean, decimal(6, 2), decimal(6, 2), boolean, boolean, boolean, boolean);
+varchar(16), boolean, boolean, integer, boolean, boolean, boolean, decimal(6, 2), decimal(6, 2), boolean, boolean, boolean, boolean);
 drop procedure if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), 
 varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date);
 drop procedure if exists insert_tbl_laender(integer, varchar(128));
@@ -211,7 +211,7 @@ drop procedure if exists insert_tbl_aussertarifliche(varchar(32), integer, date)
 drop procedure if exists insert_tbl_hat_private_krankenversicherung(integer, varchar(32), varchar(128), decimal(6, 2), decimal(6, 2), date);
 drop procedure if exists insert_tbl_hat_gesetzliche_Krankenversicherung(integer, varchar(32), boolean, date);
 drop procedure if exists insert_tbl_ist_in_gkv(integer, varchar(32), varchar(128), varchar(16), date);
-drop procedure if exists insert_tbl_hat_x_kinder_unter_25(integer, varchar(32), integer, date);
+drop procedure if exists insert_tbl_hat_x_kinder_unter_25(integer, varchar(32), integer, boolean, date);
 drop procedure if exists insert_tbl_arbeitet_in_sachsen(integer, varchar(32), boolean, date);
 drop procedure if exists insert_tbl_hat_gesetzliche_arbeitslosenversicherung(integer, varchar(32), date);
 drop procedure if exists insert_tbl_hat_gesetzliche_rentenversicherung(integer, varchar(32), date);
