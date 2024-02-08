@@ -216,7 +216,7 @@ drop procedure if exists insert_tbl_arbeitet_in_sachsen(integer, varchar(32), bo
 drop procedure if exists insert_tbl_hat_gesetzliche_arbeitslosenversicherung(integer, varchar(32), date);
 drop procedure if exists insert_tbl_hat_gesetzliche_rentenversicherung(integer, varchar(32), date);
 drop procedure if exists insert_tbl_ist_anderweitig_versichert(integer, varchar(32), varchar(128), varchar(16), date);
-drop procedure if exists insert_tbl_ist_Minijobber(integer, varchar(32), boolean, date);
+drop procedure if exists insert_tbl_ist_Minijobber(integer, varchar(32), boolean, boolean, date);
 
 -- Loeschung der Stored Procedure fuer Use Case "Aussertariflichen Verguetungsbestandteil einfuegen"
 drop procedure if exists insert_aussertarifliches_verguetungsbestandteil(integer, varchar(32), varchar(64), decimal(8, 2), date);

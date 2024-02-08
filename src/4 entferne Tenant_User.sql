@@ -1,3 +1,5 @@
+set role postgres;
+
 -- Quelle: https://adityamattos.com/multi-tenancy-in-python-fastapi-and-sqlalchemy-using-postgres-row-level-security
 -- Abschaffung der Rolle 'tenant-user' und dessen Privilegien
 -- 'tenant-user' kann (auch zukuenftig) erstellte Sequenzen (bspw. Serial) NICHT mehr benutzen 
