@@ -3015,6 +3015,7 @@ create or replace procedure insert_neuer_mitarbeiter(
 	p_ag_zuschuss_krankenversicherung decimal(6, 2),
 	p_ag_zuschuss_pflegeversicherung decimal(6, 2),
 	p_ist_minijobber boolean,
+	p_zahlt_minijob_rentenpauschale boolean,
 	p_anderweitig_versichert boolean,
 	p_arbeitslosenversichert boolean,
 	p_rentenversichert boolean
@@ -3109,11 +3110,11 @@ begin
 	-- Ein kurzfristig Beschaeftigter ist niemals privat ueber den Arbeitgeber versichert (womit auch kein Anspruch auf Arbeitgeberzuschuss einhergeht).
 	-- Eintrag nur, wenn alle Daten vorhanden sind.
 	if p_privat_krankenversichert and p_ist_kurzfristig_beschaeftigt is false and p_ag_zuschuss_krankenversicherung is not null and p_ag_zuschuss_krankenversicherung is not null then
-		call insert_tbl_hat_private_krankenversicherung(p_mandant_id, p_personalnummer, p_krankenkasse, p_ag_zuschuss_krankenversicherung, p_ag_zuschuss_krankenversicherung, p_eintrittsdatum);
+		call insert_tbl_hat_private_krankenversicherung(p_mandant_id, p_personalnummer, p_krankenkasse, p_ag_zuschuss_krankenversicherung, p_ag_zuschuss_pflegeversicherung, p_eintrittsdatum);
 	end if;
 
-	if p_ist_minijobber and p_ist_kurzfristig_beschaeftigt is not null then
-		call insert_tbl_ist_Minijobber(p_mandant_id, p_personalnummer, p_ist_kurzfristig_beschaeftigt, p_eintrittsdatum);
+	if p_ist_minijobber and p_ist_kurzfristig_beschaeftigt is not null and p_zahlt_minijob_rentenpauschale is not null then
+		call insert_tbl_ist_Minijobber(p_mandant_id, p_personalnummer, p_ist_kurzfristig_beschaeftigt, p_zahlt_minijob_rentenpauschale, p_eintrittsdatum);
 	end if;
 
 	-- if-Bedingung fuer kurzfristig beschaeftigte Nicht-Minijobber, denn die zahlen keine SV, aber Umlagen! Das der Kurzfristig Beschaeftigte aber
@@ -4099,6 +4100,7 @@ create or replace procedure insert_tbl_ist_Minijobber(
 	p_mandant_id integer,
 	p_personalnummer varchar(32),
 	p_ist_kurzfristig_beschaeftigt boolean,
+	p_zahlt_minijob_rentenpauschale boolean,
 	p_eintrittsdatum date
 ) as
 $body$
@@ -4110,16 +4112,14 @@ begin
 	set session role tenant_user;
 	execute 'SET app.current_tenant=' || p_mandant_id;
 		
-	-- Pruefen, ob Wahrheitswert fuer kurzfristige Beschaeftigung bereits in Tabelle 'Minijobs' hinterlegt ist...
-	execute 'SELECT minijob_id FROM minijobs WHERE kurzfristig_beschaeftigt = $1' into v_minijob_id using p_ist_kurzfristig_beschaeftigt;
+	-- Pruefen, ob Wahrheitswert fuer kurzfristige Beschaeftigung und AN-Rentenpauschale bereits in Tabelle 'Minijobs' hinterlegt ist...
+	execute 'SELECT minijob_id FROM minijobs WHERE kurzfristig_beschaeftigt = $1 AND an_rentenpauschale = $2' 
+		into v_minijob_id using p_ist_kurzfristig_beschaeftigt, p_zahlt_minijob_rentenpauschale;
     
     -- ... und falls sie nicht existiert, Meldung ausgeben, dass erst die Krankenversicherung hinterlegt werden muss!
     if v_minijob_id is null then
-		if p_ist_kurzfristig_beschaeftigt then
-			raise exception 'Sie muessen erst noch die Moeglichkeit, kurzfristige Minijobs zu beruecksichtigen, anlegen!';   
-		else
-			raise exception 'Sie muessen erst noch die Moeglichkeit, nicht kurzfristige Minijobs zu beruecksichtigen, anlegen!'; 
-		end if;
+		raise exception 'Sie muessen die Kombination kurzfristig_beschaeftigt = ''%'' und AN-Rentenpauschale = ''%'' noch anlegen!', 
+			p_ist_kurzfristig_beschaeftigt, p_zahlt_minijob_rentenpauschale;
     end if;
    
     execute 'SELECT mitarbeiter_ID FROM mitarbeiter WHERE personalnummer = $1' into v_mitarbeiter_ID using p_personalnummer;

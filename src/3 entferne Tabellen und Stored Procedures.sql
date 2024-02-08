@@ -189,7 +189,7 @@ drop procedure if exists insert_neuer_mitarbeiter(integer, varchar(32), varchar(
 varchar(32), varchar(32), varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date, varchar(64), varchar(8), 
 varchar(16), varchar(8), varchar(128), varchar(128), varchar(128), varchar(32), varchar(32), char(1), decimal(4, 2), 
 varchar(64), varchar(16), boolean, varchar(32), varchar(32), varchar(128), boolean, varchar(16), boolean, varchar(128), 
-varchar(16), boolean, boolean, integer, boolean, boolean, boolean, decimal(6, 2), decimal(6, 2), boolean, boolean, boolean, boolean);
+varchar(16), boolean, boolean, integer, boolean, boolean, boolean, decimal(6, 2), decimal(6, 2), boolean, boolean, boolean, boolean, boolean);
 drop procedure if exists insert_tbl_mitarbeiter(integer, varchar(32), varchar(64), varchar(128), varchar(64), date, date, varchar(32), varchar(32), 
 varchar(32), varchar(16), varchar(64), varchar(16), varchar(64), date);
 drop procedure if exists insert_tbl_laender(integer, varchar(128));

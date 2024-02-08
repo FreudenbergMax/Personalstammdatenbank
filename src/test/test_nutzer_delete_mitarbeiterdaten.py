@@ -234,7 +234,7 @@ class TestNutzerDeleteMitarbeiterdaten(unittest.TestCase):
 
         # Inhalt aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_privatkrankenkasse")
-        self.assertEqual(str(ergebnis), "[(1, 1, 1, Decimal('300.23'), Decimal('300.23'), datetime.date(2024, 1, 1), "
+        self.assertEqual(str(ergebnis), "[(1, 1, 1, Decimal('300.23'), Decimal('32.41'), datetime.date(2024, 1, 1), "
                                         "datetime.date(9999, 12, 31))]")
 
         # Nun Entfernung des Mitarbeiters. Tabelle 'hat_Privatkrankenkasse' muss von diesem Mitarbeiter nun wieder

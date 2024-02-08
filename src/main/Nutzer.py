@@ -4,8 +4,6 @@ import re
 from datetime import datetime, timedelta
 from src.main.Datenbankverbindung import datenbankbverbindung_aufbauen
 
-import psycopg2
-
 
 class Nutzer:
 
@@ -808,9 +806,9 @@ class Nutzer:
                                  eingetragen werden sollen.
         """
         if not self.neues_passwort_geaendert:
-            raise(ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
+            raise (ValueError("Ihr Administrator hat ein neues Passwort vergeben. Bitte wechseln Sie Ihr Passwort!"))
 
-        # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
+            # Import der Daten aus der Excel-Datei in das Pandas-Dataframe und Uebertragung in Liste "daten"
         daten = self._import_excel_daten(mitarbeiterdaten)
 
         # Daten aus importierter Excel-Tabelle '4 neuen Mitarbeiter anlegen/1 Mitarbeiter.xlsx' pruefen
@@ -860,6 +858,8 @@ class Nutzer:
         unternehmen = self._existenz_str_daten_feststellen(daten[30], 'Unternehmen', 128, True)
 
         tarifbeschaeftigt = self._existenz_boolean_daten_feststellen(daten[31], 'tarifbeschaeftigt', True)
+
+        # Wenn angegeben wird, dass neuer Mitarbeiter tarifbeschaeftigt ist, muss der Tarif angegeben werden
         if tarifbeschaeftigt:
             tarif = self._existenz_str_daten_feststellen(daten[32], 'Tarif', 16, True)
         else:
@@ -877,37 +877,60 @@ class Nutzer:
                                                                                 'gesetzlich Krankenversichert?',
                                                                                 False)
 
-        ermaessigter_gkv_beitragssatz = self._existenz_boolean_daten_feststellen(daten[37],
-                                                                                 'ermaessigter GKV-Beitragssatz?',
-                                                                                 False)
+        # Wenn angegeben ist, dass neuer Mitarbeiter gesetzlich krankenversichert ist, muessen folgende Daten vorhanden
+        # sein
+        if gesetzlich_krankenversichert:
+            ermaessigter_gkv_beitragssatz = self._existenz_boolean_daten_feststellen(daten[37],
+                                                                                     'ermaessigter GKV-Beitragssatz?',
+                                                                                     True)
 
-        anzahl_kinder = self._existenz_zahlen_daten_feststellen(daten[38], 99, 'Anzahl Kinder', False)
+            anzahl_kinder = self._existenz_zahlen_daten_feststellen(daten[38], 99, 'Anzahl Kinder', True)
 
-        juenger_als_23_oder_vor_1940_geboren = self._existenz_boolean_daten_feststellen(daten[39],
-                                                                                        'juenger als 23/'
-                                                                                        'vor 1940 geboren',
-                                                                                        False)
+            juenger_als_23_oder_vor_1940_geboren = self._existenz_boolean_daten_feststellen(daten[39],
+                                                                                            'juenger als 23/'
+                                                                                            'vor 1940 geboren',
+                                                                                            True)
 
-        wohnhaft_sachsen = self._existenz_boolean_daten_feststellen(daten[40], 'wohnhaft Sachsen', False)
+            wohnhaft_sachsen = self._existenz_boolean_daten_feststellen(daten[40], 'AG-Standort Sachsen', True)
+        else:
+            ermaessigter_gkv_beitragssatz = None
+            anzahl_kinder = None
+            juenger_als_23_oder_vor_1940_geboren = None
+            wohnhaft_sachsen = None
 
         privat_krankenversichert = self._existenz_boolean_daten_feststellen(daten[41],
                                                                             'privat Krankenversichert?',
                                                                             False)
 
-        ag_zuschuss_private_krankenversicherung = self._existenz_zahlen_daten_feststellen(daten[42],
-                                                                                          99999999,
-                                                                                          'AG-Zuschuss PKV',
-                                                                                          False)
+        # Wenn angegeben ist, dass neuer Mitarbeiter privat krankenversichert ist, muessen folgende Daten vorhanden
+        # sein
+        if privat_krankenversichert:
+            ag_zuschuss_private_krankenversicherung = self._existenz_zahlen_daten_feststellen(daten[42],
+                                                                                              99999999,
+                                                                                              'AG-Zuschuss PKV',
+                                                                                              True)
 
-        ag_zuschuss_private_pflegeversicherung = self._existenz_zahlen_daten_feststellen(daten[43],
-                                                                                         99999999,
-                                                                                         'AG-Zuschuss PPV',
-                                                                                         False)
+            ag_zuschuss_private_pflegeversicherung = self._existenz_zahlen_daten_feststellen(daten[43],
+                                                                                             99999999,
+                                                                                             'AG-Zuschuss PPV',
+                                                                                             True)
+        else:
+            ag_zuschuss_private_krankenversicherung = None
+            ag_zuschuss_private_pflegeversicherung = None
 
         minijob = self._existenz_boolean_daten_feststellen(daten[44], 'Minijob?', False)
-        anderweitig_versichert = self._existenz_boolean_daten_feststellen(daten[45], 'anderweitig_versichert?', False)
-        arbeitslosenversichert = self._existenz_boolean_daten_feststellen(daten[46], 'arbeitslosenversichert?', False)
-        rentenversichert = self._existenz_boolean_daten_feststellen(daten[47], 'rentenversichert?', False)
+
+        # Wenn Mitarbeiter ein Minijobber ist, muss angegeben sein, ob er Rentenpauschale zahlt
+        if minijob:
+            minijob_an_rentenpauschale = self._existenz_boolean_daten_feststellen(daten[45],
+                                                                                  'Minijob-AN-Rentenpauschale?',
+                                                                                  True)
+        else:
+            minijob_an_rentenpauschale = None
+
+        anderweitig_versichert = self._existenz_boolean_daten_feststellen(daten[46], 'anderweitig_versichert?', False)
+        arbeitslosenversichert = self._existenz_boolean_daten_feststellen(daten[47], 'arbeitslosenversichert?', False)
+        rentenversichert = self._existenz_boolean_daten_feststellen(daten[48], 'rentenversichert?', False)
 
         # Ein Mitarbeiter darf nur entweder gesetzlich krankenversichert ODER privat versichert mit Anspruch auf
         # Arbeitgeberzuschuss ODER Minijobber ODER anderweitig versichert (z.B. kufzfristig Beschaeftigte, Werkstudenten
@@ -927,6 +950,10 @@ class Nutzer:
         # zahlt lediglich pauschale Minijob-Abgaben.
         if (minijob and arbeitslosenversichert) or (minijob and rentenversichert):
             raise (ValueError(f"Ein Minijobber ist niemals ueber den Arbeitgeber arbeitslosen- und rentenversichert!"))
+
+        # Kurzfristig beschaeftigte Minijobber duerfen keine Rentenpauschale abfuehren
+        if kurzfristig_beschaeftigt and minijob and minijob_an_rentenpauschale:
+            raise (ValueError(f"Ein kurzfristig beschaeftigter Minijobber zahlt kein AN-Rentenpauschale!"))
 
         # Ein Kurzfristig Beschaeftigter ist niemals ueber den Arbeitgeber gesetzlich arbeitslosen- und rentenversichert
         if (kurzfristig_beschaeftigt and arbeitslosenversichert) or (kurzfristig_beschaeftigt and rentenversichert):
@@ -990,11 +1017,12 @@ class Nutzer:
                         ag_zuschuss_private_krankenversicherung,
                         ag_zuschuss_private_pflegeversicherung,
                         minijob,
+                        minijob_an_rentenpauschale,
                         anderweitig_versichert,
                         arbeitslosenversichert,
                         rentenversichert]
         self._export_zu_db('insert_neuer_mitarbeiter('
-                           '%s,%s,%s,%s,%s,%s,%s,%s,%s,'
+                           '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'
                            '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'
                            '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'
                            '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'
