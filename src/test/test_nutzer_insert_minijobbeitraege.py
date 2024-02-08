@@ -30,7 +30,7 @@ class TestNutzerInsertMinijobbeitraege(unittest.TestCase):
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Minijobs")
-        self.assertEqual(str(ergebnis), "[(1, 1, False)]")
+        self.assertEqual(str(ergebnis), "[(1, 1, False, True)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Pauschalabgaben")
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('13.000'), Decimal('15.000'), Decimal('3.600'), "
@@ -51,14 +51,14 @@ class TestNutzerInsertMinijobbeitraege(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             self.nutzer.insert_minijobbeitraege('testdaten_insert_minijobbeitraege/Minijobbeitraege.xlsx')
 
-        erwartete_fehlermeldung = "FEHLER:  Kurzfristige Beschaeftigung = 'f' ist bereits vorhanden! Uebergebene " \
-                                  "Daten werden nicht eingetragen!"
+        erwartete_fehlermeldung = "FEHLER:  Kurzfristige Beschaeftigung = 'f' mit AN-Rentenpauschale = 't' ist " \
+                                  "bereits vorhanden! Uebergebene Daten werden nicht eingetragen!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Minijobs")
-        self.assertEqual(str(ergebnis), "[(1, 1, False)]")
+        self.assertEqual(str(ergebnis), "[(1, 1, False, True)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Pauschalabgaben")
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('13.000'), Decimal('15.000'), Decimal('3.600'), "
@@ -81,14 +81,14 @@ class TestNutzerInsertMinijobbeitraege(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             self.nutzer.insert_minijobbeitraege('testdaten_insert_minijobbeitraege/Minijobbeitraege.xlsx')
 
-        erwartete_fehlermeldung = "FEHLER:  Kurzfristige Beschaeftigung = 'f' ist bereits vorhanden! Uebergebene " \
-                                  "Daten werden nicht eingetragen!"
+        erwartete_fehlermeldung = "FEHLER:  Kurzfristige Beschaeftigung = 'f' mit AN-Rentenpauschale = 't' ist " \
+                                  "bereits vorhanden! Uebergebene Daten werden nicht eingetragen!"
         tatsaechliche_fehlermeldung = str(context.exception)
         self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
         # Inhalte aus Tabellen ziehen, um zu pruefen, ob der Datensatz angelegt wurde
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Minijobs")
-        self.assertEqual(str(ergebnis), "[(1, 1, False)]")
+        self.assertEqual(str(ergebnis), "[(1, 1, False, True)]")
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM Pauschalabgaben")
         self.assertEqual(str(ergebnis), "[(1, 1, Decimal('13.000'), Decimal('15.000'), Decimal('3.600'), "
@@ -96,6 +96,20 @@ class TestNutzerInsertMinijobbeitraege(unittest.TestCase):
 
         ergebnis = self.nutzer.abfrage_ausfuehren("SELECT * FROM hat_Pauschalabgaben")
         self.assertEqual(str(ergebnis), "[(1, 1, 1, datetime.date(2024, 1, 1), datetime.date(9999, 12, 31))]")
+
+    def test_kurzfristig_beschaeftigt_mit_an_rentenpauschale(self):
+        """
+        Test prueft, ob eine Fehlermeldung ausgegeben wird, wenn fehlerhafterweise angegeben wird, dass ein kurzfristig
+        beschaeftigter Minijobber AN-Rentenpauschale zahlt. Dies ist rechtlich nicht moeglich
+        """
+        with self.assertRaises(ValueError) as context:
+            self.nutzer.insert_minijobbeitraege('testdaten_insert_minijobbeitraege/'
+                                                'Minijobbeitraege - kurzfristig beschaeftigt und zahlt '
+                                                'AN-Rentenpauschale.xlsx')
+
+        erwartete_fehlermeldung = "Ein kurzfristig beschaeftiger Minijobber zahlt keine AN-Rentenpauschale!"
+        tatsaechliche_fehlermeldung = str(context.exception)
+        self.assertTrue(tatsaechliche_fehlermeldung.startswith(erwartete_fehlermeldung))
 
     def tearDown(self):
         """

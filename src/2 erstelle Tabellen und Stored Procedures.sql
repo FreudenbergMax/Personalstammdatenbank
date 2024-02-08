@@ -1303,6 +1303,7 @@ create table Minijobs(
 	Minijob_ID serial primary key,
 	Mandant_ID integer not null,
 	kurzfristig_beschaeftigt boolean not null,
+	AN_Rentenpauschale boolean not null,
 	unique(Mandant_ID, kurzfristig_beschaeftigt),
 	constraint fk_minijob_mandanten
 		foreign key(Mandant_ID)
@@ -1338,15 +1339,15 @@ create policy FilterMandant_istminijobber
 create table Pauschalabgaben(
 	Pauschalabgabe_ID serial primary key,
 	Mandant_ID integer,
-	AG_Krankenversicherungsbeitrag_in_Prozent decimal(5, 3) not null,
-	AG_Rentenversicherungsbeitrag_in_Prozent decimal(5, 3) not null,
-	AN_Rentenversicherungsbeitrag_in_Prozent decimal(5, 3) not null,
+	AG_Krankenversicherungspauschale_in_Prozent decimal(5, 3) not null,
+	AG_Rentenversicherungspauschale_in_Prozent decimal(5, 3) not null,
+	AN_Rentenversicherungspauschale_in_Prozent decimal(5, 3) not null,
 	U1_Umlage_in_Prozent decimal(5, 3) not null,
 	U2_Umlage_in_Prozent decimal(5, 3) not null,
 	Insolvenzgeldumlage_in_Prozent decimal(5, 3) not null,
 	Pauschalsteuer_in_Prozent decimal(5, 3) not null,
-	unique(Mandant_ID, AG_Krankenversicherungsbeitrag_in_Prozent, AG_Rentenversicherungsbeitrag_in_Prozent, AN_Rentenversicherungsbeitrag_in_Prozent, U1_Umlage_in_Prozent, 
-		   U2_Umlage_in_Prozent, Insolvenzgeldumlage_in_Prozent, Pauschalsteuer_in_Prozent),
+	unique(Mandant_ID, AG_Krankenversicherungspauschale_in_Prozent, AG_Rentenversicherungspauschale_in_Prozent, AN_Rentenversicherungspauschale_in_Prozent, 
+		   U1_Umlage_in_Prozent, U2_Umlage_in_Prozent, Insolvenzgeldumlage_in_Prozent, Pauschalsteuer_in_Prozent),
 	constraint fk_Pauschalabgaben_mandanten
 		foreign key(Mandant_ID)
 			references Mandanten(Mandant_ID)
@@ -2367,14 +2368,15 @@ $body$
 language plpgsql;
 
 /*
- * Stored Procedure fuer Use Case "Minijobbeitraege eintragen": Funktion traegt neue Daten bzgl. Minijobbeitraege und Beitragsbemessungsgrenzen ein
+ * Stored Procedure fuer Use Case "Minijobbeitraege eintragen": Funktion traegt neue Daten bzgl. Minijobbeitraege ein
  */
 create or replace procedure insert_minijobbeitraege(
 	p_mandant_id integer,
 	p_kurzfristig_beschaeftigt boolean,
-	p_ag_krankenversicherungsbeitrag_in_prozent decimal(5, 3),
-	p_ag_rentenversicherungsbeitrag_in_prozent decimal(5, 3),
-	p_an_rentenversicherungsbeitrag_in_prozent decimal(5, 3),
+	p_an_rentenpauschale boolean,
+	p_ag_krankenversicherungspauschale_in_prozent decimal(5, 3),
+	p_ag_rentenversicherungspauschale_in_prozent decimal(5, 3),
+	p_an_rentenversicherungspauschale_in_prozent decimal(5, 3),
 	p_u1_umlage_in_prozent decimal(5, 3),
 	p_u2_umlage_in_prozent decimal(5, 3),
 	p_insolvenzgeldumlage_in_prozent decimal(5, 3),
@@ -2390,20 +2392,20 @@ begin
     set session role tenant_user;
     execute 'SET app.current_tenant=' || p_mandant_id;
    
-	-- Pruefen, ob Wahrheitswert fuer Frage, ob Minijob vorliegt, bereits vorhanden ist...
-   	execute 'SELECT minijob_id FROM minijobs WHERE kurzfristig_beschaeftigt = $1' into v_minijob_id using p_kurzfristig_beschaeftigt;
+	-- Pruefen, ob Minijob vorliegt, bereits vorhanden ist...
+   	execute 'SELECT minijob_id FROM minijobs WHERE kurzfristig_beschaeftigt = $1 AND an_rentenpauschale = $2' into v_minijob_id using p_kurzfristig_beschaeftigt, p_an_rentenpauschale;
     
     -- ... und falls sie bereits existiert, Meldung ausgeben, dass die Daten nicht mehr eingetragen werden muessen
     if v_minijob_id is not null then
-		raise exception 'Kurzfristige Beschaeftigung = ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen!', p_kurzfristig_beschaeftigt;   
+		raise exception 'Kurzfristige Beschaeftigung = ''%'' mit AN-Rentenpauschale = ''%'' ist bereits vorhanden! Uebergebene Daten werden nicht eingetragen!', p_kurzfristig_beschaeftigt,  p_an_rentenpauschale;   
 	
 	--... ansonsten eintragen und id ziehen, da als Schluessel fuer Assoziation 'hat_Pauschalabgaben' benoetigt
 	else
 	
-		insert into Minijobs(Mandant_ID, kurzfristig_beschaeftigt)
-	   		values (p_mandant_id, p_kurzfristig_beschaeftigt);	
+		insert into Minijobs(Mandant_ID, kurzfristig_beschaeftigt, AN_Rentenpauschale)
+	   		values (p_mandant_id, p_kurzfristig_beschaeftigt, p_an_rentenpauschale);	
 		
-		execute 'SELECT minijob_id FROM minijobs WHERE kurzfristig_beschaeftigt = $1' into v_minijob_id using p_kurzfristig_beschaeftigt;
+		execute 'SELECT minijob_id FROM minijobs WHERE kurzfristig_beschaeftigt = $1 AND an_rentenpauschale = $2' into v_minijob_id using p_kurzfristig_beschaeftigt, p_an_rentenpauschale;
 	
     end if;   
    
@@ -2413,9 +2415,9 @@ begin
 			 FROM 
 				pauschalabgaben
 			 WHERE 
-				ag_krankenversicherungsbeitrag_in_prozent = $1 AND
-				ag_rentenversicherungsbeitrag_in_prozent = $2 AND
-				an_rentenversicherungsbeitrag_in_prozent = $3 AND
+				ag_krankenversicherungspauschale_in_prozent = $1 AND
+				ag_rentenversicherungspauschale_in_prozent = $2 AND
+				an_rentenversicherungspauschale_in_prozent = $3 AND
 				u1_umlage_in_prozent = $4 AND
 				u2_umlage_in_prozent = $5 AND
 				insolvenzgeldumlage_in_prozent = $6 AND
@@ -2423,9 +2425,9 @@ begin
    			into 
    				v_pauschalabgabe_id
 			using 
-				p_ag_krankenversicherungsbeitrag_in_prozent,
-				p_ag_rentenversicherungsbeitrag_in_prozent,
-				p_an_rentenversicherungsbeitrag_in_prozent,
+				p_ag_krankenversicherungspauschale_in_prozent,
+				p_ag_rentenversicherungspauschale_in_prozent,
+				p_an_rentenversicherungspauschale_in_prozent,
 				p_u1_umlage_in_prozent,
 				p_u2_umlage_in_prozent,
 				p_insolvenzgeldumlage_in_prozent,
@@ -2436,18 +2438,18 @@ begin
 		
 		insert into
 	   		Pauschalabgaben(Mandant_ID,
-							AG_Krankenversicherungsbeitrag_in_Prozent,
-							AG_Rentenversicherungsbeitrag_in_Prozent,
-							AN_Rentenversicherungsbeitrag_in_Prozent,
+							AG_Krankenversicherungspauschale_in_Prozent,
+							AG_Rentenversicherungspauschale_in_Prozent,
+							AN_Rentenversicherungspauschale_in_Prozent,
 							U1_Umlage_in_Prozent,
 							U2_Umlage_in_Prozent,
 							Insolvenzgeldumlage_in_Prozent,
 							Pauschalsteuer_in_Prozent)
 	   	values
 	   		(p_mandant_id,
-	   		 p_ag_krankenversicherungsbeitrag_in_prozent,
-			 p_ag_rentenversicherungsbeitrag_in_prozent,
-			 p_an_rentenversicherungsbeitrag_in_prozent,
+	   		 p_ag_krankenversicherungspauschale_in_prozent,
+			 p_ag_rentenversicherungspauschale_in_prozent,
+			 p_an_rentenversicherungspauschale_in_prozent,
 			 p_u1_umlage_in_prozent,
 			 p_u2_umlage_in_prozent,
 			 p_insolvenzgeldumlage_in_prozent,
@@ -2460,9 +2462,9 @@ begin
 				 FROM 
 					pauschalabgaben
 				 WHERE 
-					ag_krankenversicherungsbeitrag_in_prozent = $1 AND
-					ag_rentenversicherungsbeitrag_in_prozent = $2 AND
-					an_rentenversicherungsbeitrag_in_prozent = $3 AND
+					ag_krankenversicherungspauschale_in_prozent = $1 AND
+					ag_rentenversicherungspauschale_in_prozent = $2 AND
+					an_rentenversicherungspauschale_in_prozent = $3 AND
 					u1_umlage_in_prozent = $4 AND
 					u2_umlage_in_prozent = $5 AND
 					insolvenzgeldumlage_in_prozent = $6 AND
@@ -2470,9 +2472,9 @@ begin
 	   			into 
 	   				v_pauschalabgabe_id
 				using 
-					p_ag_krankenversicherungsbeitrag_in_prozent,
-					p_ag_rentenversicherungsbeitrag_in_prozent,
-					p_an_rentenversicherungsbeitrag_in_prozent,
+					p_ag_krankenversicherungspauschale_in_prozent,
+					p_ag_rentenversicherungspauschale_in_prozent,
+					p_an_rentenversicherungspauschale_in_prozent,
 					p_u1_umlage_in_prozent,
 					p_u2_umlage_in_prozent,
 					p_insolvenzgeldumlage_in_prozent,

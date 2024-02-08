@@ -137,7 +137,7 @@ drop procedure if exists insert_arbeitslosenversicherungsbeitraege(integer, deci
 drop procedure if exists insert_rentenversicherungsbeitraege(integer, decimal(5, 3), decimal(5, 3), decimal(10, 2), decimal(10, 2), date);
 
 -- Loeschung der Stored Procedure fuer Use Case "Minijobbeitraege eintragen"
-drop procedure if exists insert_minijobbeitraege(integer, boolean, decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), date);
+drop procedure if exists insert_minijobbeitraege(integer, boolean, boolean, decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), decimal(5, 3), date);
 
 -- Loeschung der Stored Procedure fuer Use Case "Berufsgenossenschaft eintragen" 
 drop procedure if exists insert_berufsgenossenschaft(integer, varchar(128), varchar(16));

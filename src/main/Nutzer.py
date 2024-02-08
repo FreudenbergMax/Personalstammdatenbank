@@ -451,32 +451,47 @@ class Nutzer:
         kurzfristig_beschaeftigt = self._existenz_boolean_daten_feststellen(daten[0],
                                                                             'kurzfristige Minijobtaetigkeit?',
                                                                             True)
-        ag_beitrag_kv_in_prozent = self._existenz_zahlen_daten_feststellen(daten[1],
+        an_beitrag_rentenpauschale = self._existenz_boolean_daten_feststellen(daten[1],
+                                                                            'Zahlt Arbeitnehmer Rentenpauschale?',
+                                                                            True)
+        ag_beitrag_kv_in_prozent = self._existenz_zahlen_daten_feststellen(daten[2],
                                                                            99,
                                                                            'AG-Beitrag KV Minijob in %',
                                                                            True)
-        ag_beitrag_rv_in_prozent = self._existenz_zahlen_daten_feststellen(daten[2],
+        ag_beitrag_rv_in_prozent = self._existenz_zahlen_daten_feststellen(daten[3],
                                                                            99,
                                                                            'AG-Beitrag RV Minijob in %',
                                                                            True)
-        an_beitrag_rv_in_prozent = self._existenz_zahlen_daten_feststellen(daten[3],
-                                                                           99,
-                                                                           'AN-Beitrag RV Minijob in %',
-                                                                           True)
-        u1_umlage = self._existenz_zahlen_daten_feststellen(daten[4], 99, 'U1-Umlage Minijob in %', True)
-        u2_umlage = self._existenz_zahlen_daten_feststellen(daten[5], 99, 'U2-Umlage Minijob in %', True)
-        insolvenzgeldumlage = self._existenz_zahlen_daten_feststellen(daten[6],
+
+        # Wenn der Minijobber sich von der AN-Rentenpauschale befreien laesst, wird die Variable auf 0 gesetzt
+        if an_beitrag_rentenpauschale:
+            an_beitrag_rv_in_prozent = self._existenz_zahlen_daten_feststellen(daten[4],
+                                                                               99,
+                                                                               'AN-Beitrag RV Minijob in %',
+                                                                               True)
+        else:
+            an_beitrag_rv_in_prozent = 0
+
+        u1_umlage = self._existenz_zahlen_daten_feststellen(daten[5], 99, 'U1-Umlage Minijob in %', True)
+        u2_umlage = self._existenz_zahlen_daten_feststellen(daten[6], 99, 'U2-Umlage Minijob in %', True)
+        insolvenzgeldumlage = self._existenz_zahlen_daten_feststellen(daten[7],
                                                                       99,
                                                                       'Insolvenzgeldumlage Minijob in %',
                                                                       True)
-        pauschalsteuer = self._existenz_zahlen_daten_feststellen(daten[7],
+        pauschalsteuer = self._existenz_zahlen_daten_feststellen(daten[8],
                                                                  99,
                                                                  'Pauschalsteuer Minijob in %',
                                                                  True)
-        eintragungsdatum = self._existenz_date_daten_feststellen(daten[8], 'Eintragungsdatum', True)
+        eintragungsdatum = self._existenz_date_daten_feststellen(daten[9], 'Eintragungsdatum', True)
+
+        # Da kurzfristig beschaeftigte Minijobber rechtlich keine AN-Rentenpauschale zahlen koennen, muss sichergestellt
+        # sein, dass eine fehlerhafte Eingabe abgefangen wird
+        if kurzfristig_beschaeftigt and an_beitrag_rentenpauschale:
+            raise (ValueError("Ein kurzfristig beschaeftiger Minijobber zahlt keine AN-Rentenpauschale!"))
 
         export_daten = [self.mandant_id,
                         kurzfristig_beschaeftigt,
+                        an_beitrag_rentenpauschale,
                         ag_beitrag_kv_in_prozent,
                         ag_beitrag_rv_in_prozent,
                         an_beitrag_rv_in_prozent,
@@ -485,7 +500,7 @@ class Nutzer:
                         insolvenzgeldumlage,
                         pauschalsteuer,
                         eintragungsdatum]
-        self._export_zu_db('insert_minijobbeitraege(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', export_daten)
+        self._export_zu_db('insert_minijobbeitraege(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', export_daten)
 
     def insert_berufsgenossenschaft(self, neuanlage_berufsgenossenschaft):
         """
@@ -1259,6 +1274,8 @@ class Nutzer:
         elif zahlen_daten > hoechstbetrag:
             raise (ValueError(f"'{art}' ist mit '{zahlen_daten}' hoeher als der zulaessige Maximalbetrag von "
                               f"'{hoechstbetrag}'!"))
+        elif zahlen_daten < 0:
+            raise (ValueError(f"'{art}' ist mit '{zahlen_daten}' kleiner als 0!"))
         elif art == 'Anzahl Kinder' or art == 'Beitragsjahr Unfallversicherung':
             zahlen_daten = int(zahlen_daten)
         else:
