@@ -54,10 +54,7 @@ create table Kategorien_Austrittsgruende (
 	Kategorie_Austrittsgruende_ID serial primary key,
 	Mandant_ID integer not null,
 	Austrittsgrundkategorie varchar(16) not null check(Austrittsgrundkategorie in ('verhaltensbedingt', 'personenbedingt', 'betriebsbedingt')),
-	unique(Mandant_ID, Austrittsgrundkategorie),
-	constraint fk_austrittsgrundkategorien_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	unique(Mandant_ID, Austrittsgrundkategorie)
 );
 alter table Kategorien_Austrittsgruende enable row level security;
 create policy FilterMandant_kategorien_austrittsgruende
@@ -70,9 +67,6 @@ create table Austrittsgruende (
 	Austrittsgrund varchar(32) not null,
 	Kategorie_Austrittsgruende_ID integer not null,
 	unique(Mandant_ID, Austrittsgrund),
-	constraint fk_Austrittsgruende_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID),
 	constraint fk_austrittsgruende_austrittsgrundkategorien 
 		foreign key (Kategorie_Austrittsgruende_ID) 
 			references Kategorien_Austrittsgruende(Kategorie_Austrittsgruende_ID)
@@ -103,9 +97,6 @@ create table Mitarbeiter (
     Austrittsdatum date,
     Austrittsgrund_ID integer,
 	unique(Personalnummer),
-    constraint fk_mitarbeiter_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID),
     constraint fk_mitarbeiter_austrittsgruende
 		foreign key (Austrittsgrund_ID) 
 			references Austrittsgruende(Austrittsgrund_ID)
@@ -121,10 +112,7 @@ create table Laender (
 	Land_ID serial primary key,
 	Mandant_ID integer not null,
 	Land varchar(128) not null,
-	unique(Mandant_ID, Land),
-    constraint fk_laender_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	unique(Mandant_ID, Land)
 );
 create unique index land_idx on Laender(lower(Land));
 alter table Laender enable row level security;
@@ -138,9 +126,6 @@ create table Regionen (
 	Region varchar(128) not null,
 	Land_ID integer not null,
 	unique(Mandant_ID, Region),
-    constraint fk_regionen_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID),
 	constraint fk_regionen_laender
 		foreign key (Land_ID)
 			references Laender(Land_ID)
@@ -157,9 +142,6 @@ create table Staedte (
 	Stadt varchar(128) not null,
 	Region_ID integer not null,
 	unique(Mandant_ID, Stadt),
-	constraint fk_staedte_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID),
 	constraint fk_staedte_regionen
 		foreign key (Region_ID)
 			references Regionen(Region_ID)
@@ -177,9 +159,6 @@ create table Postleitzahlen (
 	ost_west_ausland varchar(8) not null check(ost_west_ausland in ('Ost', 'West', 'anders')),
 	Stadt_ID integer not null,
 	unique(Mandant_ID, Postleitzahl),
-	constraint fk_postleitzahlen_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID),
 	constraint fk_postleitzahlen_staedte
 		foreign key (Stadt_ID)
 			references Staedte(Stadt_ID)
@@ -197,9 +176,6 @@ create table Strassenbezeichnungen (
 	Hausnummer varchar(8) not null,
 	Postleitzahl_ID integer not null,
 	unique(Mandant_ID, Strasse, Hausnummer),
-	constraint fk_erstwohnsitze_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID),
 	constraint fk_erstwohnsitze_postleitzahlen
 		foreign key (Postleitzahl_ID)
 			references Postleitzahlen(Postleitzahl_ID)
@@ -222,10 +198,7 @@ create table wohnt_in (
     		references Mitarbeiter(Mitarbeiter_ID),
     constraint fk_wohntin_Strassenbezeichnungen
     	foreign key (Strassenbezeichnung_ID) 
-    		references Strassenbezeichnungen(Strassenbezeichnung_ID),
-	constraint fk_wohntin_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+    		references Strassenbezeichnungen(Strassenbezeichnung_ID)
 );
 alter table wohnt_in enable row level security;
 create policy FilterMandant_wohnt_in
@@ -258,10 +231,7 @@ create table hat_Geschlecht(
     		references Mitarbeiter(Mitarbeiter_ID),
 	constraint fk_hatgeschlecht_Geschlechter
     	foreign key (Geschlecht_ID) 
-    		references Geschlechter(Geschlecht_ID),
-	constraint fk_hatgeschlecht_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+    		references Geschlechter(Geschlecht_ID)
 );
 alter table hat_Geschlecht enable row level security;
 create policy FilterMandant_hat_geschlecht
@@ -272,10 +242,7 @@ create table Mitarbeitertypen (
 	Mitarbeitertyp_ID serial primary key,
 	Mandant_ID integer not null,
 	Mitarbeitertyp varchar(32) not null,
-	unique(Mandant_ID, Mitarbeitertyp),
-	constraint fk_mitarbeitertypen_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	unique(Mandant_ID, Mitarbeitertyp)
 );
 create unique index mitarbeitertyp_idx on Mitarbeitertypen(lower(Mitarbeitertyp));
 alter table Mitarbeitertypen enable row level security;
@@ -295,10 +262,7 @@ create table ist_Mitarbeitertyp (
     		references Mitarbeiter(Mitarbeiter_ID),
     constraint fk_istmitarbeitertyp_mitarbeitertypen
     	foreign key (Mitarbeitertyp_ID) 
-    		references Mitarbeitertypen(Mitarbeitertyp_ID),
-	constraint fk_istmitarbeitertyp_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+    		references Mitarbeitertypen(Mitarbeitertyp_ID)
 );
 alter table ist_Mitarbeitertyp enable row level security;
 create policy FilterMandant_ist_mitarbeitertyp
@@ -309,10 +273,7 @@ create table Steuerklassen (
     Steuerklasse_ID serial primary key,
     Mandant_ID integer not null,
     Steuerklasse char(1) not null check(Steuerklasse in ('1', '2', '3', '4', '5', '6')),
-    unique(Mandant_ID, Steuerklasse),
-    constraint fk_steuerklassen_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+    unique(Mandant_ID, Steuerklasse)
 );
 alter table Steuerklassen enable row level security;
 create policy FilterMandant_steuerklassen
@@ -331,10 +292,7 @@ create table in_Steuerklasse (
     		references Mitarbeiter(Mitarbeiter_ID),
     constraint fk_insteuerklasse_steuerklassen
     	foreign key (Steuerklasse_ID) 
-    		references Steuerklassen(Steuerklasse_ID),
-    constraint fk_insteuerklasse_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+    		references Steuerklassen(Steuerklasse_ID)
 );
 alter table in_Steuerklasse enable row level security;
 create policy FilterMandant_in_steuerklasse
@@ -345,10 +303,7 @@ create table Wochenarbeitsstunden(
 	Wochenarbeitsstunden_ID serial primary key,
 	Mandant_ID integer not null,
 	Anzahl_Wochenstunden decimal(4, 2) not null,
-	unique(Mandant_ID, Anzahl_Wochenstunden),
-    constraint fk_wochenarbeitsstunden_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	unique(Mandant_ID, Anzahl_Wochenstunden)
 );
 alter table Wochenarbeitsstunden enable row level security;
 create policy FilterMandant_wochenarbeitsstunden
@@ -367,10 +322,7 @@ create table arbeitet_x_Wochenstunden (
     		references Mitarbeiter(Mitarbeiter_ID),
     constraint fk_arbeitetxwochenstunden_wochenarbeitsstunden
     	foreign key (Wochenarbeitsstunden_ID) 
-    		references Wochenarbeitsstunden(Wochenarbeitsstunden_ID),
-    constraint fk_arbeitetxwochenstunden_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+    		references Wochenarbeitsstunden(Wochenarbeitsstunden_ID)
 );
 alter table arbeitet_x_Wochenstunden enable row level security;
 create policy FilterMandant_arbeitet_x_wochenstunden
@@ -386,10 +338,7 @@ create table Abteilungen (
 	unique (Mandant_ID, Abteilung),
 	constraint fk_abteilungen_mandanten
 		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID),
-	constraint fk_abteilungen_abteilungen
-		foreign key (untersteht_Abteilung)
-			references Abteilungen(Abteilung_ID)
+			references Mandanten(Mandant_ID)
 );
 create unique index abteilung_idx on Abteilungen(lower(Abteilung));
 alter table Abteilungen enable row level security;
@@ -410,10 +359,7 @@ create table eingesetzt_in (
     		references Mitarbeiter(Mitarbeiter_ID),
     constraint fk_eingesetztin_abteilungen
     	foreign key (Abteilung_ID) 
-    		references Abteilungen(Abteilung_ID),
-	constraint fk_eingesetztin_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+    		references Abteilungen(Abteilung_ID)
 );
 alter table eingesetzt_in enable row level security;
 create policy FilterMandant_eingesetzt_in
@@ -424,10 +370,7 @@ create table Jobtitel (
 	Jobtitel_ID serial primary key,
 	Mandant_ID integer not null,
 	Jobtitel varchar(32) not null,
-	unique(Mandant_ID, Jobtitel),
-    constraint fk_jobtitel_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	unique(Mandant_ID, Jobtitel)
 );
 create unique index jobtitel_idx on Jobtitel(lower(Jobtitel));
 alter table Jobtitel enable row level security;
@@ -439,10 +382,7 @@ create table Erfahrungsstufen (
 	Erfahrungsstufe_ID serial primary key,
 	Mandant_ID integer not null,
 	Erfahrungsstufe varchar(32) not null,
-	unique(Mandant_ID, Erfahrungsstufe),
-    constraint fk_erfahrungsstufen_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	unique(Mandant_ID, Erfahrungsstufe)
 );
 create unique index erfahrungsstufe_idx on Erfahrungsstufen(lower(Erfahrungsstufe));
 alter table Erfahrungsstufen enable row level security;
@@ -466,10 +406,7 @@ create table hat_Jobtitel (
     		references Jobtitel(Jobtitel_ID),
     constraint fk_hatjobtitel_erfahrungsstufen
 		foreign key (Erfahrungsstufe_ID)
-			references Erfahrungsstufen(Erfahrungsstufe_ID),
-	constraint fk_hatjobtitel_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references Erfahrungsstufen(Erfahrungsstufe_ID)
 );
 alter table hat_Jobtitel enable row level security;
 create policy FilterMandant_hat_jobtitel
@@ -483,9 +420,6 @@ create table Unternehmen (
 	Abkuerzung varchar(16),
 	untersteht_Unternehmen integer,
 	unique (Mandant_ID, Unternehmen),
-	constraint fk_unternehmen_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID),
 	constraint fk_unternehmen_unternehmen
 		foreign key (untersteht_Unternehmen)
 			references Unternehmen(Unternehmen_ID)
@@ -508,10 +442,7 @@ create table in_Unternehmen (
     		references Mitarbeiter(Mitarbeiter_ID),
     constraint fk_inunternehmen_unternehmen
     	foreign key (Unternehmen_ID) 
-    		references Unternehmen(Unternehmen_ID),
-	constraint fk_inunternehmen_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+    		references Unternehmen(Unternehmen_ID)
 ); 
 alter table in_Unternehmen enable row level security;
 create policy FilterMandant_in_unternehmen
@@ -523,10 +454,7 @@ create table Berufsgenossenschaften(
 	Mandant_ID integer not null,
 	Berufsgenossenschaft varchar(128) not null,
 	Abkuerzung varchar(16),
-	unique(Mandant_ID, Berufsgenossenschaft),
-	constraint fk_berufsgenossenschaften_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	unique(Mandant_ID, Berufsgenossenschaft)
 );
 create unique index berufsgenossenschaft_idx on Berufsgenossenschaften(lower(Berufsgenossenschaft));
 alter table Berufsgenossenschaften enable row level security;
@@ -546,10 +474,7 @@ create table Unfallversicherungsbeitraege(
     		references Unternehmen(Unternehmen_ID),
     constraint fk_unfallversicherungsbeitraege_berufsgenossenschaften
     	foreign key (Berufsgenossenschaft_ID) 
-    		references Berufsgenossenschaften(Berufsgenossenschaft_ID),
-	constraint fk_unfallversicherungsbeitraege_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+    		references Berufsgenossenschaften(Berufsgenossenschaft_ID)
 );
 alter table Unfallversicherungsbeitraege enable row level security;
 create policy FilterMandant_unfallversicherungsbeitraege
@@ -577,9 +502,6 @@ create table Tarife (
 	Tarifbezeichnung varchar(16) not null,
 	Gewerkschaft_ID integer not null,
 	unique (Mandant_ID, Tarifbezeichnung),
-	constraint fk_tarife_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID),
 	constraint fk_tarife_gewerkschaften
 		foreign key (Gewerkschaft_ID)
 			references Gewerkschaften(Gewerkschaft_ID)
@@ -596,10 +518,7 @@ create table Verguetungsbestandteile(
 	Verguetungsbestandteil varchar(64) not null,
 	Auszahlungsmonat varchar(16) not null check(Auszahlungsmonat in ('jeden Monat', 'Januar', 'Februar', 'Maerz', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 
 																	 'Oktober', 'November', 'Dezember')),
-	unique(Mandant_ID, Verguetungsbestandteil, Auszahlungsmonat),
-	constraint fk_verguetungsbestandteile_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	unique(Mandant_ID, Verguetungsbestandteil, Auszahlungsmonat)
 );
 create unique index verguetungsbestandteil_idx on Verguetungsbestandteile(lower(Verguetungsbestandteil));
 alter table Verguetungsbestandteile enable row level security;
@@ -620,10 +539,7 @@ create table hat_Verguetungsbestandteil_Tarif(
     		references Verguetungsbestandteile(Verguetungsbestandteil_ID),
     constraint fk_hatverguetungsbestandteiltarif_tarif
 		foreign key (Tarif_ID) 
-			references Tarife(Tarif_ID),
-	constraint fk_hatverguetungsbestandteiltarif_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references Tarife(Tarif_ID)
 );
 alter table hat_Verguetungsbestandteil_Tarif enable row level security;
 create policy FilterMandant_hatverguetungsbestandteiltarif
@@ -642,10 +558,7 @@ create table hat_Tarif (
     		references Mitarbeiter(Mitarbeiter_ID),
     constraint fk_hattarif_tarif
 		foreign key (Tarif_ID) 
-			references Tarife(Tarif_ID),
-	constraint fk_hattarif_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references Tarife(Tarif_ID)
 );
 alter table hat_Tarif enable row level security;
 create policy FilterMandant_hat_tarif
@@ -661,10 +574,7 @@ create table Aussertarifliche (
 	unique(Mitarbeiter_ID, Datum_Bis),
 	constraint fk_aussertarifliche_mitarbeiter
 		foreign key (Mitarbeiter_ID)
-			references Mitarbeiter(Mitarbeiter_ID),
-	constraint fk_aussertarifliche_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)		
+			references Mitarbeiter(Mitarbeiter_ID)		
 );
 alter table Aussertarifliche enable row level security;
 create policy FilterMandant_aussertarifliche
@@ -684,10 +594,7 @@ create table hat_Verguetungsbestandteil_AT(
     		references Verguetungsbestandteile(Verguetungsbestandteil_ID),
     constraint fk_hatverguetungsbestandteilat_aussertarifliche
 		foreign key (Aussertarif_ID) 
-			references Aussertarifliche(Aussertarif_ID),
-	constraint fk_hatverguetungsbestandteilat_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references Aussertarifliche(Aussertarif_ID)
 );
 alter table hat_Verguetungsbestandteil_AT enable row level security;
 create policy FilterMandant_hatverguetungsbestandteilat
@@ -699,10 +606,7 @@ create table gemeldete_Krankenkassen(
 	Mandant_ID integer not null,
 	gemeldete_Krankenkasse varchar(128) not null,
 	Krankenkassenkuerzel varchar(16),
-	unique(Mandant_ID, gemeldete_Krankenkasse),
-	constraint fk_gemeldetekrankenkassen_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	unique(Mandant_ID, gemeldete_Krankenkasse)
 );
 create unique index gemeldete_krankenkasse_idx on gemeldete_Krankenkassen(lower(gemeldete_Krankenkasse));
 alter table gemeldete_Krankenkassen enable row level security;
@@ -722,10 +626,7 @@ create table ist_anderweitig_versichert(
 			references Mitarbeiter(Mitarbeiter_ID),
 	constraint fk_istanderweitigversichert_gemeldetekrankenkassen
 		foreign key (gemeldete_Krankenkasse_ID)
-			references gemeldete_Krankenkassen(gemeldete_Krankenkasse_ID),
-	constraint fk_istanderweitigversichert_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references gemeldete_Krankenkassen(gemeldete_Krankenkasse_ID)
 );
 alter table ist_anderweitig_versichert enable row level security;
 create policy FilterMandant_istanderweitigversichert
@@ -737,10 +638,7 @@ create table Privatkrankenkassen(
 	Mandant_ID integer not null,
 	Privatkrankenkasse varchar(128) not null,
 	Privatkrankenkassenkuerzel varchar(16),
-	unique (Mandant_ID, Privatkrankenkasse),
-	constraint fk_privatkrankenkassen_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	unique (Mandant_ID, Privatkrankenkasse)
 );
 create unique index private_krankenkasse_idx on Privatkrankenkassen(lower(Privatkrankenkasse));
 alter table Privatkrankenkassen enable row level security;
@@ -762,10 +660,7 @@ create table hat_Privatkrankenkasse(
 			references Mitarbeiter(Mitarbeiter_ID),
 	constraint fk_hatprivatkrankenkasse_privatkrankenkasse
 		foreign key (Privatkrankenkasse_ID)
-			references Privatkrankenkassen(Privatkrankenkasse_ID),
-	constraint fk_hatprivatkrankenkasse_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references Privatkrankenkassen(Privatkrankenkasse_ID)
 );
 alter table hat_Privatkrankenkasse enable row level security;
 create policy FilterMandant_hatprivatkrankenkasse
@@ -776,10 +671,7 @@ create table Krankenversicherungen (
 	Krankenversicherung_ID serial primary key,
 	Mandant_ID integer not null,
 	ermaessigter_beitragssatz boolean not null,
-	unique(Mandant_ID, ermaessigter_beitragssatz),
-	constraint fk_krankenversicherungen_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	unique(Mandant_ID, ermaessigter_beitragssatz)
 );
 alter table Krankenversicherungen enable row level security;
 create policy FilterMandant_krankenversicherungen
@@ -798,10 +690,7 @@ create table hat_gesetzliche_Krankenversicherung(
 			references Mitarbeiter(Mitarbeiter_ID),
 	constraint fk_hatgesetzlichekrankenversicherung_krankenversicherungen
 		foreign key (Krankenversicherung_ID)
-			references Krankenversicherungen(Krankenversicherung_ID),
-	constraint fk_hatgesetzlichekrankenversicherung_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references Krankenversicherungen(Krankenversicherung_ID)
 );
 alter table hat_gesetzliche_Krankenversicherung enable row level security;
 create policy FilterMandant_hatgesetzlichekrankenversicherung
@@ -816,10 +705,7 @@ create table GKV_Beitraege(
 	Beitragsbemessungsgrenze_GKV decimal(10, 2) not null,
 	Jahresarbeitsentgeltgrenze_GKV decimal(10, 2) not null,
 	unique(Mandant_ID, AG_Krankenversicherungsbeitrag_in_Prozent, AN_Krankenversicherungsbeitrag_in_Prozent, 
-			Beitragsbemessungsgrenze_GKV, Jahresarbeitsentgeltgrenze_GKV),
-	constraint fk_gkvbeitraege_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			Beitragsbemessungsgrenze_GKV, Jahresarbeitsentgeltgrenze_GKV)
 );
 alter table GKV_Beitraege enable row level security;
 create policy FilterMandant_gkvbeitraege
@@ -838,10 +724,7 @@ create table hat_GKV_Beitraege (
 			references Krankenversicherungen(Krankenversicherung_ID),
 	constraint fk_hatgkvbeitraege_gkvbeitraege
 		foreign key (Krankenversicherungsbeitrag_ID)
-			references GKV_Beitraege(Krankenversicherungsbeitrag_ID),
-	constraint fk_hatgkvbeitraege_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references GKV_Beitraege(Krankenversicherungsbeitrag_ID)
 );
 alter table hat_GKV_Beitraege enable row level security;
 create policy FilterMandant_hatgkvbeitraege
@@ -853,10 +736,7 @@ create table gesetzliche_Krankenkassen (
 	Mandant_ID integer not null,
 	Krankenkasse_gesetzlich varchar(128) not null,
 	Krankenkassenkuerzel varchar(16),
-	unique(Mandant_ID, Krankenkasse_gesetzlich),
-	constraint fk_krankenkassen_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	unique(Mandant_ID, Krankenkasse_gesetzlich)
 );
 create unique index ges_krankenkasse_idx on gesetzliche_Krankenkassen(lower(Krankenkasse_gesetzlich));
 alter table gesetzliche_Krankenkassen enable row level security;
@@ -876,10 +756,7 @@ create table ist_in_GKV(
 			references Mitarbeiter(Mitarbeiter_ID),
 	constraint fk_istingkv_gesetzlichekrankenkassen
 		foreign key (gesetzliche_Krankenkasse_ID)
-			references gesetzliche_Krankenkassen(gesetzliche_Krankenkasse_ID),
-	constraint fk_istingkv_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references gesetzliche_Krankenkassen(gesetzliche_Krankenkasse_ID)
 );
 alter table ist_in_GKV enable row level security;
 create policy FilterMandant_istingkv
@@ -891,10 +768,7 @@ create table GKV_Zusatzbeitraege (
 	Mandant_ID integer not null,
 	GKV_Zusatzbeitrag_AG_Anteil_in_Prozent decimal(5, 3) not null,
 	GKV_Zusatzbeitrag_AN_Anteil_in_Prozent decimal(5, 3) not null,
-	unique(Mandant_ID, GKV_Zusatzbeitrag_AG_Anteil_in_Prozent, GKV_Zusatzbeitrag_AN_Anteil_in_Prozent),
-	constraint fk_gkvzusatzbeitraege_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	unique(Mandant_ID, GKV_Zusatzbeitrag_AG_Anteil_in_Prozent, GKV_Zusatzbeitrag_AN_Anteil_in_Prozent)
 );
 alter table GKV_Zusatzbeitraege enable row level security;
 create policy FilterMandant_gkvzusatzbeitraege
@@ -913,10 +787,7 @@ create table hat_GKV_Zusatzbeitrag (
 			references gesetzliche_Krankenkassen(gesetzliche_Krankenkasse_ID),
 	constraint fk_hatgkvzusatzbeitrag_gkvzusatzbeitraege
 		foreign key (GKV_Zusatzbeitrag_ID)
-			references GKV_Zusatzbeitraege(GKV_Zusatzbeitrag_ID),
-	constraint fk_hatgkvzusatzbeitrag_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references GKV_Zusatzbeitraege(GKV_Zusatzbeitrag_ID)
 );
 alter table hat_GKV_Zusatzbeitrag enable row level security;
 create policy FilterMandant_hatgkvzusatzbeitrag
@@ -930,10 +801,7 @@ create table Umlagen (
 	U2_Umlagesatz_in_Prozent decimal(5, 3) not null,
 	Insolvenzgeldumlagesatz_in_Prozent decimal(5, 3) not null,
 	privat_gesetzlich_oder_anders varchar(16) not null check(privat_gesetzlich_oder_anders in ('privat', 'gesetzlich', 'anders')),
-	unique(Mandant_ID, U1_Umlagesatz_in_Prozent, U2_Umlagesatz_in_Prozent, Insolvenzgeldumlagesatz_in_Prozent, privat_gesetzlich_oder_anders),
-	constraint fk_gkvzusatzbeitraege_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	unique(Mandant_ID, U1_Umlagesatz_in_Prozent, U2_Umlagesatz_in_Prozent, Insolvenzgeldumlagesatz_in_Prozent, privat_gesetzlich_oder_anders)
 );
 alter table Umlagen enable row level security;
 create policy FilterMandant_umlagen
@@ -952,10 +820,7 @@ create table hat_Umlagen_gesetzlich (
 			references gesetzliche_Krankenkassen(gesetzliche_Krankenkasse_ID),
 	constraint fk_hatumlagengesetzlich_umlagen
 		foreign key (Umlage_ID)
-			references Umlagen(Umlage_ID),
-	constraint fk_hatumlagengesetzlich_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references Umlagen(Umlage_ID)
 );
 alter table hat_Umlagen_gesetzlich enable row level security;
 create policy FilterMandant_hatumlagengesetzlich
@@ -974,10 +839,7 @@ create table hat_Umlagen_privat (
 			references Privatkrankenkassen(Privatkrankenkasse_ID),
 	constraint fk_hatumlagenprivat_umlagen
 		foreign key (Umlage_ID)
-			references Umlagen(Umlage_ID),
-	constraint fk_hatumlagenprivat_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references Umlagen(Umlage_ID)
 );
 alter table hat_Umlagen_privat enable row level security;
 create policy FilterMandant_hatumlagenprivat
@@ -996,10 +858,7 @@ create table hat_Umlagen_anderweitig (
 			references gemeldete_Krankenkassen(gemeldete_Krankenkasse_ID),
 	constraint fk_hatumlagenanderweitig_umlagen
 		foreign key (Umlage_ID)
-			references Umlagen(Umlage_ID),
-	constraint fk_hatumlagenanderweitig_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references Umlagen(Umlage_ID)
 );
 alter table hat_Umlagen_anderweitig enable row level security;
 create policy FilterMandant_hatumlagenanderweitig 
@@ -1011,10 +870,7 @@ create table Anzahl_Kinder_unter_25 (
 	Mandant_ID integer not null,
 	Anzahl_Kinder integer not null,
 	juenger_als_23_oder_vor_1940_geboren boolean not null,
-	unique(Mandant_ID, Anzahl_Kinder, juenger_als_23_oder_vor_1940_geboren),
-	constraint fk_anzahlkinderunter25_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	unique(Mandant_ID, Anzahl_Kinder, juenger_als_23_oder_vor_1940_geboren)
 );
 alter table Anzahl_Kinder_unter_25 enable row level security;
 create policy FilterMandant_anzahlkinderunter25
@@ -1033,10 +889,7 @@ create table hat_x_Kinder_unter_25(
 			references Mitarbeiter(Mitarbeiter_ID),
 	constraint fk_hatxKinderunter25_anzahlkinderunter25
 		foreign key (Anzahl_Kinder_unter_25_ID)
-			references Anzahl_Kinder_unter_25(Anzahl_Kinder_unter_25_ID),
-	constraint fk_hatxKinderunter25_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references Anzahl_Kinder_unter_25(Anzahl_Kinder_unter_25_ID)
 );
 alter table hat_x_Kinder_unter_25 enable row level security;
 create policy FilterMandant_hatxKinderunter25
@@ -1049,10 +902,7 @@ create table AN_Pflegeversicherungsbeitraege_gesetzlich (
 	AN_Anteil_PV_Beitrag_in_Prozent decimal(5, 3) not null,
 	Beitragsbemessungsgrenze_PV decimal(10, 2) not null,
 	Jahresarbeitsentgeltgrenze_PV decimal(10, 2) not null,
-	unique(Mandant_ID, AN_Anteil_PV_Beitrag_in_Prozent, Beitragsbemessungsgrenze_PV, Jahresarbeitsentgeltgrenze_PV),
-	constraint fk_anpflegeversicherungsbeitraegegesetzlich_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	unique(Mandant_ID, AN_Anteil_PV_Beitrag_in_Prozent, Beitragsbemessungsgrenze_PV, Jahresarbeitsentgeltgrenze_PV)
 );
 alter table AN_Pflegeversicherungsbeitraege_gesetzlich enable row level security;
 create policy FilterMandant_anpflegeversicherungsbeitraegegesetzlich
@@ -1071,10 +921,7 @@ create table hat_gesetzlichen_AN_PV_Beitragssatz(
 			references Anzahl_Kinder_unter_25(Anzahl_Kinder_unter_25_ID),
 	constraint fk_hatgesetzlichenanpvbeitragssatz_anpflegeversicherungsbeitraegegesetzlich
 		foreign key (AN_PV_Beitrag_ID)
-			references AN_Pflegeversicherungsbeitraege_gesetzlich(AN_PV_Beitrag_ID),
-	constraint fk_hatgesetzlichenanpvbeitragssatz_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references AN_Pflegeversicherungsbeitraege_gesetzlich(AN_PV_Beitrag_ID)
 );
 alter table hat_gesetzlichen_AN_PV_Beitragssatz enable row level security;
 create policy FilterMandant_hatgesetzlichenanpvbeitragssatz
@@ -1085,10 +932,7 @@ create table Arbeitsort_Sachsen(
 	Arbeitsort_Sachsen_ID serial primary key,
 	Mandant_ID integer not null,
 	in_Sachsen boolean not null,
-	unique(Mandant_ID, in_Sachsen),
-	constraint fk_arbeitsortsachsen_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	unique(Mandant_ID, in_Sachsen)
 );
 alter table Arbeitsort_Sachsen enable row level security;
 create policy FilterMandant_arbeitsortsachsen
@@ -1107,10 +951,7 @@ create table arbeitet_in_sachsen(
 			references Mitarbeiter(Mitarbeiter_ID),
 	constraint fk_arbeitetinsachsen_wohnhaftsachsen
 		foreign key (arbeitsort_Sachsen_ID)
-			references arbeitsort_sachsen(arbeitsort_Sachsen_ID),
-	constraint fk_arbeitetinsachsen_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references arbeitsort_sachsen(arbeitsort_Sachsen_ID)
 );
 alter table arbeitet_in_sachsen enable row level security;
 create policy FilterMandant_arbeitetinsachsen
@@ -1121,10 +962,7 @@ create table AG_Pflegeversicherungsbeitraege_gesetzlich (
 	AG_PV_Beitrag_ID serial primary key,
 	Mandant_ID integer not null,
 	AG_Anteil_PV_Beitrag_in_Prozent decimal(5, 3) not null,
-	unique(Mandant_ID, AG_Anteil_PV_Beitrag_in_Prozent),
-	constraint fk_agpflegeversicherungsbeitraegegesetzlich_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	unique(Mandant_ID, AG_Anteil_PV_Beitrag_in_Prozent)
 );
 alter table AG_Pflegeversicherungsbeitraege_gesetzlich enable row level security;
 create policy FilterMandant_agpflegeversicherungsbeitraegegesetzlich
@@ -1143,10 +981,7 @@ create table hat_gesetzlichen_AG_PV_Beitragssatz(
 			references arbeitsort_sachsen(Arbeitsort_Sachsen_ID),	
 	constraint fk_hatgesetzlichenagpvbeitragssatz_agpflegeversicherungsbeitraegegesetzlich
 		foreign key (AG_PV_Beitrag_ID)
-			references AG_Pflegeversicherungsbeitraege_gesetzlich(AG_PV_Beitrag_ID),	
-	constraint fk_hatgesetzlichenagpvbeitragssatz_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references AG_Pflegeversicherungsbeitraege_gesetzlich(AG_PV_Beitrag_ID)
 );
 alter table hat_gesetzlichen_AG_PV_Beitragssatz enable row level security;
 create policy FilterMandant_hatgesetzlichenagpvbeitragssatz
@@ -1155,10 +990,7 @@ create policy FilterMandant_hatgesetzlichenagpvbeitragssatz
 
 create table Arbeitslosenversicherungen (
 	Arbeitslosenversicherung_ID serial primary key,
-	Mandant_ID integer not null,
-	constraint fk_arbeitslosenversicherungen_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	Mandant_ID integer not null
 );
 alter table Arbeitslosenversicherungen enable row level security;
 create policy FilterMandant_arbeitslosenversicherungen
@@ -1177,10 +1009,7 @@ create table hat_gesetzliche_Arbeitslosenversicherung(
 			references Mitarbeiter(Mitarbeiter_ID),
 	constraint fk_hatgesetzlichearbeitslosenversicherung_arbeitslosenversicherungen
 		foreign key (Arbeitslosenversicherung_ID)
-			references Arbeitslosenversicherungen(Arbeitslosenversicherung_ID),
-	constraint fk_hatgesetzlichearbeitslosenversicherung_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references Arbeitslosenversicherungen(Arbeitslosenversicherung_ID)
 );
 alter table hat_gesetzliche_Arbeitslosenversicherung enable row level security;
 create policy FilterMandant_hatgesetzlichearbeitslosenversicherung
@@ -1194,10 +1023,7 @@ create table Arbeitslosenversicherungsbeitraege(
 	AN_Arbeitslosenversicherungsbeitrag_in_Prozent decimal(5, 3) not null,
 	Beitragsbemessungsgrenze_AV_Ost decimal(10, 2) not null,
 	Beitragsbemessungsgrenze_AV_West decimal(10, 2) not null,
-	unique(Mandant_ID, AG_Arbeitslosenversicherungsbeitrag_in_Prozent, AN_Arbeitslosenversicherungsbeitrag_in_Prozent, Beitragsbemessungsgrenze_AV_Ost, Beitragsbemessungsgrenze_AV_West),
-	constraint fk_arbeitslosenversicherungsbeitraege_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	unique(Mandant_ID, AG_Arbeitslosenversicherungsbeitrag_in_Prozent, AN_Arbeitslosenversicherungsbeitrag_in_Prozent, Beitragsbemessungsgrenze_AV_Ost, Beitragsbemessungsgrenze_AV_West)
 );
 alter table Arbeitslosenversicherungsbeitraege enable row level security;
 create policy FilterMandant_arbeitslosenversicherungsbeitraege
@@ -1216,10 +1042,7 @@ create table hat_AV_Beitraege (
 			references Arbeitslosenversicherungen(Arbeitslosenversicherung_ID),
 	constraint fk_hatavbeitraege_arbeitslosenversicherungsbeitraege
 		foreign key (Arbeitslosenversicherungsbeitrag_ID)
-			references Arbeitslosenversicherungsbeitraege(Arbeitslosenversicherungsbeitrag_ID),
-	constraint fk_hatavbeitraege_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references Arbeitslosenversicherungsbeitraege(Arbeitslosenversicherungsbeitrag_ID)
 );
 alter table hat_AV_Beitraege enable row level security;
 create policy FilterMandant_hatavbeitraege
@@ -1228,10 +1051,7 @@ create policy FilterMandant_hatavbeitraege
 
 create table Rentenversicherungen (
 	Rentenversicherung_ID serial primary key,
-	Mandant_ID integer not null,
-	constraint fk_rentenversicherungen_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	Mandant_ID integer not null
 );
 alter table Rentenversicherungen enable row level security;
 create policy FilterMandant_rentenversicherungen
@@ -1250,10 +1070,7 @@ create table hat_gesetzliche_Rentenversicherung(
 			references Mitarbeiter(Mitarbeiter_ID),
 	constraint fk_hatgesetzlicherentenversicherung_rentenversicherungen
 		foreign key (Rentenversicherung_ID)
-			references Rentenversicherungen(Rentenversicherung_ID),
-	constraint fk_hatgesetzlicherentenversicherung_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references Rentenversicherungen(Rentenversicherung_ID)
 );
 alter table hat_gesetzliche_Rentenversicherung enable row level security;
 create policy FilterMandant_hatgesetzlicherentenversicherung
@@ -1267,10 +1084,7 @@ create table Rentenversicherungsbeitraege (
 	AN_Rentenversicherungsbeitrag_in_Prozent decimal(5, 3) not null,
 	Beitragsbemessungsgrenze_RV_Ost decimal(10, 2) not null,
 	Beitragsbemessungsgrenze_RV_West decimal(10, 2) not null,
-	unique(Mandant_ID, AG_Rentenversicherungsbeitrag_in_Prozent, AN_Rentenversicherungsbeitrag_in_Prozent, Beitragsbemessungsgrenze_RV_Ost, Beitragsbemessungsgrenze_RV_West),
-	constraint fk_rentenversicherungsbeitraege_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+	unique(Mandant_ID, AG_Rentenversicherungsbeitrag_in_Prozent, AN_Rentenversicherungsbeitrag_in_Prozent, Beitragsbemessungsgrenze_RV_Ost, Beitragsbemessungsgrenze_RV_West)
 );
 alter table Rentenversicherungsbeitraege enable row level security;
 create policy FilterMandant_rentenversicherungsbeitraege
@@ -1289,10 +1103,7 @@ create table hat_RV_Beitraege(
 			references Rentenversicherungen(Rentenversicherung_ID),
 	constraint fk_hatrvbeitraege_rentenversicherungsbeitraegegesetzlich
 		foreign key (Rentenversicherungsbeitrag_ID)
-			references Rentenversicherungsbeitraege(Rentenversicherungsbeitrag_ID),
-	constraint fk_hatrvbeitraege_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references Rentenversicherungsbeitraege(Rentenversicherungsbeitrag_ID)
 );
 alter table hat_RV_Beitraege enable row level security;
 create policy FilterMandant_hatrvbeitraege
@@ -1304,10 +1115,7 @@ create table Minijobs(
 	Mandant_ID integer not null,
 	kurzfristig_beschaeftigt boolean not null,
 	AN_Rentenpauschale boolean not null,
-	unique(Mandant_ID, kurzfristig_beschaeftigt, AN_Rentenpauschale),
-	constraint fk_minijob_mandanten
-		foreign key(Mandant_ID)
-			references Mandanten(Mandant_ID)
+	unique(Mandant_ID, kurzfristig_beschaeftigt, AN_Rentenpauschale)
 );
 alter table Minijobs enable row level security;
 create policy FilterMandant_minijobs
@@ -1326,10 +1134,7 @@ create table ist_Minijobber(
 			references Mitarbeiter(Mitarbeiter_ID),
 	constraint fk_istminijobber_minijob
 		foreign key (Minijob_ID)
-			references Minijobs(Minijob_ID),
-	constraint fk_istminijobber_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references Minijobs(Minijob_ID)
 );
 alter table ist_Minijobber enable row level security;
 create policy FilterMandant_istminijobber
@@ -1347,10 +1152,7 @@ create table Pauschalabgaben(
 	Insolvenzgeldumlage_in_Prozent decimal(5, 3) not null,
 	Pauschalsteuer_in_Prozent decimal(5, 3) not null,
 	unique(Mandant_ID, AG_Krankenversicherungspauschale_in_Prozent, AG_Rentenversicherungspauschale_in_Prozent, AN_Rentenversicherungspauschale_in_Prozent, 
-		   U1_Umlage_in_Prozent, U2_Umlage_in_Prozent, Insolvenzgeldumlage_in_Prozent, Pauschalsteuer_in_Prozent),
-	constraint fk_Pauschalabgaben_mandanten
-		foreign key(Mandant_ID)
-			references Mandanten(Mandant_ID)
+		   U1_Umlage_in_Prozent, U2_Umlage_in_Prozent, Insolvenzgeldumlage_in_Prozent, Pauschalsteuer_in_Prozent)
 );
 alter table Pauschalabgaben enable row level security;
 create policy FilterMandant_pauschalabgaben
@@ -1369,10 +1171,7 @@ create table hat_Pauschalabgaben(
 			references Minijobs(Minijob_ID),
 	constraint fk_hatpauschalabgaben_pauschalabgaben
 		foreign key (Pauschalabgabe_ID)
-			references Pauschalabgaben(Pauschalabgabe_ID),
-	constraint fk_hatpauschalabgaben_mandanten
-		foreign key (Mandant_ID) 
-			references Mandanten(Mandant_ID)
+			references Pauschalabgaben(Pauschalabgabe_ID)
 );
 alter table hat_Pauschalabgaben enable row level security;
 create policy FilterMandant_hatpauschalabgaben

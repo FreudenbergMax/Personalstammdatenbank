@@ -529,6 +529,25 @@ class TestRLS(unittest.TestCase):
         ergebnis = self.nutzer2.abfrage_ausfuehren("SELECT count(*) FROM steuerklassen")
         self.assertEqual(str(ergebnis), "[(0,)]")
 
+    def test_aenderung_mandant_id_nicht_moeglich(self):
+        """
+        Test prueft, ob das Datenbanksystem eine Fehlermeldung ausgibt, wenn ein Nutzer versucht, bei Datensaetzen einer
+        Tabelle die Mandant_ID zu aendern
+        """
+        # Test bei einer Tabelle, wo Mandant_ID Fremdschluessel ist
+        with self.assertRaises(Exception) as context:
+            self.nutzer.abfrage_ausfuehren("UPDATE mitarbeiter SET mandant_id = 2")
+
+        self.assertEqual(str(context.exception), "FEHLER:  neue Zeile verletzt Policy für Sicherheit auf Zeilenebene "
+                                                 "für Tabelle »mitarbeiter«\n")
+
+        # Test bei einer Tabelle, wo Mandant_ID kein Fremdschluessel ist
+        with self.assertRaises(Exception) as context:
+            self.nutzer.abfrage_ausfuehren("UPDATE abteilungen SET mandant_id = 2")
+
+        self.assertEqual(str(context.exception), "FEHLER:  neue Zeile verletzt Policy für Sicherheit auf Zeilenebene "
+                                                 "für Tabelle »abteilungen«\n")
+
     def tearDown(self):
         """
         Methode ruft Funktion 'test_tear_down' auf, welches das Datenbankschema 'temp_test_schema' mit allen Daten
