@@ -84,7 +84,7 @@ class Administrator:
         """
         nutzer = Nutzer(self.mandant.get_mandant_id(), personalnummer, vorname, nachname, passwort,
                         passwort_wiederholen, self.schema)
-        nutzer.get_neues_passwort_geaendert = False
+
         self.mandant.get_nutzerliste().append(nutzer)
 
     def nutzer_entsperren(self, personalnummer, neues_passwort, neues_passwort_wiederholen):

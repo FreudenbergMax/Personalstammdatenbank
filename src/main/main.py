@@ -1,7 +1,7 @@
 from src.main.Login import Login
 
 """
-Diese main-Funktion dient nur als Beispiel, wie man Daten in die Datenbank eintragen kann.
+Diese main-Funktion dient nur als Beispiel, wie man Daten in die Datenbank im Schema "public" eintragen kann.
 """
 
 # Erstellung eines Mandanten, Administrator und Nutzer
@@ -12,11 +12,11 @@ admin = login.login_admin('Testfirma', 'mandantenpw', 'M100000', 'adminpw')
 admin.nutzer_anlegen("M100001", "Erika", "Musterfrau", "nutzerpw", "nutzerpw")
 
 nutzer = login.login_nutzer('Testfirma', 'mandantenpw', "M100001", "nutzerpw")
-
+nutzer.passwort_aendern("neues_nutzerpw", "neues_nutzerpw")
 
 insert_personenbezogene_daten = "1 insert personenbezogene Daten"
 insert_sozialversicherungsdaten = "2 insert Sozialversicherungsdaten"
-insert_tarifliche_entgeltdaten = "3 insert tarifliche Entgeltdaten"
+insert_tarifliche_entgeltdaten = "3 insert Entgeltdaten"
 neuen_mitarbeiter_anlegen = "4 neuen Mitarbeiter anlegen"
 
 
@@ -24,10 +24,11 @@ neuen_mitarbeiter_anlegen = "4 neuen Mitarbeiter anlegen"
 nutzer.insert_geschlecht(f'{insert_personenbezogene_daten}/1 Geschlecht.xlsx')
 nutzer.insert_mitarbeitertyp(f'{insert_personenbezogene_daten}/2 Mitarbeitertyp.xlsx')
 nutzer.insert_steuerklasse(f'{insert_personenbezogene_daten}/3 Steuerklasse.xlsx')
-nutzer.insert_abteilung(f'{insert_personenbezogene_daten}/4 Abteilung.xlsx')
+nutzer.insert_abteilung(f'{insert_personenbezogene_daten}/4.1 Abteilung.xlsx')
+nutzer.insert_abteilung(f'{insert_personenbezogene_daten}/4.2 Abteilung.xlsx')
 nutzer.insert_jobtitel(f'{insert_personenbezogene_daten}/5 Jobtitel.xlsx')
 nutzer.insert_erfahrungsstufe(f'{insert_personenbezogene_daten}/6 Erfahrungsstufe.xlsx')
-nutzer.insert_gesellschaft(f'{insert_personenbezogene_daten}/7 Gesellschaft.xlsx')
+nutzer.insert_unternehmen(f'{insert_personenbezogene_daten}/7 Unternehmen.xlsx')
 nutzer.insert_austrittsgrundkategorie(f'{insert_personenbezogene_daten}/8 Austrittsgrundkategorie.xlsx')
 nutzer.insert_austrittsgrund(f'{insert_personenbezogene_daten}/9 Austrittsgrund.xlsx')
 
@@ -53,9 +54,6 @@ nutzer.insert_tarifliches_verguetungsbestandteil(f'{insert_tarifliche_entgeltdat
 # zentrale Funktion: neuen Mitarbeiter anlegen!
 nutzer.insert_neuer_mitarbeiter(f'{neuen_mitarbeiter_anlegen}/1 Mitarbeiter.xlsx')
 
-# Entgeltbestandteil fuer aussertariflichen Mitarbeiter anlegen
-nutzer.insert_aussertarifliches_verguetungsbestandteil(f'{neuen_mitarbeiter_anlegen}/2 aussertariflicher Verguetungsbestandteil.xlsx')
-
 # Update personenbezogene Daten
 nutzer.update_adresse('update personenbezogene Daten/1 Update Adresse.xlsx')
 nutzer.update_mitarbeiterentlassung('update personenbezogene Daten/2 Update Mitarbeiterentlassung.xlsx')
@@ -63,9 +61,3 @@ nutzer.update_erstelle_abteilungshierarchie('update personenbezogene Daten/3 Upd
 
 # Update Sozialversicherungsdaten
 nutzer.update_krankenversicherungsbeitraege('update Sozialversicherungsdaten/1 Krankenversicherungsbeitraege.xlsx')
-
-
-
-
-
-

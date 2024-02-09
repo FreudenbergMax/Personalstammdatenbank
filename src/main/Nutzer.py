@@ -42,7 +42,7 @@ class Nutzer:
         self.vorname = str(vorname)
         self.nachname = str(nachname)
         self.nutzer_id = self._in_datenbank_anlegen(str(passwort))
-        self.neues_passwort_geaendert = True
+        self.neues_passwort_geaendert = False
 
     def get_nutzer_id(self):
         return self.nutzer_id
@@ -55,9 +55,6 @@ class Nutzer:
 
     def get_nachname(self):
         return self.nachname
-
-    def get_neues_passwort_geaendert(self):
-        return self.neues_passwort_geaendert
 
     def _in_datenbank_anlegen(self, passwort):
         """
