@@ -271,7 +271,7 @@ create policy FilterMandant_hat_geschlecht
 create table Mitarbeitertypen (
 	Mitarbeitertyp_ID serial primary key,
 	Mandant_ID integer not null,
-	Mitarbeitertyp varchar(32),
+	Mitarbeitertyp varchar(32) not null,
 	unique(Mandant_ID, Mitarbeitertyp),
 	constraint fk_mitarbeitertypen_mandanten
 		foreign key (Mandant_ID) 
@@ -1106,8 +1106,8 @@ create table arbeitet_in_sachsen(
 		foreign key (Mitarbeiter_ID)
 			references Mitarbeiter(Mitarbeiter_ID),
 	constraint fk_arbeitetinsachsen_wohnhaftsachsen
-		foreign key (arbeitsort_sachsen_ID)
-			references arbeitsort_sachsen(arbeitsort_sachsen_ID),
+		foreign key (arbeitsort_Sachsen_ID)
+			references arbeitsort_sachsen(arbeitsort_Sachsen_ID),
 	constraint fk_arbeitetinsachsen_mandanten
 		foreign key (Mandant_ID) 
 			references Mandanten(Mandant_ID)
@@ -1137,10 +1137,10 @@ create table hat_gesetzlichen_AG_PV_Beitragssatz(
 	Mandant_ID integer not null,
 	Datum_Von date not null,
 	Datum_Bis date not null,
-	primary key (arbeitsort_sachsen_ID, Datum_Bis),
+	primary key (Arbeitsort_Sachsen_ID, Datum_Bis),
 	constraint fk_hatgesetzlichenagpvbeitragssatz_arbeitsortsachsen
-		foreign key (arbeitsort_sachsen_ID)
-			references arbeitsort_sachsen(arbeitsort_sachsen_ID),	
+		foreign key (Arbeitsort_Sachsen_ID)
+			references arbeitsort_sachsen(Arbeitsort_Sachsen_ID),	
 	constraint fk_hatgesetzlichenagpvbeitragssatz_agpflegeversicherungsbeitraegegesetzlich
 		foreign key (AG_PV_Beitrag_ID)
 			references AG_Pflegeversicherungsbeitraege_gesetzlich(AG_PV_Beitrag_ID),	
@@ -1304,7 +1304,7 @@ create table Minijobs(
 	Mandant_ID integer not null,
 	kurzfristig_beschaeftigt boolean not null,
 	AN_Rentenpauschale boolean not null,
-	unique(Mandant_ID, kurzfristig_beschaeftigt),
+	unique(Mandant_ID, kurzfristig_beschaeftigt, AN_Rentenpauschale),
 	constraint fk_minijob_mandanten
 		foreign key(Mandant_ID)
 			references Mandanten(Mandant_ID)
